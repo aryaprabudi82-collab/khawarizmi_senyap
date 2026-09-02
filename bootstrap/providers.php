@@ -10,4 +10,5 @@ return [
     App\Modules\Organization\Providers\OrganizationServiceProvider::class,
     App\Modules\Identity\Providers\IdentityServiceProvider::class,
     App\Modules\Encounter\Providers\EncounterServiceProvider::class,
+    App\Modules\Clinical\Providers\ClinicalServiceProvider::class,
 ];

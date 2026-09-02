@@ -34,7 +34,7 @@ return [
             'description' => 'Pengguna, peran, katalog permission, sesi, dan jejak audit.',
             'domains'     => ['U'],
             'publishes'   => [
-                'v_user_summary' => 'id, username, nama, aktif — untuk kolom "dibuat oleh" di konteks lain.',
+                'v_user_summary' => 'id, username, nip, nama, aktif — untuk kolom "dicatat oleh" di konteks lain.',
             ],
         ],
 
@@ -51,7 +51,10 @@ return [
             'module'      => 'Organization',
             'description' => 'Unit layanan, poliklinik, ruang, bangsal, dan praktisi (SIP, spesialisasi, periode aktif).',
             'domains'     => ['U', 'C'],
-            'publishes'   => [],
+            'publishes'   => [
+                'v_unit_summary' => 'Unit layanan aktif berikut kuota hariannya.',
+                'v_practitioner_summary' => 'Praktisi berikut spesialisasi dan masa aktifnya.',
+            ],
         ],
 
         'identity' => [
@@ -59,7 +62,9 @@ return [
             'module'      => 'Identity',
             'description' => 'Master pasien, penomoran rekam medis, resolusi identitas dan deduplikasi.',
             'domains'     => ['M'],
-            'publishes'   => [],
+            'publishes'   => [
+                'v_patient_summary' => 'Identitas ringkas pasien berikut penanda perhatian khusus.',
+            ],
         ],
 
         'encounter' => [
@@ -67,7 +72,23 @@ return [
             'module'      => 'Encounter',
             'description' => 'Registrasi, booking, antrean, dan penetapan DPJP.',
             'domains'     => ['A'],
-            'publishes'   => [],
+            'publishes'   => [
+                'v_registration_summary' => 'Kunjungan aktif berikut pasien, unit, dokter, dan penjaminnya. '
+                    . 'Dipakai clinical, order, pharmacy, dan billing sebagai konteks kunjungan.',
+            ],
+        ],
+
+        'clinical' => [
+            'schema'      => 'clinical',
+            'module'      => 'Clinical',
+            'description' => 'Rekam medis elektronik: asesmen, SOAP, tanda vital, diagnosis, dan alergi. '
+                . 'Mengacu Permenkes 24/2022.',
+            'domains'     => ['M'],
+            'publishes'   => [
+                'v_patient_allergy' => 'Alergi aktif per pasien. Dipakai pharmacy untuk telaah resep.',
+                'v_encounter_diagnosis' => 'Diagnosis per kunjungan berikut kode ICD-10. '
+                    . 'Dipakai billing untuk pengajuan klaim.',
+            ],
         ],
 
     ],
@@ -77,7 +98,6 @@ return [
     | supaya batasnya dipikirkan sejak awal, bukan ditemukan saat kepepet.
     */
     'planned' => [
-        'clinical'       => ['schema' => 'clinical',       'domains' => ['M'],      'description' => 'Asesmen, SOAP, diagnosis, alergi, tindakan.'],
         'order'          => ['schema' => 'orders',         'domains' => ['M', 'B'], 'description' => 'Siklus permintaan penunjang: order, sampel, hasil. Lab dan radiologi.'],
         'pharmacy'       => ['schema' => 'pharmacy',       'domains' => ['D'],      'description' => 'Resep, telaah, penyerahan, stok dengan batch dan kedaluwarsa.'],
         'billing'        => ['schema' => 'billing',        'domains' => ['I'],      'description' => 'Charge, tagihan, deposit, piutang, pembayaran.'],

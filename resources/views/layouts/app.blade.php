@@ -41,6 +41,11 @@
             <a class="nav-link" href="{{ route('registrasi.index') }}">Pendaftaran</a>
           </li>
         @endcan
+        @can('penilaian_awal_medis_ralan')
+          <li class="nav-item {{ request()->routeIs('rme.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('rme.index') }}">Rekam Medis</a>
+          </li>
+        @endcan
         @can('pasien')
           <li class="nav-item {{ request()->routeIs('pasien.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('pasien.index') }}">Pasien</a>
