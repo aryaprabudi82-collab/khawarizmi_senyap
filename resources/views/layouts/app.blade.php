@@ -85,6 +85,19 @@
             <a class="nav-link" href="{{ route('pasien.index') }}">Pasien</a>
           </li>
         @endcan
+        @canany(['bpjs_cek_kartu', 'satu_sehat_referensi_pasien'])
+          <li class="nav-item dropdown {{ request()->routeIs('integrasi.*') ? 'active' : '' }}">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Integrasi</a>
+            <div class="dropdown-menu">
+              @can('bpjs_cek_kartu')
+                <a class="dropdown-item" href="{{ route('integrasi.bpjs.index') }}">BPJS</a>
+              @endcan
+              @can('satu_sehat_referensi_pasien')
+                <a class="dropdown-item" href="{{ route('integrasi.satusehat.index') }}">SATUSEHAT</a>
+              @endcan
+            </div>
+          </li>
+        @endcanany
       </ul>
 
       <div class="navbar-nav flex-row order-md-last">

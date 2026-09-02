@@ -35,4 +35,26 @@ return [
         ],
     ],
 
+    /*
+    | Kredensial VClaim BPJS dan SATUSEHAT. Kosong sampai faskes terdaftar
+    | dan kredensial diterbitkan — selama itu App\Modules\Integration\
+    | Providers\IntegrationServiceProvider otomatis memakai adapter palsu
+    | (FakeBpjsClient / FakeSatusehatClient), bukan gagal boot.
+    */
+    'bpjs' => [
+        'base_url' => env('BPJS_VCLAIM_BASE_URL'),
+        'cons_id' => env('BPJS_CONS_ID'),
+        'secret_key' => env('BPJS_SECRET_KEY'),
+        'user_key' => env('BPJS_USER_KEY'),
+        'ppk_code' => env('BPJS_PPK_CODE'),
+    ],
+
+    'satusehat' => [
+        'base_url' => env('SATUSEHAT_BASE_URL'),
+        'auth_url' => env('SATUSEHAT_AUTH_URL'),
+        'client_id' => env('SATUSEHAT_CLIENT_ID'),
+        'client_secret' => env('SATUSEHAT_CLIENT_SECRET'),
+        'organization_id' => env('SATUSEHAT_ORG_ID'),
+    ],
+
 ];

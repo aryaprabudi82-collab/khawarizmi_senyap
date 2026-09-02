@@ -141,5 +141,22 @@
         "extra_permissions": [
             "bayar_piutang"
         ]
+    },
+    {
+        "code": "petugas-integrasi",
+        "name": "Petugas Integrasi BPJS/SATUSEHAT",
+        "description": "Eligibilitas dan SEP BPJS, sinkronisasi Patient/Encounter/Condition SATUSEHAT, dan pemetaan ID eksternal.",
+        "_catatan_scope": "Domain L Khanza berisi 182 kapabilitas (VClaim, PCare, INACBG, SATUSEHAT, host-to-host bank, Sisrute, dst.) untuk seluruh permukaan integrasi RS, jauh lebih luas dari yang sudah dibangun. Sengaja tanpa 'contexts' supaya peran ini tidak diam-diam kebagian kapabilitas fitur integrasi yang belum ada layarnya (klaim INACBG, PCare, dsb.) — extra_permissions dibatasi persis pada yang sudah dikerjakan Wave 1 ini: cek eligibilitas dan SEP rawat jalan BPJS, sinkronisasi tiga resource SATUSEHAT (Patient/Encounter/Condition), dan pemetaan poli/praktisi/lokasi ke ID eksternal.",
+        "contexts": [],
+        "extra_permissions": [
+            "bpjs_cek_kartu",
+            "bpjs_sep",
+            "mapping_poli_bpjs",
+            "satu_sehat_referensi_pasien",
+            "satu_sehat_kirim_encounter",
+            "satu_sehat_kirim_condition",
+            "satu_sehat_referensi_dokter",
+            "satu_sehat_mapping_lokasi"
+        ]
     }
 ]

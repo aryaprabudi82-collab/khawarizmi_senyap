@@ -15,4 +15,5 @@ return [
     App\Modules\Order\Providers\OrderServiceProvider::class,
     App\Modules\Billing\Providers\BillingServiceProvider::class,
     App\Modules\Finance\Providers\FinanceServiceProvider::class,
+    App\Modules\Integration\Providers\IntegrationServiceProvider::class,
 ];

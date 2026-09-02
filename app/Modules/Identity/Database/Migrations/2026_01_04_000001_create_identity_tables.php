@@ -115,9 +115,23 @@ return new class extends Migration
         });
 
         // Kontrak baca untuk konteks lain.
+        //
+        // Kolom alamat/wilayah, birth_place/email, dan updated_at ditambahkan
+        // untuk konteks integration: resource Patient SATUSEHAT (FHIR)
+        // mensyaratkan alamat terstruktur dan tempat lahir, bukan cuma
+        // identitas ringkas yang dibutuhkan encounter/clinical/pharmacy.
+        // updated_at dipakai sebagai source_event_at pada ledger pengiriman —
+        // beda dari registrasi/diagnosis yang sekali dicatat lalu tidak
+        // berubah, data pasien memang bisa disunting (koreksi nama, alamat
+        // pindah), jadi sinkronisasi ulang perlu tercatat sebagai baris baru
+        // tiap kali datanya benar-benar berubah, bukan cuma sekali di awal.
+        // Penambahan kolom bersifat aditif, tidak mengubah bentuk yang sudah
+        // dipakai konsumen lama.
         DB::statement('CREATE VIEW ' . self::S . '.v_patient_summary AS
-            SELECT id, medical_record_number, nik, name, sex, birth_date,
-                   phone, special_precautions, special_precautions_color
+            SELECT id, medical_record_number, nik, name, sex, birth_place, birth_date,
+                   phone, email, address, rt_rw, village_code, village_name,
+                   district_name, city_name, province_name, postal_code,
+                   special_precautions, special_precautions_color, updated_at
             FROM ' . self::S . '.patients
             WHERE deleted_at IS NULL');
     }

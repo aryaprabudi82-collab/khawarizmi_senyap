@@ -66,7 +66,8 @@ return [
             'description' => 'Master pasien, penomoran rekam medis, resolusi identitas dan deduplikasi.',
             'domains'     => ['M'],
             'publishes'   => [
-                'v_patient_summary' => 'Identitas ringkas pasien berikut penanda perhatian khusus.',
+                'v_patient_summary' => 'Identitas pasien berikut alamat terstruktur dan penanda perhatian khusus. '
+                    . 'Alamat/wilayah dipakai integration untuk menyusun resource Patient SATUSEHAT.',
             ],
         ],
 
@@ -141,6 +142,18 @@ return [
             'publishes'   => [],
         ],
 
+        'integration' => [
+            'schema'      => 'integration',
+            'module'      => 'Integration',
+            'description' => 'Adapter BPJS (VClaim: eligibilitas, SEP) dan SATUSEHAT (FHIR: Patient, Encounter, '
+                . 'Condition). Tabel pemetaan identitas internal-ke-eksternal dan ledger pengiriman idempoten.',
+            'domains'     => ['L'],
+            'publishes'   => [
+                'v_bpjs_sep_status' => 'SEP yang masih berlaku (diajukan/terbit) per kunjungan. '
+                    . 'Dipakai encounter/billing untuk menampilkan status BPJS tanpa menyimpan salinannya sendiri.',
+            ],
+        ],
+
     ],
 
     /*
@@ -148,7 +161,6 @@ return [
     | supaya batasnya dipikirkan sejak awal, bukan ditemukan saat kepepet.
     */
     'planned' => [
-        'integration'    => ['schema' => 'integration',    'domains' => ['L'],      'description' => 'Adapter BPJS, SATUSEHAT, INACBG, LIS, PACS. Tabel pemetaan dan ledger pengiriman.'],
         'reporting'      => ['schema' => 'reporting',      'domains' => ['J', 'O'], 'description' => 'Read model untuk laporan regulasi dan dashboard manajemen.'],
         'hr'             => ['schema' => 'hr',             'domains' => ['C'],      'description' => 'Pegawai, presensi, jadwal, penggajian.'],
         'inventory'      => ['schema' => 'inventory',      'domains' => ['E'],      'description' => 'Barang non-medis dan penunjang.'],
