@@ -91,6 +91,16 @@ return [
             ],
         ],
 
+        'pharmacy' => [
+            'schema'      => 'pharmacy',
+            'module'      => 'Pharmacy',
+            'description' => 'Resep, telaah apoteker, penyerahan, dan stok dengan batch serta kedaluwarsa.',
+            'domains'     => ['D'],
+            'publishes'   => [
+                'v_prescription_charge' => 'Obat yang sudah diserahkan berikut nilainya. Dipakai billing untuk menarik biaya obat ke tagihan kunjungan.',
+            ],
+        ],
+
     ],
 
     /*
@@ -99,7 +109,6 @@ return [
     */
     'planned' => [
         'order'          => ['schema' => 'orders',         'domains' => ['M', 'B'], 'description' => 'Siklus permintaan penunjang: order, sampel, hasil. Lab dan radiologi.'],
-        'pharmacy'       => ['schema' => 'pharmacy',       'domains' => ['D'],      'description' => 'Resep, telaah, penyerahan, stok dengan batch dan kedaluwarsa.'],
         'billing'        => ['schema' => 'billing',        'domains' => ['I'],      'description' => 'Charge, tagihan, deposit, piutang, pembayaran.'],
         'finance'        => ['schema' => 'finance',        'domains' => ['K'],      'description' => 'Akun, jurnal, buku besar, arus kas.'],
         'integration'    => ['schema' => 'integration',    'domains' => ['L'],      'description' => 'Adapter BPJS, SATUSEHAT, INACBG, LIS, PACS. Tabel pemetaan dan ledger pengiriman.'],

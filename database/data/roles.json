@@ -23,6 +23,26 @@
         ],
         "extra_permissions": [
             "pasien"
+        ],
+        "_catatan_exclusion": "Domain A Khanza mencampur menu registrasi dengan resep, operasi, dan periksa lab/radiologi dalam satu grup. Dikecualikan di sini supaya petugas loket tidak diam-diam kebagian kapabilitas klinis/farmasi.",
+        "excluded_permissions": [
+            "beri_obat",
+            "resep_obat",
+            "resep_pulang",
+            "operasi",
+            "periksa_lab",
+            "periksa_radiologi",
+            "pemeriksaan_lab_mb",
+            "pemeriksaan_lab_pa",
+            "tindakan_ralan",
+            "tindakan_ranap",
+            "igd",
+            "billing_ralan",
+            "deteksi_corona",
+            "layanan_program_kfr",
+            "sekrining_rawat_jalan",
+            "diet_pasien",
+            "dpjp_ranap"
         ]
     },
     {
@@ -43,7 +63,9 @@
         ],
         "extra_permissions": [
             "pasien",
-            "registrasi"
+            "registrasi",
+            "resep_obat",
+            "penilaian_awal_medis_ralan"
         ]
     },
     {
@@ -56,7 +78,27 @@
         ],
         "extra_permissions": [
             "pasien",
-            "registrasi"
+            "registrasi",
+            "penilaian_awal_keperawatan_ralan"
+        ],
+        "_catatan_exclusion": "Menulis resep dan tindakan operasi bukan kewenangan perawat, meski ikut kebawa dari context encounter yang bercampur.",
+        "excluded_permissions": [
+            "resep_obat",
+            "resep_pulang",
+            "operasi",
+            "billing_ralan"
+        ]
+    },
+    {
+        "code": "apoteker",
+        "name": "Apoteker",
+        "description": "Telaah resep, penyerahan obat, dan pengelolaan stok farmasi.",
+        "contexts": [
+            "pharmacy"
+        ],
+        "extra_permissions": [
+            "beri_obat",
+            "resep_obat"
         ]
     }
 ]

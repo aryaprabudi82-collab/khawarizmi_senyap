@@ -60,6 +60,16 @@ class RoleSeeder extends Seeder
                         $q->orWhereIn('code', $definition['extra_permissions']);
                     }
                 })
+                // Pengecualian eksplisit dari dalam konteks peran. Diperlukan karena
+                // arahnya juga terjadi: domain A Khanza ("Registrasi & Pelayanan")
+                // adalah satu menu datar yang mencampur registrasi dengan resep,
+                // operasi, dan periksa lab/radiologi. Konteks 'encounter' mewarisi
+                // campuran itu dari pemetaan per-domain, jadi peran pendaftaran
+                // butuh pengecualian eksplisit supaya tidak diam-diam kebagian
+                // kapabilitas klinis/farmasi.
+                ->when(! empty($definition['excluded_permissions']), function ($q) use ($definition) {
+                    $q->whereNotIn('code', $definition['excluded_permissions']);
+                })
                 ->pluck('code')
                 ->all();
 

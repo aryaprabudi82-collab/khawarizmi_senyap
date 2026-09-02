@@ -288,6 +288,24 @@
   </div>
 </div>
 
+{{-- Resep --}}
+@can('resep_obat')
+  <div class="card mt-3">
+    <div class="card-body d-flex justify-content-between align-items-center">
+      <div>
+        <strong>Resep obat</strong>
+        <div class="text-secondary small">
+          Membuka resep untuk kunjungan ini, atau melanjutkan resep yang sudah ditulis.
+        </div>
+      </div>
+      <form method="POST" action="{{ route('resep.buat', $assessment->registration_id) }}">
+        @csrf
+        <button class="btn btn-outline-primary">Tulis Resep</button>
+      </form>
+    </div>
+  </div>
+@endcan
+
 {{-- Finalkan --}}
 @unless ($assessment->isLocked())
   <form method="POST" action="{{ route('rme.finalkan', $assessment) }}" class="mt-3">

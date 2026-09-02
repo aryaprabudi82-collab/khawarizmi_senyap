@@ -6,6 +6,7 @@ use App\Modules\Platform\Database\Seeders\PermissionCatalogSeeder;
 use App\Modules\Platform\Database\Seeders\RoleSeeder;
 use App\Modules\Platform\Database\Seeders\UserSeeder;
 use App\Modules\Clinical\Database\Seeders\DiagnosisCodeSeeder;
+use App\Modules\Pharmacy\Database\Seeders\PharmacySeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -18,6 +19,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             ReferenceDataSeeder::class,
             DiagnosisCodeSeeder::class,
+            PharmacySeeder::class,
             UserSeeder::class,
         ]);
     }

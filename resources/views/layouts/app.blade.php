@@ -46,6 +46,11 @@
             <a class="nav-link" href="{{ route('rme.index') }}">Rekam Medis</a>
           </li>
         @endcan
+        @can('resep_obat')
+          <li class="nav-item {{ request()->routeIs('resep.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('resep.index') }}">Farmasi</a>
+          </li>
+        @endcan
         @can('pasien')
           <li class="nav-item {{ request()->routeIs('pasien.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('pasien.index') }}">Pasien</a>
