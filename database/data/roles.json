@@ -110,5 +110,24 @@
         "extra_permissions": [
             "pembayaran_ralan"
         ]
+    },
+    {
+        "code": "petugas-lab",
+        "name": "Petugas Laboratorium",
+        "description": "Memproses sampel dan mencatat hasil pemeriksaan laboratorium.",
+        "_catatan_scope": "periksa_lab berada di context 'encounter' (menu Khanza mencampurnya dengan registrasi), bukan di context 'order' - diberikan eksplisit di sini, sama seperti resep_obat/beri_obat untuk apoteker.",
+        "contexts": [],
+        "extra_permissions": [
+            "periksa_lab"
+        ]
+    },
+    {
+        "code": "petugas-radiologi",
+        "name": "Petugas Radiologi",
+        "description": "Memproses pencitraan dan mencatat hasil pemeriksaan radiologi.",
+        "contexts": [],
+        "extra_permissions": [
+            "periksa_radiologi"
+        ]
     }
 ]

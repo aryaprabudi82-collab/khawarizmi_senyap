@@ -12,5 +12,6 @@ return [
     App\Modules\Encounter\Providers\EncounterServiceProvider::class,
     App\Modules\Clinical\Providers\ClinicalServiceProvider::class,
     App\Modules\Pharmacy\Providers\PharmacyServiceProvider::class,
+    App\Modules\Order\Providers\OrderServiceProvider::class,
     App\Modules\Billing\Providers\BillingServiceProvider::class,
 ];

@@ -107,9 +107,26 @@ return [
         'billing' => [
             'schema'      => 'billing',
             'module'      => 'Billing',
-            'description' => 'Tagihan dan pembayaran rawat jalan. Charge line ditarik dari encounter dan pharmacy.',
+            'description' => 'Tagihan dan pembayaran rawat jalan. Charge line ditarik dari encounter, pharmacy, dan order.',
             'domains'     => ['I'],
             'publishes'   => [],
+        ],
+
+        'order' => [
+            'schema'      => 'orders',
+            'module'      => 'Order',
+            'description' => 'Siklus permintaan penunjang lab dan radiologi pasien: order, proses, hasil, verifikasi.',
+            // Domain B Khanza ("Lab Kesehatan Lingkungan") BUKAN ini - itu uji
+            // air/makanan, sudah jadi konteks 'envlab' terpisah. Permission
+            // tulis untuk periksa_lab/periksa_radiologi justru nyasar ke domain
+            // A karena menu Khanza mencampurnya dengan registrasi, sama seperti
+            // kasus resep_obat - diberikan eksplisit lewat extra_permissions
+            // peran, bukan lewat context-grant.
+            'domains'     => ['A'],
+            'publishes'   => [
+                'v_order_charge' => 'Pemeriksaan lab/radiologi yang sudah selesai berikut nilainya. '
+                    . 'Dipakai billing untuk menarik biaya penunjang ke tagihan kunjungan.',
+            ],
         ],
 
     ],
@@ -119,7 +136,6 @@ return [
     | supaya batasnya dipikirkan sejak awal, bukan ditemukan saat kepepet.
     */
     'planned' => [
-        'order'          => ['schema' => 'orders',         'domains' => ['M', 'B'], 'description' => 'Siklus permintaan penunjang: order, sampel, hasil. Lab dan radiologi.'],
         'finance'        => ['schema' => 'finance',        'domains' => ['K'],      'description' => 'Akun, jurnal, buku besar, arus kas.'],
         'integration'    => ['schema' => 'integration',    'domains' => ['L'],      'description' => 'Adapter BPJS, SATUSEHAT, INACBG, LIS, PACS. Tabel pemetaan dan ledger pengiriman.'],
         'reporting'      => ['schema' => 'reporting',      'domains' => ['J', 'O'], 'description' => 'Read model untuk laporan regulasi dan dashboard manajemen.'],

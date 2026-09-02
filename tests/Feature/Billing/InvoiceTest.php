@@ -42,6 +42,7 @@ class InvoiceTest extends TestCase
             ReferenceDataSeeder::class,
             DiagnosisCodeSeeder::class,
             PharmacySeeder::class,
+            \App\Modules\Order\Database\Seeders\TestCatalogSeeder::class,
         ]);
 
         $this->invoices = app(InvoiceService::class);
@@ -114,6 +115,29 @@ class InvoiceTest extends TestCase
 
         $this->assertSame('55000.00', $tagihan->total_amount); // 50000 registrasi + 5000 obat
         $this->assertSame(2, $tagihan->chargeLines()->count());
+    }
+
+    #[Test]
+    public function pemeriksaan_lab_yang_terverifikasi_ikut_tertarik_sebagai_charge_line(): void
+    {
+        $registrasi = $this->daftarkan('Umum');
+
+        $order = app(\App\Modules\Order\Services\OrderService::class)->create($registrasi->id, 'lab');
+        $item = app(\App\Modules\Order\Services\OrderService::class)->addItem(
+            $order, \App\Modules\Order\Models\TestCatalog::query()->where('code', 'LAB-GDS')->value('id')
+        );
+        app(\App\Modules\Order\Services\OrderService::class)->enterResult($item, numeric: 95);
+        app(\App\Modules\Order\Services\OrderService::class)->verify($order->refresh());
+
+        $tagihan = $this->invoices->openInvoice($registrasi->id);
+
+        $this->assertSame('80000.00', $tagihan->total_amount); // 50000 registrasi + 30000 lab
+        $this->assertSame(2, $tagihan->chargeLines()->count());
+        $this->assertDatabaseHas('billing.charge_lines', [
+            'registration_id' => $registrasi->id,
+            'source_type' => 'order_penunjang',
+            'source_id' => $item->id,
+        ]);
     }
 
     #[Test]

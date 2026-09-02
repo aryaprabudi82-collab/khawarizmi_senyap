@@ -56,6 +56,16 @@
             <a class="nav-link" href="{{ route('tagihan.index') }}">Kasir</a>
           </li>
         @endcan
+        @can('periksa_lab')
+          <li class="nav-item {{ request()->routeIs('order.*') && request()->route('kategori') === 'lab' ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('order.index', 'lab') }}">Laboratorium</a>
+          </li>
+        @endcan
+        @can('periksa_radiologi')
+          <li class="nav-item {{ request()->routeIs('order.*') && request()->route('kategori') === 'radiologi' ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('order.index', 'radiologi') }}">Radiologi</a>
+          </li>
+        @endcan
         @can('pasien')
           <li class="nav-item {{ request()->routeIs('pasien.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('pasien.index') }}">Pasien</a>

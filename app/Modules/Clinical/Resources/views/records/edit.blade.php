@@ -306,6 +306,42 @@
   </div>
 @endcan
 
+{{-- Order penunjang --}}
+<div class="row g-3 mt-0">
+  @can('periksa_lab')
+    <div class="col-12 col-md-6">
+      <div class="card h-100">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <strong>Laboratorium</strong>
+            <div class="text-secondary small">Buka atau lanjutkan order lab kunjungan ini.</div>
+          </div>
+          <form method="POST" action="{{ route('order.buat', ['lab', $assessment->registration_id]) }}">
+            @csrf
+            <button class="btn btn-outline-primary btn-sm">Order Lab</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  @endcan
+  @can('periksa_radiologi')
+    <div class="col-12 col-md-6">
+      <div class="card h-100">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <strong>Radiologi</strong>
+            <div class="text-secondary small">Buka atau lanjutkan order radiologi kunjungan ini.</div>
+          </div>
+          <form method="POST" action="{{ route('order.buat', ['radiologi', $assessment->registration_id]) }}">
+            @csrf
+            <button class="btn btn-outline-primary btn-sm">Order Radiologi</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  @endcan
+</div>
+
 {{-- Finalkan --}}
 @unless ($assessment->isLocked())
   <form method="POST" action="{{ route('rme.finalkan', $assessment) }}" class="mt-3">

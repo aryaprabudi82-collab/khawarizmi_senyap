@@ -153,7 +153,7 @@ return new class extends Migration
             . self::S . '.charge_lines DEFAULT');
 
         DB::statement("ALTER TABLE " . self::S . ".charge_lines ADD CONSTRAINT charge_lines_source_check
-            CHECK (source_type IN ('registrasi','resep_obat'))");
+            CHECK (source_type IN ('registrasi','resep_obat','order_penunjang'))");
 
         // Kunci idempotensi sinkronisasi: peristiwa sumber yang sama tidak
         // pernah ditarik dua kali, walau proses sinkronisasi dijalankan
