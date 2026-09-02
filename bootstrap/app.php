@@ -11,7 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Rute autentikasi memakai bahasa Indonesia; bawaan Laravel menunjuk
+        // rute bernama login yang tidak ada di sini.
+        $middleware->redirectGuestsTo(fn () => route("masuk"));
+        $middleware->redirectUsersTo(fn () => route("beranda"));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

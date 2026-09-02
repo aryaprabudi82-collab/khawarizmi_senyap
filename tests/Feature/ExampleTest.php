@@ -2,18 +2,21 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
-    /**
-     * A basic test example.
-     */
-    public function test_the_application_returns_a_successful_response(): void
+    #[Test]
+    public function halaman_depan_mengarahkan_tamu_ke_halaman_masuk(): void
     {
-        $response = $this->get('/');
+        // Tidak ada halaman publik: seluruh isi SIMRS berada di balik autentikasi.
+        $this->get('/')->assertRedirect(route('masuk'));
+    }
 
-        $response->assertStatus(200);
+    #[Test]
+    public function endpoint_kesehatan_aplikasi_menyala(): void
+    {
+        $this->get('/up')->assertOk();
     }
 }

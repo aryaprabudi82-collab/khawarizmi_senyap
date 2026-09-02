@@ -50,7 +50,16 @@ class RoleSeeder extends Seeder
             }
 
             $codes = Permission::query()
-                ->whereIn('context', $definition['contexts'] ?? [])
+                ->where(function ($q) use ($definition) {
+                    $q->whereIn('context', $definition['contexts'] ?? ['']);
+
+                    // Pemberian eksplisit di luar konteks peran. Diperlukan karena
+                    // katalog Khanza menempatkan sebagian fungsi tidak pada konteks
+                    // yang kita tuju - mis. master pasien ada di domain Rekam Medis.
+                    if (! empty($definition['extra_permissions'])) {
+                        $q->orWhereIn('code', $definition['extra_permissions']);
+                    }
+                })
                 ->pluck('code')
                 ->all();
 
