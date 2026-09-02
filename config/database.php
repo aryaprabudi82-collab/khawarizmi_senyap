@@ -1,7 +1,26 @@
 <?php
 
 use Illuminate\Support\Str;
+
 use Pdo\Mysql;
+
+/*
+| Menyusun search_path PostgreSQL dari manifes bounded context.
+|
+| Perlu memuat seluruh schema konteks, bukan hanya public: migrate:fresh dan
+| RefreshDatabase hanya membuang tabel pada schema yang terdaftar di sini, dan
+| tanpa itu schema konteks tertinggal sehingga migrasi ulang gagal.
+|
+| Nama tabel pada model tetap ditulis lengkap (mis. platform.users), jadi
+| tidak ada resolusi nama yang ambigu.
+*/
+$contextSearchPath = static function (): string {
+    $contexts = require __DIR__ . '/contexts.php';
+
+    $schemas = array_column($contexts['active'] ?? [], 'schema');
+
+    return implode(',', array_merge(['public'], $schemas));
+};
 
 return [
 
@@ -95,7 +114,7 @@ return [
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,
-            'search_path' => 'public',
+            'search_path' => $contextSearchPath(),
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
