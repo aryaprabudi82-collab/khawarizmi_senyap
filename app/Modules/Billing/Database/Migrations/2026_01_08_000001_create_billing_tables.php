@@ -39,10 +39,12 @@ return new class extends Migration
         $this->createChargeLines();
         $this->createPayments();
         $this->createSequences();
+        $this->createPublishedViews();
     }
 
     public function down(): void
     {
+        DB::statement('DROP VIEW IF EXISTS ' . self::S . '.v_settled_invoice');
         DB::statement('DROP TABLE IF EXISTS ' . self::S . '.charge_lines CASCADE');
 
         Schema::dropIfExists(self::S . '.number_sequences');
@@ -209,5 +211,21 @@ return new class extends Migration
             $table->unsignedBigInteger('last_number')->default(0);
             $table->timestampTz('updated_at')->nullable();
         });
+    }
+
+    /**
+     * Kontrak baca untuk konteks lain.
+     */
+    private function createPublishedViews(): void
+    {
+        // finance memakai ini untuk memposting jurnal: tagihan lunas (dibayar
+        // pasien) mengakui pendapatan tunai; tagihan ditanggung-penjamin
+        // mengakui pendapatan sekaligus membuka piutang.
+        DB::statement("CREATE VIEW " . self::S . ".v_settled_invoice AS
+            SELECT id AS invoice_id, invoice_number, registration_id, patient_id,
+                   payer_id, patient_name, payer_name, payer_kind,
+                   payment_responsibility, total_amount, status, closed_at
+            FROM " . self::S . ".invoices
+            WHERE status IN ('lunas','ditanggung-penjamin')");
     }
 };

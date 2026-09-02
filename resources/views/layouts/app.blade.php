@@ -66,6 +66,11 @@
             <a class="nav-link" href="{{ route('order.index', 'radiologi') }}">Radiologi</a>
           </li>
         @endcan
+        @can('bayar_piutang')
+          <li class="nav-item {{ request()->routeIs('piutang.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('piutang.index') }}">Piutang</a>
+          </li>
+        @endcan
         @can('pasien')
           <li class="nav-item {{ request()->routeIs('pasien.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('pasien.index') }}">Pasien</a>

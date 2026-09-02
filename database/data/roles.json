@@ -129,5 +129,15 @@
         "extra_permissions": [
             "periksa_radiologi"
         ]
+    },
+    {
+        "code": "petugas-keuangan",
+        "name": "Petugas Keuangan",
+        "description": "Mencatat penerimaan piutang dari penjamin.",
+        "_catatan_scope": "Sengaja tanpa 'contexts': domain K Khanza (Keuangan/Akuntansi) sebagian besar berisi laporan (harian_*, bulanan_*, saldo_akun_perbulan, dst.) yang bukan cakupan Wave 1 ini. Hanya kapabilitas pencatatan penerimaan piutang yang diberikan.",
+        "contexts": [],
+        "extra_permissions": [
+            "bayar_piutang"
+        ]
     }
 ]

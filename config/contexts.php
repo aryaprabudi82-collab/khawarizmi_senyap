@@ -109,7 +109,10 @@ return [
             'module'      => 'Billing',
             'description' => 'Tagihan dan pembayaran rawat jalan. Charge line ditarik dari encounter, pharmacy, dan order.',
             'domains'     => ['I'],
-            'publishes'   => [],
+            'publishes'   => [
+                'v_settled_invoice' => 'Tagihan yang sudah lunas atau ditanggung penjamin. '
+                    . 'Dipakai finance untuk memposting jurnal pendapatan dan membuka piutang.',
+            ],
         ],
 
         'order' => [
@@ -129,6 +132,15 @@ return [
             ],
         ],
 
+        'finance' => [
+            'schema'      => 'finance',
+            'module'      => 'Finance',
+            'description' => 'Jurnal berpasangan dan piutang penjamin. Menutup label "ditanggung-penjamin" di '
+                . 'billing menjadi kewajiban yang bisa diaudit.',
+            'domains'     => ['K'],
+            'publishes'   => [],
+        ],
+
     ],
 
     /*
@@ -136,7 +148,6 @@ return [
     | supaya batasnya dipikirkan sejak awal, bukan ditemukan saat kepepet.
     */
     'planned' => [
-        'finance'        => ['schema' => 'finance',        'domains' => ['K'],      'description' => 'Akun, jurnal, buku besar, arus kas.'],
         'integration'    => ['schema' => 'integration',    'domains' => ['L'],      'description' => 'Adapter BPJS, SATUSEHAT, INACBG, LIS, PACS. Tabel pemetaan dan ledger pengiriman.'],
         'reporting'      => ['schema' => 'reporting',      'domains' => ['J', 'O'], 'description' => 'Read model untuk laporan regulasi dan dashboard manajemen.'],
         'hr'             => ['schema' => 'hr',             'domains' => ['C'],      'description' => 'Pegawai, presensi, jadwal, penggajian.'],
