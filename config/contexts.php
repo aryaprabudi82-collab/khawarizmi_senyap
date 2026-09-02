@@ -165,6 +165,18 @@ return [
             'publishes'   => [],
         ],
 
+        'hr' => [
+            'schema'      => 'hr',
+            'module'      => 'Hr',
+            'description' => 'Master pegawai, pengajuan cuti, dan presensi harian. Domain C Khanza ("SDM/Kepegawaian") '
+                . 'ternyata 34 dari 58 kapabilitasnya adalah audit PPI (audit_bundle_*, audit_cuci_tangan, dst.) dan '
+                . 'insiden K3 (bagian_tubuh_k3rs, dampak_cidera_k3rs, dst.) — keduanya konseptual milik konteks '
+                . '\'quality\', bukan kepegawaian; menunya kebetulan satu domain huruf. hr di sini hanya mencakup '
+                . '24 kapabilitas yang sungguh kepegawaian.',
+            'domains'     => ['C'],
+            'publishes'   => [],
+        ],
+
     ],
 
     /*
@@ -172,7 +184,6 @@ return [
     | supaya batasnya dipikirkan sejak awal, bukan ditemukan saat kepepet.
     */
     'planned' => [
-        'hr'             => ['schema' => 'hr',             'domains' => ['C'],      'description' => 'Pegawai, presensi, jadwal, penggajian.'],
         'inventory'      => ['schema' => 'inventory',      'domains' => ['E'],      'description' => 'Barang non-medis dan penunjang.'],
         'asset'          => ['schema' => 'asset',          'domains' => ['G'],      'description' => 'Aset, inventaris, CSSD, pemeliharaan, kesehatan lingkungan.'],
         'blood'          => ['schema' => 'blood',          'domains' => ['N'],      'description' => 'Unit transfusi darah.'],

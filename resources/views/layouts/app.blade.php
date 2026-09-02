@@ -90,6 +90,22 @@
             <a class="nav-link" href="{{ route('reporting.dashboard') }}">Laporan</a>
           </li>
         @endcan
+        @canany(['pegawai_user', 'pengajuan_cuti', 'presensi_harian'])
+          <li class="nav-item dropdown {{ request()->routeIs('hr.*') ? 'active' : '' }}">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Kepegawaian</a>
+            <div class="dropdown-menu">
+              @can('pegawai_user')
+                <a class="dropdown-item" href="{{ route('hr.index') }}">Pegawai</a>
+              @endcan
+              @can('pengajuan_cuti')
+                <a class="dropdown-item" href="{{ route('hr.cuti.index') }}">Cuti</a>
+              @endcan
+              @can('presensi_harian')
+                <a class="dropdown-item" href="{{ route('hr.presensi.index') }}">Presensi</a>
+              @endcan
+            </div>
+          </li>
+        @endcanany
         @canany(['bpjs_cek_kartu', 'satu_sehat_referensi_pasien'])
           <li class="nav-item dropdown {{ request()->routeIs('integrasi.*') ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Integrasi</a>

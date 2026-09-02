@@ -17,4 +17,5 @@ return [
     App\Modules\Finance\Providers\FinanceServiceProvider::class,
     App\Modules\Integration\Providers\IntegrationServiceProvider::class,
     App\Modules\Reporting\Providers\ReportingServiceProvider::class,
+    App\Modules\Hr\Providers\HrServiceProvider::class,
 ];

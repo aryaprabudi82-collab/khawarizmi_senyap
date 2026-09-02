@@ -168,5 +168,17 @@
         "extra_permissions": [
             "rekap_kunjungan"
         ]
+    },
+    {
+        "code": "admin-hr",
+        "name": "Admin Kepegawaian",
+        "description": "Master pegawai, pengajuan dan persetujuan cuti, dan presensi harian.",
+        "_catatan_scope": "Domain C Khanza ('SDM/Kepegawaian') berisi 58 kapabilitas, tapi 34 di antaranya adalah audit PPI (audit_bundle_iadp, audit_cuci_tangan_medis, dst.) dan insiden K3 (bagian_tubuh_k3rs, dampak_cidera_k3rs, dst.) yang konseptual milik quality, kebetulan satu domain huruf dengan kepegawaian di menu Khanza. Sengaja tanpa 'contexts' supaya peran ini tidak diam-diam kebagian 34 kapabilitas audit/K3 itu — extra_permissions dibatasi persis pada tiga yang sudah dikerjakan Wave 1 ini.",
+        "contexts": [],
+        "extra_permissions": [
+            "pegawai_user",
+            "pengajuan_cuti",
+            "presensi_harian"
+        ]
     }
 ]
