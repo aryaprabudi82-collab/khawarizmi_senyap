@@ -71,6 +71,15 @@
             <a class="nav-link" href="{{ route('piutang.index') }}">Piutang</a>
           </li>
         @endcan
+        @can('tarif_ralan')
+          <li class="nav-item dropdown {{ request()->routeIs('master.*') ? 'active' : '' }}">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Data Master</a>
+            <div class="dropdown-menu">
+              <a class="dropdown-item" href="{{ route('master.index') }}">Layanan &amp; Tarif</a>
+              <a class="dropdown-item" href="{{ route('master.organisasi') }}">Unit &amp; Praktisi</a>
+            </div>
+          </li>
+        @endcan
         @can('pasien')
           <li class="nav-item {{ request()->routeIs('pasien.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('pasien.index') }}">Pasien</a>

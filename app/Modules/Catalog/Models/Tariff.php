@@ -3,6 +3,7 @@
 namespace App\Modules\Catalog\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Tariff extends Model
 {
@@ -21,5 +22,15 @@ class Tariff extends Model
             'valid_from' => 'date',
             'valid_until' => 'date',
         ];
+    }
+
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
+    }
+
+    public function payer(): BelongsTo
+    {
+        return $this->belongsTo(Payer::class);
     }
 }

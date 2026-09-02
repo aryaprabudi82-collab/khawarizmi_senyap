@@ -48,9 +48,11 @@
     {
         "code": "admin-master",
         "name": "Admin Data Master",
-        "description": "Poliklinik, dokter, penjamin, tarif, dan ruang.",
-        "contexts": [
-            "catalog"
+        "description": "Layanan, tarif, penjamin, unit, dan praktisi.",
+        "_catatan_scope": "Context 'catalog' semula memberi 37 kapabilitas yang ternyata template klinis (triase, keperawatan) - domain M Khanza memakai awalan 'Master' untuk banyak hal yang bukan data referensi administratif. Khanza sendiri tidak punya permission khusus untuk CRUD data master semacam ini (menunya berbasis laporan/alur kerja, bukan panel admin), jadi tarif_ralan dipakai sebagai gerbang tunggal, konsisten dengan pola registrasi/resep_obat yang menggerbangi satu area fungsional utuh.",
+        "contexts": [],
+        "extra_permissions": [
+            "tarif_ralan"
         ]
     },
     {
