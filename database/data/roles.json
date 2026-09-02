@@ -1,0 +1,51 @@
+[
+ {
+  "code": "super-admin",
+  "name": "Super Admin",
+  "description": "Akses penuh. Wajib MFA.",
+  "all": true
+ },
+ {
+  "code": "admin-sistem",
+  "name": "Administrator Sistem",
+  "description": "Pengaturan aplikasi, pengguna, dan hak akses.",
+  "contexts": [
+   "platform"
+  ]
+ },
+ {
+  "code": "petugas-daftar",
+  "name": "Petugas Pendaftaran",
+  "description": "Registrasi, booking, dan antrean rawat jalan.",
+  "contexts": [
+   "encounter",
+   "identity"
+  ]
+ },
+ {
+  "code": "admin-master",
+  "name": "Admin Data Master",
+  "description": "Poliklinik, dokter, penjamin, tarif, dan ruang.",
+  "contexts": [
+   "catalog"
+  ]
+ },
+ {
+  "code": "dokter",
+  "name": "Dokter",
+  "description": "Pelayanan klinis. Data pasien dibatasi policy DPJP.",
+  "contexts": [
+   "encounter",
+   "clinical"
+  ]
+ },
+ {
+  "code": "perawat",
+  "name": "Perawat",
+  "description": "Asesmen dan pelayanan keperawatan rawat jalan.",
+  "contexts": [
+   "encounter",
+   "clinical"
+  ]
+ }
+]
