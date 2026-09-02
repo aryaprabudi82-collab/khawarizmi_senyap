@@ -85,6 +85,11 @@
             <a class="nav-link" href="{{ route('pasien.index') }}">Pasien</a>
           </li>
         @endcan
+        @can('rekap_kunjungan')
+          <li class="nav-item {{ request()->routeIs('reporting.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('reporting.dashboard') }}">Laporan</a>
+          </li>
+        @endcan
         @canany(['bpjs_cek_kartu', 'satu_sehat_referensi_pasien'])
           <li class="nav-item dropdown {{ request()->routeIs('integrasi.*') ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Integrasi</a>

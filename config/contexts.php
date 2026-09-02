@@ -154,6 +154,17 @@ return [
             ],
         ],
 
+        'reporting' => [
+            'schema'      => 'reporting',
+            'module'      => 'Reporting',
+            'description' => 'Read model rekap kunjungan, frekuensi diagnosis, dan pendapatan harian rawat jalan — '
+                . 'disinkronkan dari encounter/clinical/billing/catalog, bukan dibaca langsung saat laporan dibuka. '
+                . 'Domain J/O Khanza (207 kapabilitas) mencakup ranap, HAIs, K3, TB, dan kepegawaian yang belum '
+                . 'digarap; wave ini baru irisan yang bisa dihitung dari data rawat jalan yang sudah ada.',
+            'domains'     => ['J', 'O'],
+            'publishes'   => [],
+        ],
+
     ],
 
     /*
@@ -161,7 +172,6 @@ return [
     | supaya batasnya dipikirkan sejak awal, bukan ditemukan saat kepepet.
     */
     'planned' => [
-        'reporting'      => ['schema' => 'reporting',      'domains' => ['J', 'O'], 'description' => 'Read model untuk laporan regulasi dan dashboard manajemen.'],
         'hr'             => ['schema' => 'hr',             'domains' => ['C'],      'description' => 'Pegawai, presensi, jadwal, penggajian.'],
         'inventory'      => ['schema' => 'inventory',      'domains' => ['E'],      'description' => 'Barang non-medis dan penunjang.'],
         'asset'          => ['schema' => 'asset',          'domains' => ['G'],      'description' => 'Aset, inventaris, CSSD, pemeliharaan, kesehatan lingkungan.'],

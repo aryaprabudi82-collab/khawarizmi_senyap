@@ -158,5 +158,15 @@
             "satu_sehat_referensi_dokter",
             "satu_sehat_mapping_lokasi"
         ]
+    },
+    {
+        "code": "manajemen",
+        "name": "Manajemen RS",
+        "description": "Dashboard rekap kunjungan, diagnosis terbanyak, dan pendapatan harian rawat jalan.",
+        "_catatan_scope": "Domain J+O Khanza berisi 207 kapabilitas laporan/grafik, sebagian besar untuk ranap, HAIs, K3, TB, kepegawaian, dan aset yang belum digarap. rekap_kunjungan dipakai sebagai gerbang tunggal ke dashboard reporting Wave 1 (kunjungan, diagnosis, pendapatan rawat jalan), sama seperti tarif_ralan menggerbangi Data Master.",
+        "contexts": [],
+        "extra_permissions": [
+            "rekap_kunjungan"
+        ]
     }
 ]
