@@ -263,9 +263,17 @@
     @endif
 
     @if ($resep->status === 'diserahkan')
-      <div class="alert alert-success">
-        Diserahkan {{ $resep->dispensed_at?->format('d-m-Y H:i') }}
-        oleh {{ $resep->dispensed_by_name ?? '—' }}.
+      <div class="alert alert-success d-flex justify-content-between align-items-center">
+        <span>
+          Diserahkan {{ $resep->dispensed_at?->format('d-m-Y H:i') }}
+          oleh {{ $resep->dispensed_by_name ?? '—' }}.
+        </span>
+        @can('pembayaran_ralan')
+          <form method="POST" action="{{ route('tagihan.buka', $resep->registration_id) }}">
+            @csrf
+            <button class="btn btn-sm btn-success">Buka Tagihan</button>
+          </form>
+        @endcan
       </div>
     @endif
   </div>

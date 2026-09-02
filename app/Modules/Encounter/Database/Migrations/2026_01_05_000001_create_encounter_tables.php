@@ -150,7 +150,8 @@ return new class extends Migration
             SELECT id, registration_number, patient_id, patient_mrn, patient_name,
                    unit_id, unit_name, practitioner_id, practitioner_name,
                    payer_id, payer_name, service_date, registered_at,
-                   queue_number, care_type, status
+                   queue_number, care_type, status,
+                   registration_fee, payment_status
             FROM " . self::S . ".registrations
             WHERE status <> 'batal'");
     }

@@ -51,6 +51,11 @@
             <a class="nav-link" href="{{ route('resep.index') }}">Farmasi</a>
           </li>
         @endcan
+        @can('pembayaran_ralan')
+          <li class="nav-item {{ request()->routeIs('tagihan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('tagihan.index') }}">Kasir</a>
+          </li>
+        @endcan
         @can('pasien')
           <li class="nav-item {{ request()->routeIs('pasien.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('pasien.index') }}">Pasien</a>

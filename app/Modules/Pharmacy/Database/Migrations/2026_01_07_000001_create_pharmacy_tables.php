@@ -344,7 +344,8 @@ return new class extends Migration
     {
         // billing memakai ini untuk menarik biaya obat ke tagihan kunjungan.
         DB::statement("CREATE VIEW " . self::S . ".v_prescription_charge AS
-            SELECT p.id             AS prescription_id,
+            SELECT i.id             AS item_id,
+                   p.id             AS prescription_id,
                    p.registration_id,
                    p.patient_id,
                    p.prescription_number,

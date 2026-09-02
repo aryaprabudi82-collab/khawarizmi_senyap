@@ -67,12 +67,30 @@ return new class extends Migration
         DB::statement('CREATE UNIQUE INDEX tariffs_active_unique
             ON ' . self::S . '.tariffs (service_id, payer_id, care_class)
             WHERE valid_until IS NULL');
+
+        $this->createPublishedViews();
     }
 
     public function down(): void
     {
+        DB::statement('DROP VIEW IF EXISTS ' . self::S . '.v_payer_summary');
+
         Schema::dropIfExists(self::S . '.tariffs');
         Schema::dropIfExists(self::S . '.services');
         Schema::dropIfExists(self::S . '.payers');
+    }
+
+    /**
+     * Kontrak baca untuk konteks lain.
+     */
+    private function createPublishedViews(): void
+    {
+        // billing memakai 'kind' untuk menentukan siapa yang menanggung tagihan:
+        // penjamin 'umum' membayar langsung di kasir, selain itu ditagihkan ke
+        // penjamin (piutang) - alur klaimnya sendiri menyusul di domain finance.
+        DB::statement("CREATE VIEW " . self::S . ".v_payer_summary AS
+            SELECT id, code, name, kind, is_active
+            FROM " . self::S . ".payers
+            WHERE is_active = true");
     }
 };

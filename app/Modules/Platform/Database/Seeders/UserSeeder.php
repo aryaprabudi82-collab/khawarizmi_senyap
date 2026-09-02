@@ -29,6 +29,7 @@ class UserSeeder extends Seeder
             ['username' => 'master', 'name' => 'Sri Handayani', 'role' => 'admin-master', 'mfa' => false],
             ['username' => 'dokter1', 'name' => 'Andi Wijaya', 'role' => 'dokter', 'mfa' => false],
             ['username' => 'apoteker1', 'name' => 'Yuli Astuti', 'role' => 'apoteker', 'mfa' => false],
+            ['username' => 'kasir1', 'name' => 'Dian Permatasari', 'role' => 'kasir', 'mfa' => false],
         ];
 
         foreach ($akun as $data) {

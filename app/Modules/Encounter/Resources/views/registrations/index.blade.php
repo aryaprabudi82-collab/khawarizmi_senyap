@@ -114,6 +114,12 @@
                 <span class="badge bg-{{ $rona }}-lt">{{ str_replace('-', ' ', $baris->status) }}</span>
               </td>
               <td>
+                @can('pembayaran_ralan')
+                  <form method="POST" action="{{ route('tagihan.buka', $baris->id) }}" class="d-inline">
+                    @csrf
+                    <button class="btn btn-sm btn-outline-primary">Tagihan</button>
+                  </form>
+                @endcan
                 @if (! $baris->isCancelled() && $baris->status !== 'selesai')
                   @can('registrasi')
                     <button class="btn btn-sm btn-ghost-danger" data-bs-toggle="modal"

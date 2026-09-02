@@ -43,7 +43,10 @@ return [
             'module'      => 'Catalog',
             'description' => 'Layanan, tarif, dan penjamin. Data referensi yang dihargai dan ditagihkan.',
             'domains'     => ['K'],
-            'publishes'   => [],
+            'publishes'   => [
+                'v_payer_summary' => 'Penjamin aktif berikut kind-nya (umum, bpjs, asuransi, perusahaan). '
+                    . 'Dipakai billing untuk menentukan siapa yang menanggung tagihan.',
+            ],
         ],
 
         'organization' => [
@@ -101,6 +104,14 @@ return [
             ],
         ],
 
+        'billing' => [
+            'schema'      => 'billing',
+            'module'      => 'Billing',
+            'description' => 'Tagihan dan pembayaran rawat jalan. Charge line ditarik dari encounter dan pharmacy.',
+            'domains'     => ['I'],
+            'publishes'   => [],
+        ],
+
     ],
 
     /*
@@ -109,7 +120,6 @@ return [
     */
     'planned' => [
         'order'          => ['schema' => 'orders',         'domains' => ['M', 'B'], 'description' => 'Siklus permintaan penunjang: order, sampel, hasil. Lab dan radiologi.'],
-        'billing'        => ['schema' => 'billing',        'domains' => ['I'],      'description' => 'Charge, tagihan, deposit, piutang, pembayaran.'],
         'finance'        => ['schema' => 'finance',        'domains' => ['K'],      'description' => 'Akun, jurnal, buku besar, arus kas.'],
         'integration'    => ['schema' => 'integration',    'domains' => ['L'],      'description' => 'Adapter BPJS, SATUSEHAT, INACBG, LIS, PACS. Tabel pemetaan dan ledger pengiriman.'],
         'reporting'      => ['schema' => 'reporting',      'domains' => ['J', 'O'], 'description' => 'Read model untuk laporan regulasi dan dashboard manajemen.'],

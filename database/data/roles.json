@@ -100,5 +100,15 @@
             "beri_obat",
             "resep_obat"
         ]
+    },
+    {
+        "code": "kasir",
+        "name": "Kasir",
+        "description": "Menerima pembayaran tagihan rawat jalan.",
+        "_catatan_scope": "Sengaja tanpa 'contexts': domain I Khanza (Billing/Tagihan) sebagian besar berisi laporan keuangan (harian_*, bulanan_*, rekap_*, fee_*, piutang_*) yang bukan urusan kasir loket. Hanya kapabilitas transaksi pembayaran yang diberikan.",
+        "contexts": [],
+        "extra_permissions": [
+            "pembayaran_ralan"
+        ]
     }
 ]
