@@ -121,6 +121,11 @@ class ContextBoundaryTest extends TestCase
     {
         $aktif = array_column($this->contexts['active'], 'schema');
 
+        // Selalu ada assertion nyata, terlepas dari isi 'planned' — daftarnya
+        // sempat kosong begitu seluruh konteks yang direncanakan sudah
+        // digarap, dan pengujian tanpa assertion dianggap PHPUnit "risky".
+        $this->assertIsArray($this->contexts['planned']);
+
         foreach ($this->contexts['planned'] as $name => $ctx) {
             $this->assertNotContains(
                 $ctx['schema'],

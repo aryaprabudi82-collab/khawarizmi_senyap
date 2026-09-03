@@ -234,5 +234,16 @@
             "surat_keluar",
             "pengumuman_epasien"
         ]
+    },
+    {
+        "code": "petugas-aset",
+        "name": "Petugas Aset & Pemeliharaan",
+        "description": "Registri aset/inventaris dan alur permintaan perbaikan.",
+        "_catatan_scope": "Domain G Khanza 27 kapabilitas menggabungkan 4 area (aset/inventaris umum, CSSD, pemeliharaan, kesehatan lingkungan) — hanya aset/inventaris umum dan pemeliharaan yang digarap wave ini. extra_permissions dibatasi pada dua yang sudah dikerjakan.",
+        "contexts": [],
+        "extra_permissions": [
+            "inventaris_inventaris",
+            "perbaikan_inventaris"
+        ]
     }
 ]

@@ -222,6 +222,17 @@ return [
             'publishes'   => [],
         ],
 
+        'asset' => [
+            'schema'      => 'asset',
+            'module'      => 'Asset',
+            'description' => 'Registri aset/inventaris dan alur permintaan perbaikan. Domain G Khanza 27 kapabilitas '
+                . 'menggabungkan 4 area: aset/inventaris umum, CSSD (sirkulasi_cssd, barang_cssd), pemeliharaan, dan '
+                . 'kesehatan lingkungan/kesling (limbah B3, mutu air, pest control) — hanya aset/inventaris umum dan '
+                . 'pemeliharaan yang digarap wave ini; CSSD dan kesling masing-masing perlu desain tersendiri.',
+            'domains'     => ['G'],
+            'publishes'   => [],
+        ],
+
     ],
 
     /*
@@ -229,7 +240,6 @@ return [
     | supaya batasnya dipikirkan sejak awal, bukan ditemukan saat kepepet.
     */
     'planned' => [
-        'asset'          => ['schema' => 'asset',          'domains' => ['G'],      'description' => 'Aset, inventaris, CSSD, pemeliharaan, kesehatan lingkungan.'],
     ],
 
     /*

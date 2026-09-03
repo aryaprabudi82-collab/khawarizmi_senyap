@@ -90,6 +90,19 @@
             <a class="nav-link" href="{{ route('reporting.dashboard') }}">Laporan</a>
           </li>
         @endcan
+        @canany(['inventaris_inventaris', 'perbaikan_inventaris'])
+          <li class="nav-item dropdown {{ request()->routeIs('asset.*') ? 'active' : '' }}">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Aset</a>
+            <div class="dropdown-menu">
+              @can('inventaris_inventaris')
+                <a class="dropdown-item" href="{{ route('asset.index') }}">Aset &amp; Inventaris</a>
+              @endcan
+              @can('perbaikan_inventaris')
+                <a class="dropdown-item" href="{{ route('asset.pemeliharaan.index') }}">Pemeliharaan</a>
+              @endcan
+            </div>
+          </li>
+        @endcanany
         @canany(['surat_masuk', 'pengumuman_epasien'])
           <li class="nav-item dropdown {{ request()->routeIs('correspondence.*') ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Tata Usaha</a>
