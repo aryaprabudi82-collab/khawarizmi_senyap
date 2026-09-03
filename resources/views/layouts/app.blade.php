@@ -36,92 +36,90 @@
 
     <div class="collapse navbar-collapse" id="menu-utama">
       <ul class="navbar-nav me-auto">
-        @can('registrasi')
-          <li class="nav-item {{ request()->routeIs('registrasi.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('registrasi.index') }}">Pendaftaran</a>
-          </li>
-        @endcan
-        @can('penilaian_awal_medis_ralan')
-          <li class="nav-item {{ request()->routeIs('rme.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('rme.index') }}">Rekam Medis</a>
-          </li>
-        @endcan
-        @can('resep_obat')
-          <li class="nav-item {{ request()->routeIs('resep.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('resep.index') }}">Farmasi</a>
-          </li>
-        @endcan
-        @can('pembayaran_ralan')
-          <li class="nav-item {{ request()->routeIs('tagihan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('tagihan.index') }}">Kasir</a>
-          </li>
-        @endcan
-        @can('periksa_lab')
-          <li class="nav-item {{ request()->routeIs('order.*') && request()->route('kategori') === 'lab' ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('order.index', 'lab') }}">Laboratorium</a>
-          </li>
-        @endcan
-        @can('periksa_radiologi')
-          <li class="nav-item {{ request()->routeIs('order.*') && request()->route('kategori') === 'radiologi' ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('order.index', 'radiologi') }}">Radiologi</a>
-          </li>
-        @endcan
-        @can('bayar_piutang')
-          <li class="nav-item {{ request()->routeIs('piutang.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('piutang.index') }}">Piutang</a>
-          </li>
-        @endcan
-        @can('tarif_ralan')
-          <li class="nav-item dropdown {{ request()->routeIs('master.*') ? 'active' : '' }}">
-            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Data Master</a>
+        {{--
+          Satu dropdown per departemen, bukan satu per konteks — dengan 18
+          bounded context, satu item nav per konteks meluber ke luar layar
+          (lihat riwayat commit). Pengelompokan ini cuma tampilan; setiap
+          tautan tetap ke route yang sama dan tetap digerbangi @can/@canany
+          per permission-nya sendiri, jadi satu pengguna cuma melihat
+          tautan yang haknya dia punya, sekalipun dropdown-nya digabung.
+        --}}
+        @canany(['registrasi', 'penilaian_awal_medis_ralan', 'periksa_lab', 'periksa_radiologi', 'resep_obat'])
+          <li class="nav-item dropdown {{ request()->routeIs(['registrasi.*', 'rme.*', 'order.*', 'resep.*']) ? 'active' : '' }}">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Pelayanan</a>
             <div class="dropdown-menu">
-              <a class="dropdown-item" href="{{ route('master.index') }}">Layanan &amp; Tarif</a>
-              <a class="dropdown-item" href="{{ route('master.organisasi') }}">Unit &amp; Praktisi</a>
+              @can('registrasi')
+                <a class="dropdown-item" href="{{ route('registrasi.index') }}">Pendaftaran</a>
+              @endcan
+              @can('penilaian_awal_medis_ralan')
+                <a class="dropdown-item" href="{{ route('rme.index') }}">Rekam Medis</a>
+              @endcan
+              @can('periksa_lab')
+                <a class="dropdown-item" href="{{ route('order.index', 'lab') }}">Laboratorium</a>
+              @endcan
+              @can('periksa_radiologi')
+                <a class="dropdown-item" href="{{ route('order.index', 'radiologi') }}">Radiologi</a>
+              @endcan
+              @can('resep_obat')
+                <a class="dropdown-item" href="{{ route('resep.index') }}">Farmasi</a>
+              @endcan
             </div>
           </li>
-        @endcan
-        @can('pasien')
-          <li class="nav-item {{ request()->routeIs('pasien.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('pasien.index') }}">Pasien</a>
+        @endcanany
+
+        @canany(['pembayaran_ralan', 'bayar_piutang'])
+          <li class="nav-item dropdown {{ request()->routeIs(['tagihan.*', 'piutang.*']) ? 'active' : '' }}">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Keuangan</a>
+            <div class="dropdown-menu">
+              @can('pembayaran_ralan')
+                <a class="dropdown-item" href="{{ route('tagihan.index') }}">Kasir</a>
+              @endcan
+              @can('bayar_piutang')
+                <a class="dropdown-item" href="{{ route('piutang.index') }}">Piutang</a>
+              @endcan
+            </div>
           </li>
-        @endcan
-        @can('rekap_kunjungan')
-          <li class="nav-item {{ request()->routeIs('reporting.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('reporting.dashboard') }}">Laporan</a>
+        @endcanany
+
+        @canany(['tarif_ralan', 'pasien'])
+          <li class="nav-item dropdown {{ request()->routeIs(['master.*', 'pasien.*']) ? 'active' : '' }}">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Data Master</a>
+            <div class="dropdown-menu">
+              @can('tarif_ralan')
+                <a class="dropdown-item" href="{{ route('master.index') }}">Layanan &amp; Tarif</a>
+                <a class="dropdown-item" href="{{ route('master.organisasi') }}">Unit &amp; Praktisi</a>
+              @endcan
+              @can('pasien')
+                <a class="dropdown-item" href="{{ route('pasien.index') }}">Pasien</a>
+              @endcan
+            </div>
           </li>
-        @endcan
-        @canany(['inventaris_inventaris', 'perbaikan_inventaris'])
-          <li class="nav-item dropdown {{ request()->routeIs('asset.*') ? 'active' : '' }}">
-            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Aset</a>
+        @endcanany
+
+        @canany(['inventaris_inventaris', 'perbaikan_inventaris', 'ipsrs_barang', 'pengajuan_barang_nonmedis', 'utd_pendonor', 'utd_stok_darah'])
+          <li class="nav-item dropdown {{ request()->routeIs(['asset.*', 'inventory.*', 'blood.*']) ? 'active' : '' }}">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Penunjang</a>
             <div class="dropdown-menu">
               @can('inventaris_inventaris')
                 <a class="dropdown-item" href="{{ route('asset.index') }}">Aset &amp; Inventaris</a>
               @endcan
               @can('perbaikan_inventaris')
-                <a class="dropdown-item" href="{{ route('asset.pemeliharaan.index') }}">Pemeliharaan</a>
+                <a class="dropdown-item" href="{{ route('asset.pemeliharaan.index') }}">Pemeliharaan Aset</a>
               @endcan
-            </div>
-          </li>
-        @endcanany
-        @canany(['surat_masuk', 'pengumuman_epasien'])
-          <li class="nav-item dropdown {{ request()->routeIs('correspondence.*') ? 'active' : '' }}">
-            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Tata Usaha</a>
-            <div class="dropdown-menu">
-              @can('surat_masuk')
-                <a class="dropdown-item" href="{{ route('correspondence.index') }}">Surat</a>
+              @canany(['ipsrs_barang', 'pengajuan_barang_nonmedis'])
+                <div class="dropdown-divider"></div>
+              @endcanany
+              @can('ipsrs_barang')
+                <a class="dropdown-item" href="{{ route('inventory.index') }}">Barang Logistik</a>
               @endcan
-              @can('pengumuman_epasien')
-                <a class="dropdown-item" href="{{ route('correspondence.pengumuman.index') }}">Pengumuman</a>
+              @can('pengajuan_barang_nonmedis')
+                <a class="dropdown-item" href="{{ route('inventory.permintaan.index') }}">Permintaan Logistik</a>
               @endcan
-            </div>
-          </li>
-        @endcanany
-        @canany(['utd_pendonor', 'utd_stok_darah'])
-          <li class="nav-item dropdown {{ request()->routeIs('blood.*') ? 'active' : '' }}">
-            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">UTD</a>
-            <div class="dropdown-menu">
+              @canany(['utd_pendonor', 'utd_stok_darah'])
+                <div class="dropdown-divider"></div>
+              @endcanany
               @can('utd_pendonor')
-                <a class="dropdown-item" href="{{ route('blood.pendonor.index') }}">Pendonor</a>
+                <a class="dropdown-item" href="{{ route('blood.pendonor.index') }}">Pendonor Darah</a>
               @endcan
               @can('utd_stok_darah')
                 <a class="dropdown-item" href="{{ route('blood.stok.index') }}">Stok Darah</a>
@@ -129,35 +127,10 @@
             </div>
           </li>
         @endcanany
-        @canany(['ipsrs_barang', 'pengajuan_barang_nonmedis'])
-          <li class="nav-item dropdown {{ request()->routeIs('inventory.*') ? 'active' : '' }}">
-            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Logistik</a>
-            <div class="dropdown-menu">
-              @can('ipsrs_barang')
-                <a class="dropdown-item" href="{{ route('inventory.index') }}">Barang</a>
-              @endcan
-              @can('pengajuan_barang_nonmedis')
-                <a class="dropdown-item" href="{{ route('inventory.permintaan.index') }}">Permintaan</a>
-              @endcan
-            </div>
-          </li>
-        @endcanany
-        @canany(['insiden_keselamatan_pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi'])
-          <li class="nav-item dropdown {{ request()->routeIs('quality.*') ? 'active' : '' }}">
-            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Mutu</a>
-            <div class="dropdown-menu">
-              @can('insiden_keselamatan_pasien')
-                <a class="dropdown-item" href="{{ route('quality.insiden.index') }}">Insiden (IKP)</a>
-              @endcan
-              @can('pcra_icra_pengkajian_risiko_prakonstruksi')
-                <a class="dropdown-item" href="{{ route('quality.icra.index') }}">PCRA/ICRA</a>
-              @endcan
-            </div>
-          </li>
-        @endcanany
-        @canany(['pegawai_user', 'pengajuan_cuti', 'presensi_harian'])
-          <li class="nav-item dropdown {{ request()->routeIs('hr.*') ? 'active' : '' }}">
-            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Kepegawaian</a>
+
+        @canany(['pegawai_user', 'pengajuan_cuti', 'presensi_harian', 'insiden_keselamatan_pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi'])
+          <li class="nav-item dropdown {{ request()->routeIs(['hr.*', 'quality.*']) ? 'active' : '' }}">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">SDM &amp; Mutu</a>
             <div class="dropdown-menu">
               @can('pegawai_user')
                 <a class="dropdown-item" href="{{ route('hr.index') }}">Pegawai</a>
@@ -168,18 +141,40 @@
               @can('presensi_harian')
                 <a class="dropdown-item" href="{{ route('hr.presensi.index') }}">Presensi</a>
               @endcan
+              @canany(['insiden_keselamatan_pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi'])
+                <div class="dropdown-divider"></div>
+              @endcanany
+              @can('insiden_keselamatan_pasien')
+                <a class="dropdown-item" href="{{ route('quality.insiden.index') }}">Insiden Keselamatan (IKP)</a>
+              @endcan
+              @can('pcra_icra_pengkajian_risiko_prakonstruksi')
+                <a class="dropdown-item" href="{{ route('quality.icra.index') }}">PCRA/ICRA</a>
+              @endcan
             </div>
           </li>
         @endcanany
-        @canany(['bpjs_cek_kartu', 'satu_sehat_referensi_pasien'])
-          <li class="nav-item dropdown {{ request()->routeIs('integrasi.*') ? 'active' : '' }}">
-            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Integrasi</a>
+
+        @canany(['surat_masuk', 'pengumuman_epasien', 'rekap_kunjungan', 'bpjs_cek_kartu', 'satu_sehat_referensi_pasien'])
+          <li class="nav-item dropdown {{ request()->routeIs(['correspondence.*', 'reporting.*', 'integrasi.*']) ? 'active' : '' }}">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Administrasi</a>
             <div class="dropdown-menu">
+              @can('surat_masuk')
+                <a class="dropdown-item" href="{{ route('correspondence.index') }}">Surat</a>
+              @endcan
+              @can('pengumuman_epasien')
+                <a class="dropdown-item" href="{{ route('correspondence.pengumuman.index') }}">Pengumuman E-Pasien</a>
+              @endcan
+              @can('rekap_kunjungan')
+                <a class="dropdown-item" href="{{ route('reporting.dashboard') }}">Laporan</a>
+              @endcan
+              @canany(['bpjs_cek_kartu', 'satu_sehat_referensi_pasien'])
+                <div class="dropdown-divider"></div>
+              @endcanany
               @can('bpjs_cek_kartu')
-                <a class="dropdown-item" href="{{ route('integrasi.bpjs.index') }}">BPJS</a>
+                <a class="dropdown-item" href="{{ route('integrasi.bpjs.index') }}">Integrasi BPJS</a>
               @endcan
               @can('satu_sehat_referensi_pasien')
-                <a class="dropdown-item" href="{{ route('integrasi.satusehat.index') }}">SATUSEHAT</a>
+                <a class="dropdown-item" href="{{ route('integrasi.satusehat.index') }}">Integrasi SATUSEHAT</a>
               @endcan
             </div>
           </li>
