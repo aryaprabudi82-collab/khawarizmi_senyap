@@ -37,6 +37,16 @@ class TestCatalogSeeder extends Seeder
             ['RAD-EXT', 'Rontgen Ekstremitas', null, 'X-Ray', 'naratif', null, null, null, null, 150000],
         ];
 
+        // Hasil PA selalu naratif (kesimpulan patolog: jinak/ganas/dst.),
+        // tidak ada rentang rujukan numerik untuk dibandingkan otomatis —
+        // sama seperti radiologi, is_abnormal tidak dihitung untuk kategori ini.
+        $pa = [
+            // kode, nama, spesimen, tipe hasil, harga
+            ['PA-HISTO', 'Histopatologi Jaringan', 'Jaringan biopsi', 'naratif', 200000],
+            ['PA-SITO-PAP', 'Sitologi Pap Smear', 'Apusan serviks', 'naratif', 150000],
+            ['PA-FNAB', 'FNAB (Biopsi Aspirasi Jarum Halus)', 'Aspirat', 'naratif', 250000],
+        ];
+
         foreach ($lab as [$kode, $nama, $spesimen, $tipe, $satuan, $rendah, $tinggi, $teksRujukan, $harga]) {
             TestCatalog::query()->updateOrCreate(['code' => $kode], [
                 'name' => $nama, 'category' => TestCatalog::CATEGORY_LAB,
@@ -55,8 +65,16 @@ class TestCatalogSeeder extends Seeder
             ]);
         }
 
-        $total = count($lab) + count($radiologi);
-        $this->command?->info("Katalog penunjang: {$total} pemeriksaan lab/radiologi contoh dimuat.");
+        foreach ($pa as [$kode, $nama, $spesimen, $tipe, $harga]) {
+            TestCatalog::query()->updateOrCreate(['code' => $kode], [
+                'name' => $nama, 'category' => TestCatalog::CATEGORY_PA,
+                'specimen_type' => $spesimen, 'result_type' => $tipe,
+                'price' => $harga, 'is_active' => true,
+            ]);
+        }
+
+        $total = count($lab) + count($radiologi) + count($pa);
+        $this->command?->info("Katalog penunjang: {$total} pemeriksaan lab/radiologi/PA contoh dimuat.");
         $this->command?->warn('Tarif dan rentang rujukan harus ditinjau ulang sebelum dipakai melayani pasien.');
     }
 }

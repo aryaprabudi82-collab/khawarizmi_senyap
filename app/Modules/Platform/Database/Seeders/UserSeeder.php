@@ -38,6 +38,7 @@ class UserSeeder extends Seeder
             ['username' => 'kasir1', 'name' => 'Dian Permatasari', 'role' => 'kasir', 'mfa' => false],
             ['username' => 'lab1', 'name' => 'Farid Setiadi', 'role' => 'petugas-lab', 'mfa' => false],
             ['username' => 'radiologi1', 'name' => 'Nadia Kartika', 'role' => 'petugas-radiologi', 'mfa' => false],
+            ['username' => 'labpa1', 'name' => 'Ester Manurung', 'role' => 'petugas-lab-pa', 'mfa' => false],
             ['username' => 'keuangan1', 'name' => 'Bambang Wijaya', 'role' => 'petugas-keuangan', 'mfa' => false],
             ['username' => 'integrasi1', 'name' => 'Fajar Nugroho', 'role' => 'petugas-integrasi', 'mfa' => false],
             ['username' => 'manajemen1', 'name' => 'Siti Rahayu', 'role' => 'manajemen', 'mfa' => false],

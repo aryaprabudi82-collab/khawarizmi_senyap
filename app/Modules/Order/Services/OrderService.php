@@ -318,7 +318,13 @@ class OrderService
 
     private function allocateNumber(string $category): string
     {
-        $prefix = ($category === LabRadiologyOrder::CATEGORY_LAB ? 'LAB' : 'RAD') . now()->format('Ymd');
+        $kode = match ($category) {
+            LabRadiologyOrder::CATEGORY_LAB => 'LAB',
+            LabRadiologyOrder::CATEGORY_RADIOLOGI => 'RAD',
+            LabRadiologyOrder::CATEGORY_PA => 'PA',
+            default => strtoupper($category),
+        };
+        $prefix = $kode . now()->format('Ymd');
 
         $row = DB::selectOne(
             'INSERT INTO orders.number_sequences (prefix, last_number, updated_at)

@@ -157,6 +157,16 @@
         ]
     },
     {
+        "code": "petugas-lab-pa",
+        "name": "Petugas Patologi Anatomi",
+        "description": "Memproses spesimen dan mencatat laporan pemeriksaan patologi anatomi.",
+        "_catatan_scope": "pemeriksaan_lab_pa berada di context 'encounter' (menu Khanza mencampurnya dengan registrasi, sama seperti periksa_lab), bukan di context 'order' - diberikan eksplisit di sini. Peran terpisah dari petugas-lab karena PA (patologi anatomi) secara praktik ditangani staf/spesialis berbeda dari lab PK (patologi klinik) sehari-hari, walau siklus sistemnya identik.",
+        "contexts": [],
+        "extra_permissions": [
+            "pemeriksaan_lab_pa"
+        ]
+    },
+    {
         "code": "petugas-keuangan",
         "name": "Petugas Keuangan",
         "description": "Mencatat penerimaan piutang dari penjamin.",

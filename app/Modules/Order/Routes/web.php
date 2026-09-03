@@ -4,15 +4,15 @@ use App\Modules\Order\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 
 /*
-| {kategori} dibatasi ke 'lab'|'radiologi' lewat where(). Otorisasinya
-| berbeda per nilai (periksa_lab vs periksa_radiologi), jadi ditegakkan di
-| dalam OrderController::assertAccess(), bukan lewat middleware 'can:' di
-| sini — middleware itu tidak bisa membaca nilai parameter rute saat
-| menentukan permission mana yang diperiksa.
+| {kategori} dibatasi ke 'lab'|'radiologi'|'pa' lewat where(). Otorisasinya
+| berbeda per nilai (periksa_lab vs periksa_radiologi vs pemeriksaan_lab_pa),
+| jadi ditegakkan di dalam OrderController::assertAccess(), bukan lewat
+| middleware 'can:' di sini — middleware itu tidak bisa membaca nilai
+| parameter rute saat menentukan permission mana yang diperiksa.
 */
 Route::middleware(['web', 'auth'])
     ->prefix('order/{kategori}')
-    ->where(['kategori' => 'lab|radiologi'])
+    ->where(['kategori' => 'lab|radiologi|pa'])
     ->name('order.')
     ->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');

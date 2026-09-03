@@ -220,18 +220,21 @@ class OrderController
     /**
      * Kategori harus salah satu nilai yang dikenal, dan pengguna harus punya
      * permission yang sesuai untuk kategori itu — periksa_lab untuk lab,
-     * periksa_radiologi untuk radiologi. Dua permission ini datang dari
-     * domain A Khanza (menu yang sama dengan registrasi), diberikan lewat
-     * extra_permissions peran, bukan lewat context-grant konteks order.
+     * periksa_radiologi untuk radiologi, pemeriksaan_lab_pa untuk patologi
+     * anatomi. Ketiga permission ini datang dari domain A Khanza (menu yang
+     * sama dengan registrasi), diberikan lewat extra_permissions peran,
+     * bukan lewat context-grant konteks order.
      */
     private function assertAccess(Request $request, string $kategori): void
     {
-        abort_unless(
-            in_array($kategori, [LabRadiologyOrder::CATEGORY_LAB, LabRadiologyOrder::CATEGORY_RADIOLOGI], true),
-            404
-        );
+        $permission = match ($kategori) {
+            LabRadiologyOrder::CATEGORY_LAB => 'periksa_lab',
+            LabRadiologyOrder::CATEGORY_RADIOLOGI => 'periksa_radiologi',
+            LabRadiologyOrder::CATEGORY_PA => 'pemeriksaan_lab_pa',
+            default => null,
+        };
 
-        $permission = $kategori === LabRadiologyOrder::CATEGORY_LAB ? 'periksa_lab' : 'periksa_radiologi';
+        abort_unless($permission !== null, 404);
 
         abort_unless($request->user()?->can($permission) === true, 403);
     }

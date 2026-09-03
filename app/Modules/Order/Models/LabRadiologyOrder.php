@@ -17,6 +17,7 @@ class LabRadiologyOrder extends Model
 
     public const CATEGORY_LAB = 'lab';
     public const CATEGORY_RADIOLOGI = 'radiologi';
+    public const CATEGORY_PA = 'pa';
 
     public const STATUS_DIMINTA = 'diminta';
     public const STATUS_DIPROSES = 'diproses';
@@ -67,6 +68,11 @@ class LabRadiologyOrder extends Model
 
     public static function categoryLabel(string $category): string
     {
-        return $category === self::CATEGORY_LAB ? 'Laboratorium' : 'Radiologi';
+        return match ($category) {
+            self::CATEGORY_LAB => 'Laboratorium',
+            self::CATEGORY_RADIOLOGI => 'Radiologi',
+            self::CATEGORY_PA => 'Patologi Anatomi',
+            default => $category,
+        };
     }
 }

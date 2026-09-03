@@ -143,16 +143,19 @@ return [
         'order' => [
             'schema'      => 'orders',
             'module'      => 'Order',
-            'description' => 'Siklus permintaan penunjang lab dan radiologi pasien: order, proses, hasil, verifikasi.',
+            'description' => 'Siklus permintaan penunjang lab, radiologi, dan patologi anatomi pasien: order, proses, hasil, verifikasi.',
             // Domain B Khanza ("Lab Kesehatan Lingkungan") BUKAN ini - itu uji
             // air/makanan, sudah jadi konteks 'envlab' terpisah. Permission
-            // tulis untuk periksa_lab/periksa_radiologi justru nyasar ke domain
-            // A karena menu Khanza mencampurnya dengan registrasi, sama seperti
-            // kasus resep_obat - diberikan eksplisit lewat extra_permissions
-            // peran, bukan lewat context-grant.
+            // tulis untuk periksa_lab/periksa_radiologi/pemeriksaan_lab_pa
+            // justru nyasar ke domain A karena menu Khanza mencampurnya
+            // dengan registrasi, sama seperti kasus resep_obat - diberikan
+            // eksplisit lewat extra_permissions peran, bukan lewat
+            // context-grant. pemeriksaan_lab_pa (Periksa Lab PA) memakai
+            // kategori 'pa' di siklus order yang sama - hasilnya selalu
+            // naratif, tidak ada rentang rujukan numerik.
             'domains'     => ['A'],
             'publishes'   => [
-                'v_order_charge' => 'Pemeriksaan lab/radiologi yang sudah selesai berikut nilainya. '
+                'v_order_charge' => 'Pemeriksaan lab/radiologi/PA yang sudah selesai berikut nilainya. '
                     . 'Dipakai billing untuk menarik biaya penunjang ke tagihan kunjungan.',
             ],
         ],

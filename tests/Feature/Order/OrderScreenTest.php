@@ -26,6 +26,7 @@ class OrderScreenTest extends TestCase
 
     private User $petugasLab;
     private User $petugasRadiologi;
+    private User $petugasLabPa;
     private OrderService $orders;
 
     protected function setUp(): void
@@ -43,6 +44,7 @@ class OrderScreenTest extends TestCase
 
         $this->petugasLab = $this->buatPengguna('petugas-lab');
         $this->petugasRadiologi = $this->buatPengguna('petugas-radiologi');
+        $this->petugasLabPa = $this->buatPengguna('petugas-lab-pa');
     }
 
     #[Test]
@@ -71,11 +73,36 @@ class OrderScreenTest extends TestCase
     }
 
     #[Test]
-    public function kategori_di_luar_lab_radiologi_mengembalikan_404(): void
+    public function kategori_di_luar_lab_radiologi_pa_mengembalikan_404(): void
     {
         $this->actingAs($this->petugasLab)
             ->get(route('order.index', 'farmasi'))
             ->assertNotFound();
+    }
+
+    #[Test]
+    public function petugas_lab_pa_dapat_membuka_antrean_pa(): void
+    {
+        $this->actingAs($this->petugasLabPa)
+            ->get(route('order.index', 'pa'))
+            ->assertOk()
+            ->assertSee('Patologi Anatomi');
+    }
+
+    #[Test]
+    public function petugas_lab_ditolak_mengakses_antrean_pa(): void
+    {
+        $this->actingAs($this->petugasLab)
+            ->get(route('order.index', 'pa'))
+            ->assertForbidden();
+    }
+
+    #[Test]
+    public function petugas_lab_pa_ditolak_mengakses_antrean_lab(): void
+    {
+        $this->actingAs($this->petugasLabPa)
+            ->get(route('order.index', 'lab'))
+            ->assertForbidden();
     }
 
     #[Test]

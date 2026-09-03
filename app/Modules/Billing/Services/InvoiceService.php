@@ -281,7 +281,12 @@ class InvoiceService
                 [
                     $baris->verified_at, $invoice->id, $invoice->registration_id,
                     'order_penunjang', $baris->item_id,
-                    ($baris->category === 'lab' ? 'Lab: ' : 'Radiologi: ') . $baris->test_name,
+                    match ($baris->category) {
+                        'lab' => 'Lab: ',
+                        'radiologi' => 'Radiologi: ',
+                        'pa' => 'PA: ',
+                        default => '',
+                    } . $baris->test_name,
                     (float) $baris->unit_price, (float) $baris->amount,
                 ]
             );

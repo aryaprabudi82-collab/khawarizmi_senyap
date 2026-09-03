@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', ($kategori === 'lab' ? 'Laboratorium' : 'Radiologi'))
+@section('title', \App\Modules\Order\Models\LabRadiologyOrder::categoryLabel($kategori))
 @section('breadcrumb', 'Konteks order')
-@section('heading', 'Antrean ' . ($kategori === 'lab' ? 'Laboratorium' : 'Radiologi') . ' ' . $tanggal->translatedFormat('l, d F Y'))
+@section('heading', 'Antrean ' . \App\Modules\Order\Models\LabRadiologyOrder::categoryLabel($kategori) . ' ' . $tanggal->translatedFormat('l, d F Y'))
 
 @section('content')
 

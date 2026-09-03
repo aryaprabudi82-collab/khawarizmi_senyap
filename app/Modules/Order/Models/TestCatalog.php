@@ -9,6 +9,7 @@ class TestCatalog extends Model
 {
     public const CATEGORY_LAB = 'lab';
     public const CATEGORY_RADIOLOGI = 'radiologi';
+    public const CATEGORY_PA = 'pa';
 
     public const RESULT_KUANTITATIF = 'kuantitatif';
     public const RESULT_KUALITATIF = 'kualitatif';

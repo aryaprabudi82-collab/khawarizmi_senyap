@@ -266,6 +266,56 @@ class OrderTest extends TestCase
     }
 
     #[Test]
+    public function order_pa_dibuka_dan_bernomor_prefix_pa(): void
+    {
+        $order = $this->orders->create($this->daftarkan()->id, 'pa');
+
+        $this->assertSame('pa', $order->category);
+        $this->assertStringStartsWith('PA' . now()->format('Ymd'), $order->order_number);
+    }
+
+    #[Test]
+    public function pemeriksaan_pa_menggunakan_hasil_naratif_dan_tidak_otomatis_abnormal(): void
+    {
+        $order = $this->orders->create($this->daftarkan()->id, 'pa');
+        $item = $this->orders->addItem($order, TestCatalog::query()->where('code', 'PA-HISTO')->value('id'));
+
+        $hasil = $this->orders->enterResult($item, notes: 'Sesuai gambaran radang kronis, tidak tampak tanda keganasan.');
+
+        $this->assertFalse($hasil->is_abnormal);
+        $this->assertSame('Sesuai gambaran radang kronis, tidak tampak tanda keganasan.', $hasil->result_notes);
+    }
+
+    #[Test]
+    public function pemeriksaan_pa_kategori_salah_ditolak(): void
+    {
+        $registrasi = $this->daftarkan();
+        $hb = TestCatalog::query()->where('code', 'LAB-HB')->value('id');
+
+        $this->expectException(OrderException::class);
+        $this->expectExceptionMessage('bukan pemeriksaan pa');
+
+        $this->orders->create($registrasi->id, 'pa', [$hb]);
+    }
+
+    #[Test]
+    public function order_pa_yang_selesai_terbaca_lewat_view_terbitan_untuk_billing(): void
+    {
+        $order = $this->orders->create($this->daftarkan()->id, 'pa');
+        $item = $this->orders->addItem($order, TestCatalog::query()->where('code', 'PA-SITO-PAP')->value('id'));
+        $this->orders->enterResult($item, notes: 'NILM (Negative for Intraepithelial Lesion or Malignancy).');
+        $this->orders->verify($order->refresh(), $this->petugasLab);
+
+        $baris = DB::table('orders.v_order_charge')
+            ->where('registration_id', $order->registration_id)
+            ->first();
+
+        $this->assertNotNull($baris);
+        $this->assertSame('Sitologi Pap Smear', $baris->test_name);
+        $this->assertSame('150000.00', $baris->amount);
+    }
+
+    #[Test]
     public function basis_data_menolak_pemeriksaan_ganda_dalam_satu_order_walau_kode_lolos(): void
     {
         $order = $this->orders->create($this->daftarkan()->id, 'lab');

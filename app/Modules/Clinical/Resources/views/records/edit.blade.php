@@ -430,7 +430,7 @@
 {{-- Order penunjang --}}
 <div class="row g-3 mt-0">
   @can('periksa_lab')
-    <div class="col-12 col-md-6">
+    <div class="col-12 col-md-4">
       <div class="card h-100">
         <div class="card-body d-flex justify-content-between align-items-center">
           <div>
@@ -446,7 +446,7 @@
     </div>
   @endcan
   @can('periksa_radiologi')
-    <div class="col-12 col-md-6">
+    <div class="col-12 col-md-4">
       <div class="card h-100">
         <div class="card-body d-flex justify-content-between align-items-center">
           <div>
@@ -456,6 +456,22 @@
           <form method="POST" action="{{ route('order.buat', ['radiologi', $assessment->registration_id]) }}">
             @csrf
             <button class="btn btn-outline-primary btn-sm">Order Radiologi</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  @endcan
+  @can('pemeriksaan_lab_pa')
+    <div class="col-12 col-md-4">
+      <div class="card h-100">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <strong>Patologi Anatomi</strong>
+            <div class="text-secondary small">Buka atau lanjutkan order PA kunjungan ini.</div>
+          </div>
+          <form method="POST" action="{{ route('order.buat', ['pa', $assessment->registration_id]) }}">
+            @csrf
+            <button class="btn btn-outline-primary btn-sm">Order PA</button>
           </form>
         </div>
       </div>

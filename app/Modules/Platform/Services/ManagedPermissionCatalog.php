@@ -31,7 +31,7 @@ class ManagedPermissionCatalog
         'audit_kepatuhan_apd', 'bayar_piutang', 'beri_obat', 'bpjs_cek_kartu', 'bpjs_sep', 'diet_pasien',
         'igd', 'insiden_keselamatan_pasien', 'inventaris_inventaris', 'ipsrs_barang', 'limbah_b3_medis',
         'mapping_poli_bpjs', 'pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi', 'pegawai_user',
-        'pembayaran_ralan', 'pengajuan_barang_nonmedis', 'pengajuan_cuti', 'pengumuman_epasien',
+        'pembayaran_ralan', 'pemeriksaan_lab_pa', 'pengajuan_barang_nonmedis', 'pengajuan_cuti', 'pengumuman_epasien',
         'penilaian_awal_medis_ralan', 'perbaikan_inventaris', 'periksa_lab', 'periksa_radiologi',
         'peristiwa_k3rs', 'persetujuan_penolakan_tindakan', 'presensi_harian', 'registrasi',
         'rekap_kunjungan', 'resep_obat', 'rujukan_keluar', 'satu_sehat_kirim_condition', 'satu_sehat_kirim_encounter',

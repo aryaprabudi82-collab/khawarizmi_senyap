@@ -141,6 +141,29 @@ class InvoiceTest extends TestCase
     }
 
     #[Test]
+    public function pemeriksaan_pa_yang_terverifikasi_tertarik_sebagai_charge_line_berlabel_pa(): void
+    {
+        $registrasi = $this->daftarkan('Umum');
+
+        $order = app(\App\Modules\Order\Services\OrderService::class)->create($registrasi->id, 'pa');
+        $item = app(\App\Modules\Order\Services\OrderService::class)->addItem(
+            $order, \App\Modules\Order\Models\TestCatalog::query()->where('code', 'PA-HISTO')->value('id')
+        );
+        app(\App\Modules\Order\Services\OrderService::class)->enterResult($item, notes: 'Jinak.');
+        app(\App\Modules\Order\Services\OrderService::class)->verify($order->refresh());
+
+        $tagihan = $this->invoices->openInvoice($registrasi->id);
+
+        $this->assertSame('250000.00', $tagihan->total_amount); // 50000 registrasi + 200000 PA
+        $this->assertDatabaseHas('billing.charge_lines', [
+            'registration_id' => $registrasi->id,
+            'source_type' => 'order_penunjang',
+            'source_id' => $item->id,
+            'description' => 'PA: Histopatologi Jaringan',
+        ]);
+    }
+
+    #[Test]
     public function tindakan_ralan_ikut_tertarik_sebagai_charge_line(): void
     {
         $registrasi = $this->daftarkan('Umum');
