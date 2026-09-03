@@ -255,5 +255,15 @@
         "extra_permissions": [
             "sirkulasi_cssd"
         ]
+    },
+    {
+        "code": "petugas-kesling",
+        "name": "Petugas Kesehatan Lingkungan",
+        "description": "Pencatatan limbah B3, mutu air limbah, pemakaian air, dan kunjungan pest control — syarat perizinan lingkungan dan akreditasi.",
+        "_catatan_scope": "Peran terpisah lagi dari petugas-aset/petugas-cssd meski masih domain G — kesling adalah profesi sanitarian tersendiri di RS sungguhan. limbah_b3_medis dipakai sebagai gerbang tunggal seluruh layar kesling (enam kategori pengukuran plus pest control), bukan salah satu dari tujuh kapabilitas granular domain G yang masing-masing jadi menu sendiri di Khanza.",
+        "contexts": [],
+        "extra_permissions": [
+            "limbah_b3_medis"
+        ]
     }
 ]

@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Asset\Http\Controllers\CssdController;
+use App\Modules\Asset\Http\Controllers\EnvironmentalHealthController;
 use App\Modules\Asset\Http\Controllers\MaintenanceController;
 use App\Modules\Asset\Http\Controllers\MasterDataController;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +34,12 @@ Route::middleware(['web', 'auth'])
             Route::post('/{sirkulasi}/proses', [CssdController::class, 'startProcessing'])->name('proses');
             Route::post('/{sirkulasi}/steril', [CssdController::class, 'markSterile'])->name('steril');
             Route::post('/{sirkulasi}/distribusi', [CssdController::class, 'distribute'])->name('distribusi');
+        });
+
+        Route::middleware('can:limbah_b3_medis')->prefix('kesling')->name('kesling.')->group(function () {
+            Route::get('/', [EnvironmentalHealthController::class, 'index'])->name('index');
+            Route::post('/pengukuran', [EnvironmentalHealthController::class, 'storeMeasurement'])->name('pengukuran.simpan');
+            Route::post('/pest-control', [EnvironmentalHealthController::class, 'storePestControl'])->name('pest-control.simpan');
         });
 
     });
