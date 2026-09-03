@@ -177,6 +177,18 @@ return [
             'publishes'   => [],
         ],
 
+        'quality' => [
+            'schema'      => 'quality',
+            'module'      => 'Quality',
+            'description' => 'Insiden keselamatan pasien (IKP) dan PCRA/ICRA (kajian risiko pra-konstruksi). '
+                . 'insiden_keselamatan(_pasien) tercatat domain M/clinical di Khanza padahal manajemen risiko RS-wide, '
+                . 'bukan rekam medis — belum pernah dibangun di modul Clinical, dipindah ke sini. Domain C juga '
+                . 'menyimpan 34 kapabilitas audit PPI dan insiden K3 yang konseptual milik konteks ini; belum digarap '
+                . 'wave ini.',
+            'domains'     => ['R'],
+            'publishes'   => [],
+        ],
+
     ],
 
     /*
@@ -188,7 +200,6 @@ return [
         'asset'          => ['schema' => 'asset',          'domains' => ['G'],      'description' => 'Aset, inventaris, CSSD, pemeliharaan, kesehatan lingkungan.'],
         'blood'          => ['schema' => 'blood',          'domains' => ['N'],      'description' => 'Unit transfusi darah.'],
         'correspondence' => ['schema' => 'correspondence', 'domains' => ['P'],      'description' => 'Surat masuk, surat keluar, pengumuman e-pasien.'],
-        'quality'        => ['schema' => 'quality',        'domains' => ['R'],      'description' => 'PCRA, ICRA, dan pengendalian risiko.'],
     ],
 
     /*

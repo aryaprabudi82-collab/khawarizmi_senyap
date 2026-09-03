@@ -68,6 +68,11 @@
             "registrasi",
             "resep_obat",
             "penilaian_awal_medis_ralan"
+        ],
+        "_catatan_exclusion": "insiden_keselamatan(_pasien) tercatat context 'clinical' di katalog permission (warisan domain M Khanza), tapi modulnya sekarang di konteks quality (lihat config/contexts.php) dan Wave 1 ini sengaja admin-mutu-only — pelaporan insiden oleh staf klinis sendiri (bukan cuma admin mutu) adalah perluasan wajar untuk wave berikutnya, bukan dikecualikan selamanya.",
+        "excluded_permissions": [
+            "insiden_keselamatan",
+            "insiden_keselamatan_pasien"
         ]
     },
     {
@@ -83,12 +88,14 @@
             "registrasi",
             "penilaian_awal_keperawatan_ralan"
         ],
-        "_catatan_exclusion": "Menulis resep dan tindakan operasi bukan kewenangan perawat, meski ikut kebawa dari context encounter yang bercampur.",
+        "_catatan_exclusion": "Menulis resep dan tindakan operasi bukan kewenangan perawat, meski ikut kebawa dari context encounter yang bercampur. insiden_keselamatan(_pasien) dikecualikan dengan alasan sama seperti pada peran dokter — lihat catatannya di sana.",
         "excluded_permissions": [
             "resep_obat",
             "resep_pulang",
             "operasi",
-            "billing_ralan"
+            "billing_ralan",
+            "insiden_keselamatan",
+            "insiden_keselamatan_pasien"
         ]
     },
     {
@@ -179,6 +186,18 @@
             "pegawai_user",
             "pengajuan_cuti",
             "presensi_harian"
+        ]
+    },
+    {
+        "code": "admin-mutu",
+        "name": "Admin Mutu & Keselamatan Pasien",
+        "description": "Pelaporan dan tindak lanjut insiden keselamatan pasien (IKP), serta kajian risiko pra-konstruksi (PCRA/ICRA).",
+        "_catatan_scope": "insiden_keselamatan(_pasien) tercatat domain M/'clinical' di Khanza padahal manajemen risiko RS-wide (siapa saja bisa melaporkan, termasuk insiden tanpa pasien tertentu), bukan rekam medis, dan belum pernah dibangun di modul Clinical — dipetakan ke sini. pcra_icra_pengkajian_risiko_prakonstruksi dipakai sebagai gerbang tunggal ICRA; domain R punya 10 kapabilitas granular (masing-masing daftar referensi ICRA jadi menu sendiri di Khanza) yang di sini digabung jadi satu form terstruktur, bukan 10 layar referensi terpisah.",
+        "contexts": [],
+        "extra_permissions": [
+            "insiden_keselamatan",
+            "insiden_keselamatan_pasien",
+            "pcra_icra_pengkajian_risiko_prakonstruksi"
         ]
     }
 ]

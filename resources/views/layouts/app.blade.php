@@ -90,6 +90,19 @@
             <a class="nav-link" href="{{ route('reporting.dashboard') }}">Laporan</a>
           </li>
         @endcan
+        @canany(['insiden_keselamatan_pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi'])
+          <li class="nav-item dropdown {{ request()->routeIs('quality.*') ? 'active' : '' }}">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Mutu</a>
+            <div class="dropdown-menu">
+              @can('insiden_keselamatan_pasien')
+                <a class="dropdown-item" href="{{ route('quality.insiden.index') }}">Insiden (IKP)</a>
+              @endcan
+              @can('pcra_icra_pengkajian_risiko_prakonstruksi')
+                <a class="dropdown-item" href="{{ route('quality.icra.index') }}">PCRA/ICRA</a>
+              @endcan
+            </div>
+          </li>
+        @endcanany
         @canany(['pegawai_user', 'pengajuan_cuti', 'presensi_harian'])
           <li class="nav-item dropdown {{ request()->routeIs('hr.*') ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Kepegawaian</a>
