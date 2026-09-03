@@ -22,9 +22,11 @@
             "identity"
         ],
         "extra_permissions": [
-            "pasien"
+            "pasien",
+            "barcoderalan",
+            "barcoderanap"
         ],
-        "_catatan_exclusion": "Domain A Khanza mencampur menu registrasi dengan resep, operasi, dan periksa lab/radiologi dalam satu grup. Dikecualikan di sini supaya petugas loket tidak diam-diam kebagian kapabilitas klinis/farmasi. permintaan_ranap SENGAJA TIDAK dikecualikan — memilih 'Jenis Rawat: Rawat Inap' saat registrasi tetap tugas loket, cuma alokasi kamar/bed-nya (tindakan_ranap) yang dikecualikan ke petugas-ranap di konteks inpatient. rujukan_masuk juga sengaja tidak dikecualikan (bukan gerbang permission sendiri — cuma kolom tambahan di formulir registrasi yang sudah ada); rujukan_keluar DIKECUALIKAN karena surat rujukan medis diterbitkan dokter, bukan loket. deposit_pasien dan perkiraan_biaya_ranap DIKECUALIKAN — berpaket Java \"keuangan\", diberikan ke petugas-keuangan di konteks finance, bukan loket pendaftaran.",
+        "_catatan_exclusion": "Domain A Khanza mencampur menu registrasi dengan resep, operasi, dan periksa lab/radiologi dalam satu grup. Dikecualikan di sini supaya petugas loket tidak diam-diam kebagian kapabilitas klinis/farmasi. permintaan_ranap SENGAJA TIDAK dikecualikan — memilih 'Jenis Rawat: Rawat Inap' saat registrasi tetap tugas loket, cuma alokasi kamar/bed-nya (tindakan_ranap) yang dikecualikan ke petugas-ranap di konteks inpatient. rujukan_masuk juga sengaja tidak dikecualikan (bukan gerbang permission sendiri — cuma kolom tambahan di formulir registrasi yang sudah ada); rujukan_keluar DIKECUALIKAN karena surat rujukan medis diterbitkan dokter, bukan loket. deposit_pasien dan perkiraan_biaya_ranap DIKECUALIKAN — berpaket Java \"keuangan\", diberikan ke petugas-keuangan di konteks finance, bukan loket pendaftaran. barcoderalan/barcoderanap (domain B) tercatat context=envlab di katalog (ikut penamaan menu \"Barcode & Lab Kesling\"), bukan context=encounter — jadi TIDAK ikut wholesale context di atas, diberikan eksplisit di sini karena cetak label barcode kunjungan memang tugas loket, tidak ada hubungan dengan lab lingkungan/K3.",
         "excluded_permissions": [
             "beri_obat",
             "resep_obat",
@@ -56,7 +58,8 @@
         "contexts": [],
         "extra_permissions": [
             "tindakan_ranap",
-            "diet_pasien"
+            "diet_pasien",
+            "barcoderanap"
         ]
     },
     {

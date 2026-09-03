@@ -114,6 +114,9 @@
                 <span class="badge bg-{{ $rona }}-lt">{{ str_replace('-', ' ', $baris->status) }}</span>
               </td>
               <td>
+                @can($baris->care_type === 'ranap' ? 'barcoderanap' : 'barcoderalan')
+                  <a href="{{ route('registrasi.barcode', $baris->id) }}" class="btn btn-sm btn-outline-secondary" target="_blank">Barcode</a>
+                @endcan
                 @can('pembayaran_ralan')
                   <form method="POST" action="{{ route('tagihan.buka', $baris->id) }}" class="d-inline">
                     @csrf

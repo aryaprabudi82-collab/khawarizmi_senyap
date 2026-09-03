@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Encounter\Http\Controllers\BarcodeController;
 use App\Modules\Encounter\Http\Controllers\CorporateMcuBookingController;
 use App\Modules\Encounter\Http\Controllers\IgdController;
 use App\Modules\Encounter\Http\Controllers\KfrProgramRequestController;
@@ -14,6 +15,11 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::get('/baru', [RegistrationController::class, 'create'])->name('create')->can('registrasi');
         Route::post('/', [RegistrationController::class, 'store'])->name('store')->can('registrasi');
         Route::post('/{registrasi}/batal', [RegistrationController::class, 'cancel'])->name('batal')->can('registrasi');
+
+        // barcoderalan/barcoderanap — permission-nya beda per jenis rawat,
+        // diperiksa imperatif di BarcodeController::print(), bukan lewat
+        // middleware 'can:' statis di sini. Lihat catatan kelasnya.
+        Route::get('/{registrasi}/barcode', [BarcodeController::class, 'print'])->name('barcode');
     });
 
     // rujukan_keluar — keputusan klinis dokter merujuk pasien ke faskes
