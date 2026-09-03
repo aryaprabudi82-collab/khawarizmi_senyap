@@ -5,6 +5,7 @@ namespace App\Modules\Organization\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Practitioner extends Model
@@ -50,6 +51,11 @@ class Practitioner extends Model
     {
         return $this->belongsToMany(Unit::class, 'organization.practitioner_units')
             ->withPivot('is_primary');
+    }
+
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(PracticeSchedule::class)->orderBy('day_of_week')->orderBy('start_time');
     }
 
     public function displayName(): string

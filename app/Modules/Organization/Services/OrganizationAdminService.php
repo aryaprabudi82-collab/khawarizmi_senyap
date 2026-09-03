@@ -2,6 +2,7 @@
 
 namespace App\Modules\Organization\Services;
 
+use App\Modules\Organization\Models\PracticeSchedule;
 use App\Modules\Organization\Models\Practitioner;
 use App\Modules\Organization\Models\Unit;
 
@@ -55,5 +56,34 @@ class OrganizationAdminService
         }
 
         $practitioner->units()->sync($sync);
+    }
+
+    /**
+     * jadwal_praktek — lihat catatan migrasi practice_schedules untuk alasan
+     * dibangun di sini (organization), bukan hr.
+     *
+     * @throws OrganizationException
+     */
+    public function addSchedule(Practitioner $practitioner, array $data): PracticeSchedule
+    {
+        $bentrok = PracticeSchedule::query()
+            ->where('practitioner_id', $practitioner->id)
+            ->where('unit_id', $data['unit_id'])
+            ->where('day_of_week', $data['day_of_week'])
+            ->where('start_time', $data['start_time'])
+            ->exists();
+
+        if ($bentrok) {
+            throw new OrganizationException(
+                "{$practitioner->displayName()} sudah punya jadwal pada hari dan jam yang sama di unit ini."
+            );
+        }
+
+        return $practitioner->schedules()->create($data + ['is_active' => true]);
+    }
+
+    public function removeSchedule(PracticeSchedule $schedule): void
+    {
+        $schedule->delete();
     }
 }

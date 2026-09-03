@@ -4,6 +4,8 @@ namespace Tests\Feature\Organization;
 
 use App\Modules\Organization\Models\Practitioner;
 use App\Modules\Organization\Models\Unit;
+use App\Modules\Organization\Services\OrganizationAdminService;
+use App\Modules\Organization\Services\OrganizationException;
 use App\Modules\Platform\Database\Seeders\PermissionCatalogSeeder;
 use App\Modules\Platform\Database\Seeders\RoleSeeder;
 use App\Modules\Platform\Models\Role;
@@ -96,6 +98,71 @@ class OrganizationMasterDataTest extends TestCase
             ]);
 
         $this->assertFalse($praktisi->fresh()->is_active);
+    }
+
+    #[Test]
+    public function jadwal_praktik_bisa_ditambah_lewat_http(): void
+    {
+        $praktisi = Practitioner::query()->where('code', 'DR001')->firstOrFail();
+        $unit = $praktisi->units->first();
+
+        $this->actingAs($this->adminMaster)
+            ->post(route('master.praktisi.jadwal.simpan', $praktisi), [
+                'unit_id' => $unit->id, 'day_of_week' => 1, 'start_time' => '08:00', 'end_time' => '12:00',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('sukses');
+
+        $this->assertDatabaseHas('organization.practice_schedules', [
+            'practitioner_id' => $praktisi->id, 'unit_id' => $unit->id, 'day_of_week' => 1,
+        ]);
+    }
+
+    #[Test]
+    public function jadwal_yang_persis_sama_ditolak(): void
+    {
+        $praktisi = Practitioner::query()->where('code', 'DR001')->firstOrFail();
+        $unit = $praktisi->units->first();
+        $admin = app(OrganizationAdminService::class);
+
+        $admin->addSchedule($praktisi, [
+            'unit_id' => $unit->id, 'day_of_week' => 1, 'start_time' => '08:00', 'end_time' => '12:00',
+        ]);
+
+        $this->expectException(OrganizationException::class);
+        $admin->addSchedule($praktisi, [
+            'unit_id' => $unit->id, 'day_of_week' => 1, 'start_time' => '08:00', 'end_time' => '11:00',
+        ]);
+    }
+
+    #[Test]
+    public function jam_selesai_harus_setelah_jam_mulai(): void
+    {
+        $praktisi = Practitioner::query()->where('code', 'DR001')->firstOrFail();
+        $unit = $praktisi->units->first();
+
+        $this->actingAs($this->adminMaster)
+            ->post(route('master.praktisi.jadwal.simpan', $praktisi), [
+                'unit_id' => $unit->id, 'day_of_week' => 1, 'start_time' => '12:00', 'end_time' => '08:00',
+            ])
+            ->assertSessionHasErrors('end_time');
+    }
+
+    #[Test]
+    public function jadwal_praktik_bisa_dihapus(): void
+    {
+        $praktisi = Practitioner::query()->where('code', 'DR001')->firstOrFail();
+        $unit = $praktisi->units->first();
+        $jadwal = app(OrganizationAdminService::class)->addSchedule($praktisi, [
+            'unit_id' => $unit->id, 'day_of_week' => 2, 'start_time' => '08:00', 'end_time' => '12:00',
+        ]);
+
+        $this->actingAs($this->adminMaster)
+            ->delete(route('master.jadwal.hapus', $jadwal))
+            ->assertRedirect()
+            ->assertSessionHas('sukses');
+
+        $this->assertDatabaseMissing('organization.practice_schedules', ['id' => $jadwal->id]);
     }
 
     #[Test]

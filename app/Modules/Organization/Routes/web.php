@@ -13,4 +13,7 @@ Route::middleware(['web', 'auth', 'can:tarif_ralan'])->prefix('master')->name('m
 
     Route::post('/praktisi', [MasterDataController::class, 'storePractitioner'])->name('praktisi.simpan');
     Route::post('/praktisi/{praktisi}', [MasterDataController::class, 'updatePractitioner'])->name('praktisi.perbarui');
+
+    Route::post('/praktisi/{praktisi}/jadwal', [MasterDataController::class, 'storeSchedule'])->name('praktisi.jadwal.simpan');
+    Route::delete('/jadwal/{jadwal}', [MasterDataController::class, 'destroySchedule'])->name('jadwal.hapus');
 });

@@ -89,7 +89,10 @@
                     <span class="badge bg-red-lt">Nonaktif</span>
                   @endif
                 </td>
-                <td><button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#edit-praktisi-{{ $p->id }}">Ubah</button></td>
+                <td class="text-nowrap">
+                  <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#edit-praktisi-{{ $p->id }}">Ubah</button>
+                  <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#jadwal-praktisi-{{ $p->id }}">Jadwal</button>
+                </td>
               </tr>
             @empty
               <tr><td colspan="6" class="text-center text-secondary py-3">Belum ada praktisi.</td></tr>
@@ -169,6 +172,59 @@
         </div>
         <div class="modal-footer"><button type="submit" class="btn btn-primary">Simpan</button></div>
       </form>
+    </div>
+  </div>
+@endforeach
+
+@foreach ($praktisi as $p)
+  <div class="modal fade" id="jadwal-praktisi-{{ $p->id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Jadwal Praktik — {{ $p->displayName() }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <table class="table table-sm table-vcenter mb-3">
+            <thead><tr><th>Hari</th><th>Jam</th><th>Unit</th><th class="w-1"></th></tr></thead>
+            <tbody>
+              @forelse ($p->schedules as $j)
+                <tr>
+                  <td>{{ $j->dayLabel() }}</td>
+                  <td class="font-monospace small">{{ substr($j->start_time, 0, 5) }}&ndash;{{ substr($j->end_time, 0, 5) }}</td>
+                  <td class="text-secondary small">{{ $j->unit->name }}</td>
+                  <td>
+                    <form method="POST" action="{{ route('master.jadwal.hapus', $j) }}">
+                      @csrf
+                      @method('DELETE')
+                      <button class="btn btn-sm btn-link text-danger p-0">Hapus</button>
+                    </form>
+                  </td>
+                </tr>
+              @empty
+                <tr><td colspan="4" class="text-center text-secondary py-2">Belum ada jadwal.</td></tr>
+              @endforelse
+            </tbody>
+          </table>
+          <form method="POST" action="{{ route('master.praktisi.jadwal.simpan', $p) }}" class="row g-2">
+            @csrf
+            <div class="col-6">
+              <select name="day_of_week" class="form-select form-select-sm" required>
+                @foreach (\App\Modules\Organization\Models\PracticeSchedule::DAYS as $angka => $nama)
+                  <option value="{{ $angka }}">{{ $nama }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-6">
+              <select name="unit_id" class="form-select form-select-sm" required>
+                @foreach ($p->units as $u)
+                  <option value="{{ $u->id }}">{{ $u->name }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-6"><input type="time" name="start_time" class="form-control form-control-sm" required></div>
+            <div class="col-6"><input type="time" name="end_time" class="form-control form-control-sm" required></div>
+            <div class="col-12"><button class="btn btn-sm btn-outline-primary w-100">Tambah Jadwal</button></div>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
 @endforeach

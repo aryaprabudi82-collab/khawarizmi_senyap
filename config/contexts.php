@@ -52,8 +52,14 @@ return [
         'organization' => [
             'schema'      => 'organization',
             'module'      => 'Organization',
-            'description' => 'Unit layanan, poliklinik, ruang, bangsal, dan praktisi (SIP, spesialisasi, periode aktif).',
-            'domains'     => ['U', 'C'],
+            'description' => 'Unit layanan, poliklinik, ruang, bangsal, praktisi (SIP, spesialisasi, periode aktif), '
+                . 'dan jadwal praktik mingguan. jadwal_praktek tercatat domain A/context=encounter di katalog, '
+                . 'paket Java-nya "kepegawaian" (lihat Khanza_Functional_Dependency_Map.xlsx) — sengaja TETAP '
+                . 'dibangun di sini (bukan hr) karena practitioners sudah dipisah dari hr.employees justru supaya '
+                . 'ketersediaan klinis tidak bergantung modul kepegawaian; lihat catatan migrasi '
+                . 'practice_schedules. Wave 1 murni data jadwal (CRUD admin), belum dipakai memvalidasi '
+                . 'registrasi — akan dikonsumsi saat booking_registrasi/booking_periksa dibangun.',
+            'domains'     => ['U', 'C', 'A'],
             'publishes'   => [
                 'v_unit_summary' => 'Unit layanan aktif berikut kuota hariannya.',
                 'v_practitioner_summary' => 'Praktisi berikut spesialisasi dan masa aktifnya.',

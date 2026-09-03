@@ -2,9 +2,11 @@
 
 namespace App\Modules\Organization\Http\Controllers;
 
+use App\Modules\Organization\Models\PracticeSchedule;
 use App\Modules\Organization\Models\Practitioner;
 use App\Modules\Organization\Models\Unit;
 use App\Modules\Organization\Services\OrganizationAdminService;
+use App\Modules\Organization\Services\OrganizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -18,7 +20,7 @@ class MasterDataController
     {
         return view('organization::master.index', [
             'unit' => Unit::query()->orderBy('kind')->orderBy('name')->get(),
-            'praktisi' => Practitioner::query()->with('units')->orderBy('name')->get(),
+            'praktisi' => Practitioner::query()->with(['units', 'schedules.unit'])->orderBy('name')->get(),
             'unitAktif' => Unit::query()->where('is_active', true)->orderBy('name')->get(),
         ]);
     }
@@ -107,5 +109,31 @@ class MasterDataController
         $this->admin->syncUnits($praktisi, $unitIds, $primary);
 
         return back()->with('sukses', "Praktisi {$praktisi->name} diperbarui.");
+    }
+
+    public function storeSchedule(Request $request, Practitioner $praktisi): RedirectResponse
+    {
+        $data = $request->validate([
+            'unit_id' => ['required', 'integer', Rule::exists(Unit::class, 'id')],
+            'day_of_week' => ['required', 'integer', 'between:1,7'],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
+            'note' => ['nullable', 'string', 'max:255'],
+        ], [], ['unit_id' => 'unit', 'day_of_week' => 'hari', 'start_time' => 'jam mulai', 'end_time' => 'jam selesai']);
+
+        try {
+            $this->admin->addSchedule($praktisi, $data);
+        } catch (OrganizationException $e) {
+            return back()->with('galat', $e->getMessage());
+        }
+
+        return back()->with('sukses', "Jadwal praktik {$praktisi->displayName()} ditambahkan.");
+    }
+
+    public function destroySchedule(PracticeSchedule $jadwal): RedirectResponse
+    {
+        $this->admin->removeSchedule($jadwal);
+
+        return back()->with('sukses', 'Jadwal praktik dihapus.');
     }
 }
