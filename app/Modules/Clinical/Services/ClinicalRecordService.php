@@ -7,6 +7,7 @@ use App\Modules\Clinical\Models\Assessment;
 use App\Modules\Clinical\Models\AssessmentRevision;
 use App\Modules\Clinical\Models\Diagnosis;
 use App\Modules\Clinical\Models\Observation;
+use App\Modules\Clinical\Models\Screening;
 use App\Modules\Platform\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -302,5 +303,38 @@ class ClinicalRecordService
             ->aktif()
             ->orderByRaw("CASE severity WHEN 'berat' THEN 1 WHEN 'sedang' THEN 2 ELSE 3 END")
             ->get();
+    }
+
+    /**
+     * sekrining_rawat_jalan — dicatat sekali per kunjungan, sebelum asesmen
+     * penuh. Lihat catatan migrasi screenings untuk alasan tidak memakai
+     * pola draft/final/amended seperti assessments.
+     *
+     * @throws ClinicalException
+     */
+    public function recordScreening(int $registrationId, array $data, ?User $actor = null): Screening
+    {
+        if (Screening::query()->where('registration_id', $registrationId)->exists()) {
+            throw new ClinicalException('Kunjungan ini sudah punya catatan skrining.');
+        }
+
+        $kunjungan = $this->registrations->find($registrationId)
+            ?? throw new ClinicalException('Kunjungan tidak ditemukan atau sudah dibatalkan.');
+
+        return Screening::query()->create($data + [
+            'registration_id' => $kunjungan->id,
+            'patient_id' => $kunjungan->patient_id,
+            'registration_number' => $kunjungan->registration_number,
+            'patient_mrn' => $kunjungan->patient_mrn,
+            'patient_name' => $kunjungan->patient_name,
+            'screened_by' => $actor?->id,
+            'screened_by_name' => $actor?->name,
+            'screened_at' => now(),
+        ]);
+    }
+
+    public function screeningFor(int $registrationId): ?Screening
+    {
+        return Screening::query()->where('registration_id', $registrationId)->first();
     }
 }

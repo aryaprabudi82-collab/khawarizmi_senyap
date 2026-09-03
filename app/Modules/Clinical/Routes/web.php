@@ -13,6 +13,12 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::post('/asesmen/{assessment}/diagnosis', [ClinicalRecordController::class, 'storeDiagnosis'])->name('diagnosis.simpan');
         Route::post('/asesmen/{assessment}/alergi', [ClinicalRecordController::class, 'storeAllergy'])->name('alergi.simpan');
 
+        // sekrining_rawat_jalan — satu layar dengan asesmen, gerbang umbrella
+        // yang sama (penilaian_awal_medis_ralan), bukan kode terpisah: kedua
+        // aktivitas dilakukan staf klinis yang sama (dokter/perawat), lihat
+        // catatan migrasi clinical.screenings.
+        Route::post('/kunjungan/{registrasi}/skrining', [ClinicalRecordController::class, 'storeScreening'])->name('skrining.simpan');
+
         Route::delete('/diagnosis/{diagnosis}', [ClinicalRecordController::class, 'destroyDiagnosis'])->name('diagnosis.hapus');
 
         Route::get('/kode-diagnosis', [ClinicalRecordController::class, 'searchDiagnosisCodes'])->name('kode-diagnosis');

@@ -86,9 +86,13 @@ return [
         'clinical' => [
             'schema'      => 'clinical',
             'module'      => 'Clinical',
-            'description' => 'Rekam medis elektronik: asesmen, SOAP, tanda vital, diagnosis, dan alergi. '
-                . 'Mengacu Permenkes 24/2022.',
-            'domains'     => ['M'],
+            'description' => 'Rekam medis elektronik: asesmen, SOAP, tanda vital, diagnosis, alergi, dan '
+                . 'skrining awal rawat jalan (risiko jatuh/nyeri/gizi/gejala menular). Mengacu Permenkes '
+                . '24/2022. sekrining_rawat_jalan tercatat domain A/context=encounter di katalog, tapi kelas '
+                . 'Java-nya (RMSKriningRawatJalan) ada di package "rekammedis" milik Khanza sendiri (lihat '
+                . 'Khanza_Functional_Dependency_Map.xlsx) — dibangun di sini, digerbangi umbrella '
+                . 'penilaian_awal_medis_ralan yang sudah ada, bukan kode terpisah.',
+            'domains'     => ['M', 'A'],
             'publishes'   => [
                 'v_patient_allergy' => 'Alergi aktif per pasien. Dipakai pharmacy untuk telaah resep.',
                 'v_encounter_diagnosis' => 'Diagnosis per kunjungan berikut kode ICD-10. '

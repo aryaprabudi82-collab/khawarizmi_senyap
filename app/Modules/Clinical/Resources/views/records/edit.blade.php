@@ -122,6 +122,77 @@
   {{-- Kolom kanan: tanda vital + SOAP + diagnosis --}}
   <div class="col-12 col-lg-8">
 
+    {{-- Skrining awal — dicatat sekali per kunjungan, sebelum asesmen penuh --}}
+    <div class="card mb-3">
+      <div class="card-header"><h3 class="card-title">Skrining Awal</h3></div>
+      @if ($skrining)
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-6 col-md-3">
+              <div class="text-secondary small">Risiko Jatuh</div>
+              @php $warnaJatuh = ['rendah' => 'green', 'sedang' => 'yellow', 'tinggi' => 'red'][$skrining->fall_risk_level]; @endphp
+              <span class="badge bg-{{ $warnaJatuh }}-lt text-uppercase">{{ $skrining->fall_risk_level }}</span>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-secondary small">Skala Nyeri</div>
+              <span class="badge {{ $skrining->pain_score >= 4 ? 'bg-red-lt' : 'bg-secondary-lt' }}">{{ $skrining->pain_score }}/10</span>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-secondary small">Risiko Gizi</div>
+              <span class="badge {{ $skrining->nutrition_at_risk ? 'bg-red-lt' : 'bg-green-lt' }}">{{ $skrining->nutrition_at_risk ? 'Berisiko' : 'Tidak berisiko' }}</span>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-secondary small">Gejala Menular</div>
+              <span class="badge {{ $skrining->infectious_symptom ? 'bg-red-lt' : 'bg-green-lt' }}">{{ $skrining->infectious_symptom ? 'Ada' : 'Tidak ada' }}</span>
+            </div>
+            @if ($skrining->special_needs)
+              <div class="col-12">
+                <div class="text-secondary small">Kebutuhan Khusus</div>
+                <div>{{ $skrining->special_needs }}</div>
+              </div>
+            @endif
+          </div>
+          <div class="form-hint mt-2">Dicatat {{ $skrining->screened_by_name ?? 'petugas' }}, {{ $skrining->screened_at->format('d-m-Y H:i') }}.</div>
+        </div>
+      @else
+        <div class="card-body">
+          <form method="POST" action="{{ route('rme.skrining.simpan', $kunjungan->id) }}" class="row g-2">
+            @csrf
+            <div class="col-6 col-md-3">
+              <label class="form-label">Risiko Jatuh</label>
+              <select name="fall_risk_level" class="form-select form-select-sm" required>
+                <option value="rendah">Rendah</option>
+                <option value="sedang">Sedang</option>
+                <option value="tinggi">Tinggi</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label">Skala Nyeri (0-10)</label>
+              <input type="number" name="pain_score" class="form-control form-control-sm" min="0" max="10" value="0" required>
+            </div>
+            <div class="col-6 col-md-3 d-flex align-items-end">
+              <label class="form-check">
+                <input type="checkbox" name="nutrition_at_risk" value="1" class="form-check-input">
+                <span class="form-check-label">Risiko gizi</span>
+              </label>
+            </div>
+            <div class="col-6 col-md-3 d-flex align-items-end">
+              <label class="form-check">
+                <input type="checkbox" name="infectious_symptom" value="1" class="form-check-input">
+                <span class="form-check-label">Gejala menular</span>
+              </label>
+            </div>
+            <div class="col-12">
+              <input type="text" name="special_needs" class="form-control form-control-sm" placeholder="Kebutuhan khusus (opsional): penerjemah, disabilitas, dsb.">
+            </div>
+            <div class="col-12">
+              <button class="btn btn-sm btn-outline-primary w-100">Catat Skrining</button>
+            </div>
+          </form>
+        </div>
+      @endif
+    </div>
+
     <form method="POST" action="{{ route('rme.update', $assessment) }}">
       @csrf
 

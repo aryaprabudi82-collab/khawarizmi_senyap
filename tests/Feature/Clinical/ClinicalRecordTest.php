@@ -348,6 +348,80 @@ class ClinicalRecordTest extends TestCase
     }
 
     #[Test]
+    public function skrining_awal_tercatat_untuk_satu_kunjungan(): void
+    {
+        $registrasi = $this->daftarkan();
+
+        $skrining = $this->records->recordScreening($registrasi->id, [
+            'fall_risk_level' => 'sedang',
+            'pain_score' => 3,
+            'nutrition_at_risk' => false,
+            'infectious_symptom' => false,
+            'special_needs' => null,
+        ], $this->dokter);
+
+        $this->assertSame('sedang', $skrining->fall_risk_level);
+        $this->assertSame($registrasi->patient_name, $skrining->patient_name);
+        $this->assertSame($this->dokter->id, $skrining->screened_by);
+    }
+
+    #[Test]
+    public function kunjungan_yang_sama_tidak_bisa_diskrining_dua_kali(): void
+    {
+        $registrasi = $this->daftarkan();
+        $data = ['fall_risk_level' => 'rendah', 'pain_score' => 0, 'nutrition_at_risk' => false, 'infectious_symptom' => false];
+
+        $this->records->recordScreening($registrasi->id, $data, $this->dokter);
+
+        $this->expectException(ClinicalException::class);
+        $this->records->recordScreening($registrasi->id, $data, $this->dokter);
+    }
+
+    #[Test]
+    public function hasflags_menandai_skrining_dengan_temuan_berisiko(): void
+    {
+        $registrasi = $this->daftarkan();
+
+        $aman = $this->records->recordScreening($registrasi->id, [
+            'fall_risk_level' => 'rendah', 'pain_score' => 1, 'nutrition_at_risk' => false, 'infectious_symptom' => false,
+        ], $this->dokter);
+        $this->assertFalse($aman->hasFlags());
+
+        $registrasiLain = $this->daftarkanPasien(app(PatientRegistry::class)->register(['name' => 'Pasien Risiko', 'sex' => 'P', 'birth_date' => '1990-01-01'])->id, 'POL-UMUM');
+        $berisiko = $this->records->recordScreening($registrasiLain->id, [
+            'fall_risk_level' => 'tinggi', 'pain_score' => 1, 'nutrition_at_risk' => false, 'infectious_symptom' => false,
+        ], $this->dokter);
+        $this->assertTrue($berisiko->hasFlags());
+    }
+
+    #[Test]
+    public function skrining_bisa_dicatat_lewat_http_dan_tampil_di_layar_pemeriksaan(): void
+    {
+        $registrasi = $this->daftarkan();
+
+        $this->actingAs($this->dokter)
+            ->post(route('rme.skrining.simpan', $registrasi->id), [
+                'fall_risk_level' => 'tinggi',
+                'pain_score' => 7,
+                'nutrition_at_risk' => '1',
+                'infectious_symptom' => '0',
+                'special_needs' => 'Membutuhkan penerjemah bahasa isyarat',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('sukses');
+
+        $this->assertDatabaseHas('clinical.screenings', [
+            'registration_id' => $registrasi->id, 'fall_risk_level' => 'tinggi', 'pain_score' => 7, 'nutrition_at_risk' => true,
+        ]);
+
+        $this->actingAs($this->dokter)
+            ->get(route('rme.edit', $registrasi->id))
+            ->assertOk()
+            ->assertSee('tinggi')
+            ->assertSee('Membutuhkan penerjemah bahasa isyarat');
+    }
+
+    #[Test]
     public function diagnosis_dihapus_secara_lunak_bukan_dihapus_keras(): void
     {
         $asesmen = $this->asesmen();

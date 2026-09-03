@@ -71,7 +71,33 @@ class ClinicalRecordController
             'alergi' => $this->records->allergiesFor($assessment->patient_id),
             'riwayat' => $this->registrations->historyFor($assessment->patient_id, 10),
             'revisi' => $assessment->revisions()->get(),
+            'skrining' => $this->records->screeningFor($registrasi),
         ]);
+    }
+
+    public function storeScreening(Request $request, int $registrasi): RedirectResponse
+    {
+        $data = $request->validate([
+            'fall_risk_level' => ['required', 'in:rendah,sedang,tinggi'],
+            'pain_score' => ['required', 'integer', 'min:0', 'max:10'],
+            'nutrition_at_risk' => ['nullable', 'boolean'],
+            'infectious_symptom' => ['nullable', 'boolean'],
+            'special_needs' => ['nullable', 'string', 'max:500'],
+        ], [], [
+            'fall_risk_level' => 'risiko jatuh', 'pain_score' => 'skala nyeri',
+            'nutrition_at_risk' => 'risiko gizi', 'infectious_symptom' => 'gejala menular',
+        ]);
+
+        $data['nutrition_at_risk'] = $request->boolean('nutrition_at_risk');
+        $data['infectious_symptom'] = $request->boolean('infectious_symptom');
+
+        try {
+            $this->records->recordScreening($registrasi, $data, $request->user());
+        } catch (ClinicalException $e) {
+            return back()->with('galat', $e->getMessage());
+        }
+
+        return back()->with('sukses', 'Skrining awal tercatat.');
     }
 
     public function update(Request $request, Assessment $assessment): RedirectResponse
