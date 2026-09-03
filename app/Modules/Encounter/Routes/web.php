@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Encounter\Http\Controllers\IgdController;
 use App\Modules\Encounter\Http\Controllers\ReferralController;
 use App\Modules\Encounter\Http\Controllers\RegistrationController;
 use Illuminate\Support\Facades\Route;
@@ -20,5 +21,14 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::post('/', [ReferralController::class, 'store'])->name('simpan');
         Route::post('/{rujukan}/batal', [ReferralController::class, 'cancel'])->name('batal');
         Route::get('/{rujukan}/cetak', [ReferralController::class, 'print'])->name('cetak');
+    });
+
+    // igd — gerbang sendiri, sengaja dikecualikan dari petugas-daftar (lihat
+    // roles.json): registrasi & triase IGD ditangani staf klinis (dokter/
+    // perawat), bukan loket rawat jalan biasa.
+    Route::middleware('can:igd')->prefix('igd')->name('igd.')->group(function () {
+        Route::get('/', [IgdController::class, 'index'])->name('index');
+        Route::post('/', [IgdController::class, 'register'])->name('daftar');
+        Route::post('/{registrasi}/triase', [IgdController::class, 'triage'])->name('triase');
     });
 });

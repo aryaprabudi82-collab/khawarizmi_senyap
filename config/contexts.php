@@ -82,9 +82,11 @@ return [
             'module'      => 'Encounter',
             'description' => 'Registrasi, booking (booking_registrasi/booking_periksa — mendaftar untuk '
                 . 'tanggal mendatang, tervalidasi terhadap jadwal praktik mingguan organization.'
-                . 'practice_schedules, bukan cuma masa aktif SIP), antrean, dan penetapan DPJP. Registrasi '
-                . 'hari ini (walk-in) tidak diperiksa terhadap jadwal — validasi jadwal cuma berlaku untuk '
-                . 'tanggal setelah hari ini.',
+                . 'practice_schedules, bukan cuma masa aktif SIP), antrean, penetapan DPJP, rujukan_masuk/'
+                . 'rujukan_keluar, dan igd (registrasi ke unit IGD tanpa kuota + triase warna standar '
+                . 'merah/kuning/hijau/hitam, memakai jalur registrasi biasa dengan care_type=igd baru, bukan '
+                . 'alur terpisah). Registrasi hari ini (walk-in) tidak diperiksa terhadap jadwal — validasi '
+                . 'jadwal cuma berlaku untuk tanggal setelah hari ini.',
             'domains'     => ['A'],
             'publishes'   => [
                 'v_registration_summary' => 'Kunjungan aktif berikut pasien, unit, dokter, dan penjaminnya. '
