@@ -2,6 +2,8 @@
 
 use App\Modules\Quality\Http\Controllers\IcraController;
 use App\Modules\Quality\Http\Controllers\IncidentController;
+use App\Modules\Quality\Http\Controllers\K3IncidentController;
+use App\Modules\Quality\Http\Controllers\PpiAuditController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth'])
@@ -21,6 +23,18 @@ Route::middleware(['web', 'auth'])
             Route::post('/', [IcraController::class, 'store'])->name('simpan');
             Route::post('/{kajian}/selesai', [IcraController::class, 'complete'])->name('selesai');
             Route::post('/{kajian}/batal', [IcraController::class, 'cancel'])->name('batal');
+        });
+
+        Route::middleware('can:audit_kepatuhan_apd')->prefix('ppi')->name('ppi.')->group(function () {
+            Route::get('/', [PpiAuditController::class, 'index'])->name('index');
+            Route::post('/', [PpiAuditController::class, 'store'])->name('simpan');
+        });
+
+        Route::middleware('can:peristiwa_k3rs')->prefix('k3')->name('k3.')->group(function () {
+            Route::get('/', [K3IncidentController::class, 'index'])->name('index');
+            Route::post('/', [K3IncidentController::class, 'store'])->name('simpan');
+            Route::post('/{insiden}/tinjau', [K3IncidentController::class, 'review'])->name('tinjau');
+            Route::post('/{insiden}/tutup', [K3IncidentController::class, 'close'])->name('tutup');
         });
 
     });

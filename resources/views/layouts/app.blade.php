@@ -134,7 +134,7 @@
           </li>
         @endcanany
 
-        @canany(['pegawai_user', 'pengajuan_cuti', 'presensi_harian', 'insiden_keselamatan_pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi'])
+        @canany(['pegawai_user', 'pengajuan_cuti', 'presensi_harian', 'insiden_keselamatan_pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi', 'audit_kepatuhan_apd', 'peristiwa_k3rs'])
           <li class="nav-item dropdown {{ request()->routeIs(['hr.*', 'quality.*']) ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">SDM &amp; Mutu</a>
             <div class="dropdown-menu">
@@ -147,7 +147,7 @@
               @can('presensi_harian')
                 <a class="dropdown-item" href="{{ route('hr.presensi.index') }}">Presensi</a>
               @endcan
-              @canany(['insiden_keselamatan_pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi'])
+              @canany(['insiden_keselamatan_pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi', 'audit_kepatuhan_apd', 'peristiwa_k3rs'])
                 <div class="dropdown-divider"></div>
               @endcanany
               @can('insiden_keselamatan_pasien')
@@ -155,6 +155,12 @@
               @endcan
               @can('pcra_icra_pengkajian_risiko_prakonstruksi')
                 <a class="dropdown-item" href="{{ route('quality.icra.index') }}">PCRA/ICRA</a>
+              @endcan
+              @can('audit_kepatuhan_apd')
+                <a class="dropdown-item" href="{{ route('quality.ppi.index') }}">Audit PPI</a>
+              @endcan
+              @can('peristiwa_k3rs')
+                <a class="dropdown-item" href="{{ route('quality.k3.index') }}">Insiden K3</a>
               @endcan
             </div>
           </li>

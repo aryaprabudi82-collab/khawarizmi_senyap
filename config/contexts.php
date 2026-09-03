@@ -174,7 +174,10 @@ return [
                 . '\'quality\', bukan kepegawaian; menunya kebetulan satu domain huruf. hr di sini hanya mencakup '
                 . '24 kapabilitas yang sungguh kepegawaian.',
             'domains'     => ['C'],
-            'publishes'   => [],
+            'publishes'   => [
+                'v_employee_summary' => 'Pegawai aktif berikut jabatan dan unit kerjanya. '
+                    . 'Dipakai quality untuk memilih pegawai saat mencatat insiden K3.',
+            ],
         ],
 
         'quality' => [
