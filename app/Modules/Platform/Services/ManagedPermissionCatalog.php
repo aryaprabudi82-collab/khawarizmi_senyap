@@ -14,12 +14,13 @@ use App\Modules\Platform\Models\Permission;
  * `$request->user()->can()`) sehingga peran custom yang dibuat lewat layar ini
  * hanya bisa mencentang kapabilitas yang sungguh menggerbangi sesuatu.
  *
- * Lima kode (audit_kepatuhan_apd, peristiwa_k3rs, insiden_keselamatan_pasien,
- * tindakan_ranap, diet_pasien) masih tercatat context=hr/clinical/encounter di
- * platform.permissions — peninggalan salah-taut domain huruf Khanza (lihat
- * catatan di database/data/roles.json). Layarnya sendiri sudah dibangun di
- * konteks quality/inpatient, jadi dikelompokkan ke situ di sini supaya admin
- * tidak salah kira sedang memberi akses HR/klinis/pendaftaran.
+ * Tujuh kode (audit_kepatuhan_apd, peristiwa_k3rs, insiden_keselamatan_pasien,
+ * tindakan_ranap, diet_pasien, deposit_pasien, perkiraan_biaya_ranap) masih
+ * tercatat context=hr/clinical/encounter di platform.permissions — peninggalan
+ * salah-taut domain huruf Khanza (lihat catatan di database/data/roles.json).
+ * Layarnya sendiri sudah dibangun di konteks quality/inpatient/finance, jadi
+ * dikelompokkan ke situ di sini supaya admin tidak salah kira sedang memberi
+ * akses HR/klinis/pendaftaran.
  */
 class ManagedPermissionCatalog
 {
@@ -28,12 +29,12 @@ class ManagedPermissionCatalog
      * Menambah baru di sini berarti sudah ada layar untuk kode tersebut.
      */
     private const MANAGED_CODES = [
-        'audit_kepatuhan_apd', 'bayar_piutang', 'beri_obat', 'bpjs_cek_kartu', 'bpjs_sep', 'diet_pasien',
+        'audit_kepatuhan_apd', 'bayar_piutang', 'beri_obat', 'bpjs_cek_kartu', 'bpjs_sep', 'deposit_pasien', 'diet_pasien',
         'igd', 'insiden_keselamatan_pasien', 'inventaris_inventaris', 'ipsrs_barang', 'limbah_b3_medis',
         'mapping_poli_bpjs', 'pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi', 'pegawai_user',
         'pembayaran_ralan', 'pemeriksaan_lab_pa', 'pengajuan_barang_nonmedis', 'pengajuan_cuti', 'pengumuman_epasien',
         'penilaian_awal_medis_ralan', 'perbaikan_inventaris', 'periksa_lab', 'periksa_radiologi',
-        'peristiwa_k3rs', 'persetujuan_penolakan_tindakan', 'presensi_harian', 'registrasi',
+        'peristiwa_k3rs', 'perkiraan_biaya_ranap', 'persetujuan_penolakan_tindakan', 'presensi_harian', 'registrasi',
         'rekap_kunjungan', 'resep_obat', 'rujukan_keluar', 'satu_sehat_kirim_condition', 'satu_sehat_kirim_encounter',
         'satu_sehat_mapping_lokasi', 'satu_sehat_referensi_dokter', 'satu_sehat_referensi_pasien',
         'permintaan_ranap', 'sirkulasi_cssd', 'skp_penilaian', 'surat_keterangan_sehat', 'surat_masuk',
@@ -52,6 +53,12 @@ class ManagedPermissionCatalog
         // inpatient yang baru.
         'tindakan_ranap' => 'inpatient',
         'diet_pasien' => 'inpatient',
+        // deposit_pasien dan perkiraan_biaya_ranap tercatat context=encounter
+        // di katalog (domain A Khanza) tapi kelasnya berpaket Java "keuangan"
+        // (lihat Khanza_Functional_Dependency_Map.xlsx) — layarnya sungguhan
+        // dibangun di konteks finance.
+        'deposit_pasien' => 'finance',
+        'perkiraan_biaya_ranap' => 'finance',
     ];
 
     private const MODULE_LABELS = [

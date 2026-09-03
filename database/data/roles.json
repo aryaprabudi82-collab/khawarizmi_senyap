@@ -24,7 +24,7 @@
         "extra_permissions": [
             "pasien"
         ],
-        "_catatan_exclusion": "Domain A Khanza mencampur menu registrasi dengan resep, operasi, dan periksa lab/radiologi dalam satu grup. Dikecualikan di sini supaya petugas loket tidak diam-diam kebagian kapabilitas klinis/farmasi. permintaan_ranap SENGAJA TIDAK dikecualikan — memilih 'Jenis Rawat: Rawat Inap' saat registrasi tetap tugas loket, cuma alokasi kamar/bed-nya (tindakan_ranap) yang dikecualikan ke petugas-ranap di konteks inpatient. rujukan_masuk juga sengaja tidak dikecualikan (bukan gerbang permission sendiri — cuma kolom tambahan di formulir registrasi yang sudah ada); rujukan_keluar DIKECUALIKAN karena surat rujukan medis diterbitkan dokter, bukan loket.",
+        "_catatan_exclusion": "Domain A Khanza mencampur menu registrasi dengan resep, operasi, dan periksa lab/radiologi dalam satu grup. Dikecualikan di sini supaya petugas loket tidak diam-diam kebagian kapabilitas klinis/farmasi. permintaan_ranap SENGAJA TIDAK dikecualikan — memilih 'Jenis Rawat: Rawat Inap' saat registrasi tetap tugas loket, cuma alokasi kamar/bed-nya (tindakan_ranap) yang dikecualikan ke petugas-ranap di konteks inpatient. rujukan_masuk juga sengaja tidak dikecualikan (bukan gerbang permission sendiri — cuma kolom tambahan di formulir registrasi yang sudah ada); rujukan_keluar DIKECUALIKAN karena surat rujukan medis diterbitkan dokter, bukan loket. deposit_pasien dan perkiraan_biaya_ranap DIKECUALIKAN — berpaket Java \"keuangan\", diberikan ke petugas-keuangan di konteks finance, bukan loket pendaftaran.",
         "excluded_permissions": [
             "beri_obat",
             "resep_obat",
@@ -43,7 +43,9 @@
             "sekrining_rawat_jalan",
             "diet_pasien",
             "dpjp_ranap",
-            "rujukan_keluar"
+            "rujukan_keluar",
+            "deposit_pasien",
+            "perkiraan_biaya_ranap"
         ]
     },
     {
@@ -83,11 +85,13 @@
             "persetujuan_penolakan_tindakan",
             "surat_keterangan_sehat"
         ],
-        "_catatan_exclusion": "insiden_keselamatan(_pasien) tercatat context 'clinical' di katalog permission (warisan domain M Khanza), tapi modulnya sekarang di konteks quality (lihat config/contexts.php) dan Wave 1 ini sengaja admin-mutu-only — pelaporan insiden oleh staf klinis sendiri (bukan cuma admin mutu) adalah perluasan wajar untuk wave berikutnya, bukan dikecualikan selamanya. persetujuan_penolakan_tindakan dan surat_keterangan_sehat tercatat domain P/'correspondence' di Khanza (bercampur dengan surat-menyurat kantor) padahal dokumen klinis yang diterbitkan dokter — diberikan di sini, bukan ke petugas-tu. tindakan_ranap tercatat context 'encounter' tapi modulnya sekarang konteks inpatient (kelola kamar/bed) — kewenangan bangsal/administratif, bukan kewenangan klinis dokter, dikecualikan sama seperti pada peran perawat. diet_pasien (juga context 'encounter', juga sungguhan di konteks inpatient) SEBALIKNYA sengaja TIDAK dikecualikan — order diet keputusan klinis dokter, lihat catatan lengkap di peran petugas-ranap soal bagaimana dokter tetap bisa membuka /rawat-inap untuk itu tanpa ikut kebagian akses kelola kamar/bed.",
+        "_catatan_exclusion": "insiden_keselamatan(_pasien) tercatat context 'clinical' di katalog permission (warisan domain M Khanza), tapi modulnya sekarang di konteks quality (lihat config/contexts.php) dan Wave 1 ini sengaja admin-mutu-only — pelaporan insiden oleh staf klinis sendiri (bukan cuma admin mutu) adalah perluasan wajar untuk wave berikutnya, bukan dikecualikan selamanya. persetujuan_penolakan_tindakan dan surat_keterangan_sehat tercatat domain P/'correspondence' di Khanza (bercampur dengan surat-menyurat kantor) padahal dokumen klinis yang diterbitkan dokter — diberikan di sini, bukan ke petugas-tu. tindakan_ranap tercatat context 'encounter' tapi modulnya sekarang konteks inpatient (kelola kamar/bed) — kewenangan bangsal/administratif, bukan kewenangan klinis dokter, dikecualikan sama seperti pada peran perawat. diet_pasien (juga context 'encounter', juga sungguhan di konteks inpatient) SEBALIKNYA sengaja TIDAK dikecualikan — order diet keputusan klinis dokter, lihat catatan lengkap di peran petugas-ranap soal bagaimana dokter tetap bisa membuka /rawat-inap untuk itu tanpa ikut kebagian akses kelola kamar/bed. deposit_pasien dan perkiraan_biaya_ranap dikecualikan — kapabilitas keuangan (paket Java \"keuangan\"), bukan kewenangan klinis dokter, lihat catatan lengkap di peran petugas-daftar.",
         "excluded_permissions": [
             "insiden_keselamatan",
             "insiden_keselamatan_pasien",
-            "tindakan_ranap"
+            "tindakan_ranap",
+            "deposit_pasien",
+            "perkiraan_biaya_ranap"
         ]
     },
     {
@@ -103,7 +107,7 @@
             "registrasi",
             "penilaian_awal_keperawatan_ralan"
         ],
-        "_catatan_exclusion": "Menulis resep dan tindakan operasi bukan kewenangan perawat, meski ikut kebawa dari context encounter yang bercampur. insiden_keselamatan(_pasien) dan tindakan_ranap dikecualikan dengan alasan sama seperti pada peran dokter — lihat catatannya di sana. rujukan_keluar juga dikecualikan — surat rujukan medis diterbitkan dokter, bukan perawat.",
+        "_catatan_exclusion": "Menulis resep dan tindakan operasi bukan kewenangan perawat, meski ikut kebawa dari context encounter yang bercampur. insiden_keselamatan(_pasien) dan tindakan_ranap dikecualikan dengan alasan sama seperti pada peran dokter — lihat catatannya di sana. rujukan_keluar juga dikecualikan — surat rujukan medis diterbitkan dokter, bukan perawat. deposit_pasien dan perkiraan_biaya_ranap dikecualikan — kapabilitas keuangan, bukan keperawatan.",
         "excluded_permissions": [
             "resep_obat",
             "resep_pulang",
@@ -112,7 +116,9 @@
             "insiden_keselamatan",
             "insiden_keselamatan_pasien",
             "tindakan_ranap",
-            "rujukan_keluar"
+            "rujukan_keluar",
+            "deposit_pasien",
+            "perkiraan_biaya_ranap"
         ]
     },
     {
@@ -169,11 +175,13 @@
     {
         "code": "petugas-keuangan",
         "name": "Petugas Keuangan",
-        "description": "Mencatat penerimaan piutang dari penjamin.",
-        "_catatan_scope": "Sengaja tanpa 'contexts': domain K Khanza (Keuangan/Akuntansi) sebagian besar berisi laporan (harian_*, bulanan_*, saldo_akun_perbulan, dst.) yang bukan cakupan Wave 1 ini. Hanya kapabilitas pencatatan penerimaan piutang yang diberikan.",
+        "description": "Mencatat penerimaan piutang dari penjamin, deposit pasien, dan perkiraan biaya ranap.",
+        "_catatan_scope": "Sengaja tanpa 'contexts': domain K Khanza (Keuangan/Akuntansi) sebagian besar berisi laporan (harian_*, bulanan_*, saldo_akun_perbulan, dst.) yang bukan cakupan Wave 1 ini. deposit_pasien dan perkiraan_biaya_ranap tercatat context=encounter di katalog (domain A Khanza mencampur registrasi dengan menu keuangan) tapi berpaket Java \"keuangan\" — dikecualikan dari petugas-daftar/dokter/perawat (lihat catatan masing-masing) dan diberikan di sini.",
         "contexts": [],
         "extra_permissions": [
-            "bayar_piutang"
+            "bayar_piutang",
+            "deposit_pasien",
+            "perkiraan_biaya_ranap"
         ]
     },
     {

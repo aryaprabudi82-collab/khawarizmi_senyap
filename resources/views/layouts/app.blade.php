@@ -88,8 +88,8 @@
           </li>
         @endcanany
 
-        @canany(['pembayaran_ralan', 'bayar_piutang'])
-          <li class="nav-item dropdown {{ request()->routeIs(['tagihan.*', 'piutang.*']) ? 'active' : '' }}">
+        @canany(['pembayaran_ralan', 'bayar_piutang', 'deposit_pasien', 'perkiraan_biaya_ranap'])
+          <li class="nav-item dropdown {{ request()->routeIs(['tagihan.*', 'piutang.*', 'deposit.*', 'estimasi-ranap.*']) ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Keuangan</a>
             <div class="dropdown-menu">
               @can('pembayaran_ralan')
@@ -97,6 +97,12 @@
               @endcan
               @can('bayar_piutang')
                 <a class="dropdown-item" href="{{ route('piutang.index') }}">Piutang</a>
+              @endcan
+              @can('deposit_pasien')
+                <a class="dropdown-item" href="{{ route('deposit.index') }}">Deposit Pasien</a>
+              @endcan
+              @can('perkiraan_biaya_ranap')
+                <a class="dropdown-item" href="{{ route('estimasi-ranap.index') }}">Perkiraan Biaya Ranap</a>
               @endcan
             </div>
           </li>

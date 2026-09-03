@@ -6,8 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * Header jurnal. Hanya menerima INSERT lewat PostingService::post() —
- * tidak ada jalur update. Koreksi salah posting memakai entri pembalik.
+ * Header jurnal. Hanya menerima INSERT — tidak ada jalur update. Ditulis
+ * dari PostingService (invoice/piutang) dan DepositService (deposit_pasien),
+ * masing-masing menegakkan sendiri pasangan debit=kredit yang seimbang.
+ * Koreksi salah posting memakai entri pembalik, bukan menyunting yang lama.
  */
 class JournalEntry extends Model
 {

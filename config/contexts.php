@@ -171,8 +171,14 @@ return [
             'schema'      => 'finance',
             'module'      => 'Finance',
             'description' => 'Jurnal berpasangan dan piutang penjamin. Menutup label "ditanggung-penjamin" di '
-                . 'billing menjadi kewajiban yang bisa diaudit.',
-            'domains'     => ['K'],
+                . 'billing menjadi kewajiban yang bisa diaudit. deposit_pasien dan perkiraan_biaya_ranap '
+                . 'tercatat domain A/context=encounter di katalog (menu Khanza mencampur registrasi dengan '
+                . 'menu keuangan), tapi kelasnya (DlgDeposit, DlgPerkiraanBiayaRanap) berpaket Java '
+                . '"keuangan" — dibangun di sini. deposit_pasien dijurnal (Kas/Titipan Deposit Pasien); '
+                . 'perkiraan_biaya_ranap murni kutipan, tidak dijurnal, tarif kamarnya dibaca dari '
+                . 'inpatient.v_room_class_rate. "Memakai" deposit (status terpakai) SENGAJA belum ada — itu '
+                . 'kode Khanza terpisah, pengembalian_deposit_pasien, domain K, menyusul saat domain itu digarap.',
+            'domains'     => ['K', 'A'],
             'publishes'   => [],
         ],
 
@@ -284,7 +290,10 @@ return [
                 . 'Nursing/medical assessment ranap (domain M), billing akumulasi harian (domain I), dan '
                 . 'integrasi SIRANAP (domain L) belum digarap.',
             'domains'     => ['A', 'K'],
-            'publishes'   => [],
+            'publishes'   => [
+                'v_room_class_rate' => 'Tarif kamar rata-rata per kelas (kamar nonaktif tidak dihitung). '
+                    . 'Dipakai finance untuk perkiraan_biaya_ranap tanpa menyentuh inpatient.rooms langsung.',
+            ],
         ],
 
     ],
