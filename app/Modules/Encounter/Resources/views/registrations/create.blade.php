@@ -158,12 +158,17 @@
                   @foreach ($praktisi as $dokter)
                     <option value="{{ $dokter->id }}"
                             data-unit="{{ $dokter->units->pluck('id')->join(',') }}"
+                            data-hari="{{ $dokter->schedules->pluck('day_of_week')->unique()->join(',') }}"
                             @selected(old('praktisi_id') == $dokter->id)>
                       {{ $dokter->displayName() }} — {{ $dokter->specialty }}
                     </option>
                   @endforeach
                 </select>
-                <div class="form-hint">Hanya dokter yang aktif melayani pada tanggal tersebut.</div>
+                <div class="form-hint">
+                  Hanya dokter yang aktif melayani pada tanggal tersebut. Untuk tanggal mendatang, daftar
+                  ikut disaring ke jadwal praktik mingguannya — dokter tanpa jadwal di hari itu akan ditolak
+                  saat disimpan.
+                </div>
               </div>
 
               <div class="col-md-6">
@@ -211,18 +216,39 @@
   document.addEventListener('DOMContentLoaded', function () {
     var unit = document.getElementById('unit_id');
     var dokter = document.getElementById('praktisi_id');
+    var tanggal = document.getElementById('tanggal_layanan');
     var penjamin = document.getElementById('penjamin_id');
     var grupKartu = document.getElementById('grup-kartu');
     var grupRujukan = document.getElementById('grup-rujukan');
 
+    // Booking ke tanggal mendatang: hari ISO (1=Senin..7=Minggu), sama
+    // dengan day_of_week di organization.practice_schedules.
+    function hariIso(nilaiTanggal) {
+      var hari = new Date(nilaiTanggal + 'T00:00:00').getDay();
+      return hari === 0 ? 7 : hari;
+    }
+
     function saringDokter() {
       if (!unit || !dokter) return;
-      var terpilih = unit.value;
+      var terpilihUnit = unit.value;
+
+      var nilaiTanggal = tanggal ? tanggal.value : '';
+      var hariIni = new Date().toISOString().slice(0, 10);
+      var perluJadwal = nilaiTanggal && nilaiTanggal > hariIni;
+      var hariTerpilih = perluJadwal ? String(hariIso(nilaiTanggal)) : null;
 
       Array.prototype.forEach.call(dokter.options, function (opsi) {
         if (!opsi.value) return;
         var unitDokter = (opsi.dataset.unit || '').split(',');
-        var cocok = !terpilih || unitDokter.indexOf(terpilih) !== -1;
+        var cocokUnit = !terpilihUnit || unitDokter.indexOf(terpilihUnit) !== -1;
+
+        var cocokHari = true;
+        if (perluJadwal) {
+          var hariDokter = (opsi.dataset.hari || '').split(',').filter(Boolean);
+          cocokHari = hariDokter.indexOf(hariTerpilih) !== -1;
+        }
+
+        var cocok = cocokUnit && cocokHari;
         opsi.hidden = !cocok;
         if (!cocok && opsi.selected) dokter.value = '';
       });
@@ -239,6 +265,7 @@
     }
 
     if (unit) unit.addEventListener('change', saringDokter);
+    if (tanggal) tanggal.addEventListener('change', saringDokter);
     if (penjamin) penjamin.addEventListener('change', aturPenjamin);
 
     saringDokter();

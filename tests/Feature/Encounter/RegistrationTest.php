@@ -11,6 +11,7 @@ use App\Modules\Identity\Models\Patient;
 use App\Modules\Identity\Services\PatientRegistry;
 use App\Modules\Organization\Models\Practitioner;
 use App\Modules\Organization\Models\Unit;
+use App\Modules\Organization\Services\OrganizationAdminService;
 use Carbon\CarbonImmutable;
 use Database\Seeders\ReferenceDataSeeder;
 use Illuminate\Database\QueryException;
@@ -287,7 +288,95 @@ class RegistrationTest extends TestCase
         $this->assertSame(200, $allocator->current(CarbonImmutable::now(), $poli->id));
     }
 
+    #[Test]
+    public function booking_ke_tanggal_mendatang_dengan_jadwal_cocok_berhasil(): void
+    {
+        $dokter = Practitioner::query()->where('code', 'DR001')->firstOrFail();
+        $unit = Unit::query()->where('code', 'POL-UMUM')->firstOrFail();
+        $tanggal = $this->tanggalHariKerja($dokter, $unit);
+
+        $registrasi = $this->service->register(
+            patientId: $this->buatPasien()->id,
+            unitId: $unit->id,
+            payerId: Payer::query()->where('code', 'UMUM')->value('id'),
+            practitionerId: $dokter->id,
+            serviceDate: $tanggal,
+        );
+
+        $this->assertSame($tanggal->toDateString(), $registrasi->service_date->toDateString());
+    }
+
+    #[Test]
+    public function booking_ke_tanggal_mendatang_tanpa_jadwal_cocok_ditolak(): void
+    {
+        $dokter = Practitioner::query()->where('code', 'DR001')->firstOrFail();
+        $unit = Unit::query()->where('code', 'POL-UMUM')->firstOrFail();
+
+        // Dokter ini sengaja tidak diberi practice_schedules sama sekali,
+        // jadi tanggal mendatang apa pun harus ditolak.
+        $tanggal = CarbonImmutable::now()->addWeek()->startOfDay();
+
+        $this->expectException(RegistrationException::class);
+        $this->service->register(
+            patientId: $this->buatPasien()->id,
+            unitId: $unit->id,
+            payerId: Payer::query()->where('code', 'UMUM')->value('id'),
+            practitionerId: $dokter->id,
+            serviceDate: $tanggal,
+        );
+    }
+
+    #[Test]
+    public function booking_tanpa_memilih_dokter_tidak_diperiksa_terhadap_jadwal(): void
+    {
+        $unit = Unit::query()->where('code', 'POL-UMUM')->firstOrFail();
+        $tanggal = CarbonImmutable::now()->addWeek()->startOfDay();
+
+        $registrasi = $this->service->register(
+            patientId: $this->buatPasien()->id,
+            unitId: $unit->id,
+            payerId: Payer::query()->where('code', 'UMUM')->value('id'),
+            serviceDate: $tanggal,
+        );
+
+        $this->assertNull($registrasi->practitioner_id);
+    }
+
+    #[Test]
+    public function registrasi_hari_ini_tidak_diperiksa_terhadap_jadwal_praktik(): void
+    {
+        // Walk-in hari ini tetap harus berhasil meski dokternya tidak punya
+        // practice_schedules sama sekali — jadwal cuma menahan booking ke
+        // depan, bukan mengganti kebijaksanaan loket untuk kunjungan hari ini.
+        $dokter = Practitioner::query()->where('code', 'DR001')->firstOrFail();
+        $unit = Unit::query()->where('code', 'POL-UMUM')->firstOrFail();
+
+        $registrasi = $this->service->register(
+            patientId: $this->buatPasien()->id,
+            unitId: $unit->id,
+            payerId: Payer::query()->where('code', 'UMUM')->value('id'),
+            practitionerId: $dokter->id,
+        );
+
+        $this->assertSame($dokter->id, $registrasi->practitioner_id);
+    }
+
     // ------------------------------------------------------------------ bantu
+
+    /** Tanggal terdekat di masa depan yang cocok dengan jadwal praktik yang baru dibuat. */
+    private function tanggalHariKerja(Practitioner $dokter, Unit $unit): CarbonImmutable
+    {
+        $tanggal = CarbonImmutable::now()->addWeek()->startOfDay();
+
+        app(OrganizationAdminService::class)->addSchedule($dokter, [
+            'unit_id' => $unit->id,
+            'day_of_week' => $tanggal->dayOfWeekIso,
+            'start_time' => '08:00',
+            'end_time' => '12:00',
+        ]);
+
+        return $tanggal;
+    }
 
     private function buatPasien(array $override = []): Patient
     {

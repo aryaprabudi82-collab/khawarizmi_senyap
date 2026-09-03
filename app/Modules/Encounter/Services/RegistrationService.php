@@ -71,6 +71,24 @@ class RegistrationService
                     "{$practitioner->name} tidak aktif melayani pada " . $date->format('d-m-Y') . '.'
                 );
             }
+
+            // booking_registrasi/booking_periksa: mendaftar untuk tanggal
+            // MENDATANG (bukan kunjungan hari ini) wajib cocok jadwal praktik
+            // mingguan sungguhan, bukan cuma masa aktif SIP — supaya tidak
+            // bisa memesan slot dokter pada hari dia sebetulnya tidak
+            // berpraktik. Pendaftaran hari ini (walk-in) tidak diperiksa di
+            // sini — jadwal cuma menahan booking ke depan, bukan mengganti
+            // kebijaksanaan loket untuk kunjungan yang sedang berlangsung.
+            if ($date->isAfter(CarbonImmutable::now()->startOfDay())) {
+                $terjadwal = $this->organization->scheduledOn($practitionerId, $date, $unitId);
+
+                if ($terjadwal->isEmpty()) {
+                    throw new RegistrationException(
+                        "{$practitioner->name} tidak berpraktik di {$unit->name} pada hari "
+                        . $date->translatedFormat('l') . ' (' . $date->format('d-m-Y') . ').'
+                    );
+                }
+            }
         }
 
         return DB::transaction(function () use (

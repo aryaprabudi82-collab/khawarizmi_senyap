@@ -2,6 +2,7 @@
 
 namespace App\Modules\Organization\Services;
 
+use App\Modules\Organization\Models\PracticeSchedule;
 use App\Modules\Organization\Models\Practitioner;
 use App\Modules\Organization\Models\Unit;
 use DateTimeInterface;
@@ -57,5 +58,22 @@ class OrganizationDirectory
             ->whereKey($practitionerId)
             ->servingOn($date)
             ->exists();
+    }
+
+    /**
+     * Jadwal praktik praktisi pada hari tertentu — dipakai booking_registrasi/
+     * booking_periksa untuk memvalidasi tanggal yang dipilih terhadap jadwal
+     * mingguan sungguhan, bukan cuma masa aktif SIP.
+     *
+     * @return Collection<int, PracticeSchedule>
+     */
+    public function scheduledOn(int $practitionerId, DateTimeInterface $date, ?int $unitId = null): Collection
+    {
+        return PracticeSchedule::query()
+            ->where('practitioner_id', $practitionerId)
+            ->where('day_of_week', (int) $date->format('N'))
+            ->where('is_active', true)
+            ->when($unitId, fn ($q) => $q->where('unit_id', $unitId))
+            ->get();
     }
 }
