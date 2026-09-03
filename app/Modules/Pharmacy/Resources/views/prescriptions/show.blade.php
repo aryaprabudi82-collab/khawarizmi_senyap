@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Resep ' . $resep->prescription_number)
-@section('breadcrumb', 'Konteks pharmacy &middot; ' . $resep->registration_number)
+@section('breadcrumb', 'Konteks pharmacy · ' . $resep->registration_number)
 @section('heading', $resep->patient_name)
 
 @section('actions')
@@ -16,7 +16,7 @@
   <div class="alert alert-{{ $adaBerat ? 'danger' : 'warning' }}">
     <h4 class="alert-title">
       {{ $adaBerat ? 'Peringatan alergi berat' : 'Peringatan alergi' }}
-      &middot; {{ count($temuan) }} temuan
+      · {{ count($temuan) }} temuan
     </h4>
     <ul class="mb-2 mt-2">
       @foreach ($temuan as $t)
@@ -24,7 +24,7 @@
           <strong>{{ $t['drug_name'] }}</strong> cocok dengan alergi
           <strong>{{ $t['substance'] }}</strong> ({{ $t['severity'] }})
           @if ($t['reaction']) &mdash; reaksi: {{ $t['reaction'] }} @endif
-          <span class="text-secondary small">&middot; dicocokkan pada {{ $t['matched_on'] }}</span>
+          <span class="text-secondary small">· dicocokkan pada {{ $t['matched_on'] }}</span>
         </li>
       @endforeach
     </ul>

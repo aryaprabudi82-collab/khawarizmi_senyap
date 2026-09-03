@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Order ' . $order->order_number)
-@section('breadcrumb', 'Konteks order &middot; ' . $order->registration_number)
+@section('breadcrumb', 'Konteks order · ' . $order->registration_number)
 @section('heading', $order->patient_name)
 
 @section('actions')

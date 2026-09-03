@@ -314,11 +314,27 @@
     {
         "code": "petugas-lab-kesling",
         "name": "Petugas Laboratorium Kesehatan Lingkungan",
-        "description": "Data master dan pengujian sampel lab kesehatan lingkungan & K3 (air, udara, makanan, usap alat) untuk pelanggan internal maupun eksternal.",
-        "_catatan_scope": "Peran terpisah dari petugas-kesling (domain G, pencatatan limbah B3/mutu air limbah/pest control di RS sendiri) — envlab adalah laboratorium pengujian sungguhan (bisa melayani pelanggan eksternal), domain B Khanza, paket Java \"viabarcode\". pelanggan_lab_kesehatan_lingkungan dipakai sebagai gerbang tunggal seluruh layar data master lab kesling (pelanggan, jenis sampel, parameter, baku mutu), pola sama dengan tarif_ralan untuk organization::master.index — tiga kode Khanza lain (master_sampel_bakumutu, parameter_pengujian_lab_kesehatan_lingkungan, nilai_normal_baku_mutu_lab_kesehatan_lingkungan) tidak jadi gerbang literal terpisah.",
+        "description": "Data master, penerimaan permintaan, pengujian sampel, dan pembayaran lab kesehatan lingkungan & K3 (air, udara, makanan, usap alat) untuk pelanggan internal maupun eksternal.",
+        "_catatan_scope": "Peran terpisah dari petugas-kesling (domain G, pencatatan limbah B3/mutu air limbah/pest control di RS sendiri) — envlab adalah laboratorium pengujian sungguhan (bisa melayani pelanggan eksternal), domain B Khanza, paket Java \"viabarcode\". pelanggan_lab_kesehatan_lingkungan dipakai sebagai gerbang tunggal seluruh layar data master lab kesling (pelanggan, jenis sampel, parameter, baku mutu), pola sama dengan tarif_ralan untuk organization::master.index — tiga kode Khanza lain (master_sampel_bakumutu, parameter_pengujian_lab_kesehatan_lingkungan, nilai_normal_baku_mutu_lab_kesehatan_lingkungan) tidak jadi gerbang literal terpisah. Alur transaksi (lihat catatan migrasi envlab.sample_tests) memisah wewenang ala akreditasi ISO 17025: peran ini pegang sisi OPERASIONAL (permintaan_pengujian_sampel_lab_kesehatan_lingkungan - loket terima permintaan + tolak sampel tidak layak; hasil_pengujian_sampel_lab_kesehatan_lingkungan - analis entri hasil; pembayaran_pengujian_sampel_lab_kesehatan_lingkungan - loket terima pembayaran), sisi OTORISASI/REVIEW (terima+tugaskan, verifikasi, validasi akhir) dipegang penyelia-lab-kesling supaya yang menguji bukan yang mengesahkan.",
         "contexts": [],
         "extra_permissions": [
-            "pelanggan_lab_kesehatan_lingkungan"
+            "pelanggan_lab_kesehatan_lingkungan",
+            "permintaan_pengujian_sampel_lab_kesehatan_lingkungan",
+            "hasil_pengujian_sampel_lab_kesehatan_lingkungan",
+            "pembayaran_pengujian_sampel_lab_kesehatan_lingkungan"
+        ]
+    },
+    {
+        "code": "penyelia-lab-kesling",
+        "name": "Penyelia Laboratorium Kesehatan Lingkungan",
+        "description": "Menerima & menugaskan sampel, memverifikasi, dan memvalidasi akhir hasil pengujian lab kesehatan lingkungan & K3.",
+        "_catatan_scope": "Sisi otorisasi/review dari alur envlab.sample_tests (lihat catatan lengkap di peran petugas-lab-kesling) - dipisah dari staf yang menguji supaya ada segregation-of-duties ala ISO 17025. Wave 1 ini menggabung wewenang verifikasi dan validasi akhir jadi satu peran (akreditasi sungguhan kadang memisahkan penyelia dan kepala lab) - penyederhanaan yang wajar untuk diperluas nanti, bukan dianggap selesai. rekap_pelayanan_lab_kesehatan_lingkungan (satu-satunya kode rekap yang genuinely punya access flag di sumber Khanza - \"Rekap Pembayaran Lab Kesling\" tidak, digabung ke layar yang sama) diberikan di sini, ke penyelia sebagai pihak yang mengawasi jalannya lab.",
+        "contexts": [],
+        "extra_permissions": [
+            "penugasan_pengujian_sampel_lab_kesehatan_lingkungan",
+            "verifikasi_pengujian_sampel_lab_kesehatan_lingkungan",
+            "validasi_pengujian_sampel_lab_kesehatan_lingkungan",
+            "rekap_pelayanan_lab_kesehatan_lingkungan"
         ]
     }
 ]

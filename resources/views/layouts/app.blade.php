@@ -132,8 +132,11 @@
           </li>
         @endcanany
 
-        @canany(['inventaris_inventaris', 'perbaikan_inventaris', 'sirkulasi_cssd', 'limbah_b3_medis', 'pelanggan_lab_kesehatan_lingkungan', 'ipsrs_barang', 'pengajuan_barang_nonmedis', 'utd_pendonor', 'utd_stok_darah'])
-          <li class="nav-item dropdown {{ request()->routeIs(['asset.*', 'inventory.*', 'blood.*', 'envlab-master.*']) ? 'active' : '' }}">
+        @php
+          $kodeEnvlabTransaksi = ['permintaan_pengujian_sampel_lab_kesehatan_lingkungan', 'penugasan_pengujian_sampel_lab_kesehatan_lingkungan', 'hasil_pengujian_sampel_lab_kesehatan_lingkungan', 'verifikasi_pengujian_sampel_lab_kesehatan_lingkungan', 'validasi_pengujian_sampel_lab_kesehatan_lingkungan', 'pembayaran_pengujian_sampel_lab_kesehatan_lingkungan'];
+        @endphp
+        @canany(array_merge(['inventaris_inventaris', 'perbaikan_inventaris', 'sirkulasi_cssd', 'limbah_b3_medis', 'pelanggan_lab_kesehatan_lingkungan', 'rekap_pelayanan_lab_kesehatan_lingkungan', 'ipsrs_barang', 'pengajuan_barang_nonmedis', 'utd_pendonor', 'utd_stok_darah'], $kodeEnvlabTransaksi))
+          <li class="nav-item dropdown {{ request()->routeIs(['asset.*', 'inventory.*', 'blood.*', 'envlab-master.*', 'envlab-tests.*', 'envlab-recap.*']) ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Penunjang</a>
             <div class="dropdown-menu">
               @can('inventaris_inventaris')
@@ -149,7 +152,13 @@
                 <a class="dropdown-item" href="{{ route('asset.kesling.index') }}">Kesehatan Lingkungan</a>
               @endcan
               @can('pelanggan_lab_kesehatan_lingkungan')
-                <a class="dropdown-item" href="{{ route('envlab-master.index') }}">Lab Kesehatan Lingkungan</a>
+                <a class="dropdown-item" href="{{ route('envlab-master.index') }}">Lab Kesling — Data Master</a>
+              @endcan
+              @canany($kodeEnvlabTransaksi)
+                <a class="dropdown-item" href="{{ route('envlab-tests.index') }}">Lab Kesling — Pengujian</a>
+              @endcanany
+              @can('rekap_pelayanan_lab_kesehatan_lingkungan')
+                <a class="dropdown-item" href="{{ route('envlab-recap.index') }}">Lab Kesling — Rekap</a>
               @endcan
               @canany(['ipsrs_barang', 'pengajuan_barang_nonmedis'])
                 <div class="dropdown-divider"></div>

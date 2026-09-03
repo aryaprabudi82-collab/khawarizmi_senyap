@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Pemeriksaan Pasien')
-@section('breadcrumb', 'Konteks clinical &middot; ' . $assessment->registration_number)
+@section('breadcrumb', 'Konteks clinical · ' . $assessment->registration_number)
 @section('heading', $assessment->patient_name)
 
 @section('actions')
@@ -18,7 +18,7 @@
       <div>
         @foreach ($alergi as $a)
           <span class="badge bg-red me-1 mb-1">
-            {{ $a->substance }} ({{ $a->severity }})@if ($a->reaction) &middot; {{ $a->reaction }} @endif
+            {{ $a->substance }} ({{ $a->severity }})@if ($a->reaction) · {{ $a->reaction }} @endif
           </span>
         @endforeach
       </div>
@@ -54,11 +54,11 @@
             <div class="datagrid-title">Status catatan</div>
             <div class="datagrid-content">
               @if ($assessment->status === 'draft')
-                <span class="badge bg-yellow-lt">Draf &middot; masih bisa disunting</span>
+                <span class="badge bg-yellow-lt">Draf · masih bisa disunting</span>
               @elseif ($assessment->status === 'amended')
-                <span class="badge bg-orange-lt">Diralat &middot; versi {{ $assessment->version }}</span>
+                <span class="badge bg-orange-lt">Diralat · versi {{ $assessment->version }}</span>
               @else
-                <span class="badge bg-green-lt">Final &middot; terkunci</span>
+                <span class="badge bg-green-lt">Final · terkunci</span>
               @endif
             </div>
           </div>
@@ -307,7 +307,7 @@
                 @if (isset($observasi[$kode]))
                   <div class="form-hint {{ $observasi[$kode]->is_abnormal ? 'text-danger' : '' }}">
                     Terakhir: {{ rtrim(rtrim($observasi[$kode]->value_numeric, '0'), '.') }} {{ $satuan }}
-                    @if ($observasi[$kode]->is_abnormal) &middot; di luar rentang @endif
+                    @if ($observasi[$kode]->is_abnormal) · di luar rentang @endif
                   </div>
                 @elseif ($min !== null)
                   <div class="form-hint">Rujukan {{ $min }}–{{ $max }}</div>
@@ -325,7 +325,7 @@
         <div class="card-header d-flex justify-content-between align-items-center">
           <h3 class="card-title">{{ \App\Modules\Clinical\Models\Assessment::kindLabel($assessment->kind) }}</h3>
           @if ($assessment->isLocked())
-            <span class="text-secondary small">Terkunci &middot; perubahan tercatat sebagai ralat</span>
+            <span class="text-secondary small">Terkunci · perubahan tercatat sebagai ralat</span>
           @endif
         </div>
         <div class="card-body">
@@ -443,7 +443,7 @@
               <div class="d-flex justify-content-between">
                 <strong>Versi {{ $r->version }}</strong>
                 <span class="text-secondary small">
-                  {{ $r->revised_at->format('d-m-Y H:i') }} &middot; {{ $r->revised_by_name ?? 'sistem' }}
+                  {{ $r->revised_at->format('d-m-Y H:i') }} · {{ $r->revised_by_name ?? 'sistem' }}
                 </span>
               </div>
               <div class="text-secondary small mt-1">Alasan: {{ $r->reason }}</div>

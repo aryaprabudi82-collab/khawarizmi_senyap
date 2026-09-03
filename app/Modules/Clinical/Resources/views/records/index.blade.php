@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Rekam Medis Elektronik')
-@section('breadcrumb', 'Konteks clinical &middot; Permenkes 24/2022')
+@section('breadcrumb', 'Konteks clinical · Permenkes 24/2022')
 @section('heading', 'Pasien Menunggu Pemeriksaan')
 
 @section('content')

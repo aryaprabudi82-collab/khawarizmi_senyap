@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Daftarkan Pasien')
-@section('breadcrumb', 'Modul A &middot; Registrasi dan Pelayanan')
+@section('breadcrumb', 'Modul A · Registrasi dan Pelayanan')
 @section('heading', 'Daftarkan Pasien')
 
 @section('actions')
@@ -55,9 +55,9 @@
                   <div class="fw-semibold">{{ $kandidat->name }}</div>
                   <div class="small">
                     <span class="font-monospace">{{ $kandidat->medical_record_number }}</span>
-                    &middot; {{ $kandidat->sex === 'L' ? 'Laki-laki' : 'Perempuan' }}
+                    · {{ $kandidat->sex === 'L' ? 'Laki-laki' : 'Perempuan' }}
                     @if ($kandidat->birth_date)
-                      &middot; {{ $kandidat->birth_date->format('d-m-Y') }}
+                      · {{ $kandidat->birth_date->format('d-m-Y') }}
                     @endif
                   </div>
                 </a>
@@ -97,7 +97,7 @@
               <div class="h3 mb-1">{{ $pasien->name }}</div>
               <div class="text-secondary">
                 <span class="font-monospace">{{ $pasien->medical_record_number }}</span>
-                @if ($pasien->nik) &middot; NIK {{ $pasien->nik }} @endif
+                @if ($pasien->nik) · NIK {{ $pasien->nik }} @endif
               </div>
             </div>
             <div class="col-md-5 text-md-end text-secondary">

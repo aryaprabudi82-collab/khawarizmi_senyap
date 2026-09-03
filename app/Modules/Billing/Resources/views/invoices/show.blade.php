@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Tagihan ' . $tagihan->invoice_number)
-@section('breadcrumb', 'Konteks billing &middot; ' . $tagihan->registration_number)
+@section('breadcrumb', 'Konteks billing · ' . $tagihan->registration_number)
 @section('heading', $tagihan->patient_name)
 
 @section('actions')
@@ -193,7 +193,7 @@
           </div>
           <div class="modal-body">
             <p class="text-secondary small">
-              {{ $p->payment_number }} &middot; Rp {{ number_format((float) $p->amount, 0, ',', '.') }}
+              {{ $p->payment_number }} · Rp {{ number_format((float) $p->amount, 0, ',', '.') }}
             </p>
             <label class="form-label" for="alasan-{{ $p->id }}">Alasan pembatalan</label>
             <textarea id="alasan-{{ $p->id }}" name="alasan" class="form-control" rows="2"

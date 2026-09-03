@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Pendaftaran Rawat Jalan')
-@section('breadcrumb', 'Modul A &middot; Registrasi dan Pelayanan')
+@section('breadcrumb', 'Modul A · Registrasi dan Pelayanan')
 @section('heading', 'Papan Antrean ' . $tanggal->translatedFormat('l, d F Y'))
 
 @section('actions')
@@ -159,7 +159,7 @@
             </div>
             <div class="modal-body">
               <p class="text-secondary small">
-                {{ $baris->patient_name }} &middot; antrean {{ $baris->queue_number }} di {{ $baris->unit_name }}.
+                {{ $baris->patient_name }} · antrean {{ $baris->queue_number }} di {{ $baris->unit_name }}.
               </p>
               <label class="form-label" for="alasan-{{ $baris->id }}">Alasan pembatalan</label>
               <textarea id="alasan-{{ $baris->id }}" name="alasan" class="form-control" rows="3"
