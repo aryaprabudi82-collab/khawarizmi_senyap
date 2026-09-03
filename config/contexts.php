@@ -209,6 +209,19 @@ return [
             'publishes'   => [],
         ],
 
+        'correspondence' => [
+            'schema'      => 'correspondence',
+            'module'      => 'Correspondence',
+            'description' => 'Surat masuk, surat keluar, dan pengumuman e-pasien. Domain P Khanza 45 kapabilitas, '
+                . 'tapi sekitar 30 di antaranya (persetujuan_penolakan_tindakan, penolakan_anjuran_medis, dan '
+                . 'aneka surat_keterangan_* — sehat/sakit/hamil/bebas-narkoba/dst.) sebenarnya formulir persetujuan '
+                . 'klinis & surat keterangan medis, bukan korespondensi kantor — perlu alur tanda tangan dan '
+                . 'template cetak terikat kunjungan, desain tersendiri yang jauh lebih besar dari surat-menyurat '
+                . 'biasa. Belum digarap wave ini.',
+            'domains'     => ['P'],
+            'publishes'   => [],
+        ],
+
     ],
 
     /*
@@ -217,7 +230,6 @@ return [
     */
     'planned' => [
         'asset'          => ['schema' => 'asset',          'domains' => ['G'],      'description' => 'Aset, inventaris, CSSD, pemeliharaan, kesehatan lingkungan.'],
-        'correspondence' => ['schema' => 'correspondence', 'domains' => ['P'],      'description' => 'Surat masuk, surat keluar, pengumuman e-pasien.'],
     ],
 
     /*

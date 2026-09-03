@@ -222,5 +222,17 @@
             "utd_stok_darah",
             "utd_penyerahan_darah"
         ]
+    },
+    {
+        "code": "petugas-tu",
+        "name": "Petugas Tata Usaha",
+        "description": "Surat masuk/keluar dan pengumuman e-pasien.",
+        "_catatan_scope": "Domain P Khanza 45 kapabilitas, tapi sekitar 30 di antaranya (persetujuan_penolakan_tindakan, penolakan_anjuran_medis, dan aneka surat_keterangan_*) adalah formulir persetujuan klinis & surat keterangan medis — konseptual beda dari korespondensi kantor, perlu alur tanda tangan/template cetak tersendiri, belum digarap wave ini. extra_permissions dibatasi pada tiga yang sudah dikerjakan.",
+        "contexts": [],
+        "extra_permissions": [
+            "surat_masuk",
+            "surat_keluar",
+            "pengumuman_epasien"
+        ]
     }
 ]

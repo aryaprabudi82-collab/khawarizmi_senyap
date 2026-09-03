@@ -21,4 +21,5 @@ return [
     App\Modules\Quality\Providers\QualityServiceProvider::class,
     App\Modules\Inventory\Providers\InventoryServiceProvider::class,
     App\Modules\Blood\Providers\BloodServiceProvider::class,
+    App\Modules\Correspondence\Providers\CorrespondenceServiceProvider::class,
 ];
