@@ -200,6 +200,15 @@ return [
             'publishes'   => [],
         ],
 
+        'blood' => [
+            'schema'      => 'blood',
+            'module'      => 'Blood',
+            'description' => 'Unit Transfusi Darah: donor, unit darah dengan siklus status (karantina -> tersedia -> '
+                . 'dikeluarkan), dan penyerahan ke pasien. Domain N Khanza 11 kapabilitas, bersih tanpa mis-tagging.',
+            'domains'     => ['N'],
+            'publishes'   => [],
+        ],
+
     ],
 
     /*
@@ -208,7 +217,6 @@ return [
     */
     'planned' => [
         'asset'          => ['schema' => 'asset',          'domains' => ['G'],      'description' => 'Aset, inventaris, CSSD, pemeliharaan, kesehatan lingkungan.'],
-        'blood'          => ['schema' => 'blood',          'domains' => ['N'],      'description' => 'Unit transfusi darah.'],
         'correspondence' => ['schema' => 'correspondence', 'domains' => ['P'],      'description' => 'Surat masuk, surat keluar, pengumuman e-pasien.'],
     ],
 

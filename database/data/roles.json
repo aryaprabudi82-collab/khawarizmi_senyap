@@ -210,5 +210,17 @@
             "ipsrs_barang",
             "pengajuan_barang_nonmedis"
         ]
+    },
+    {
+        "code": "petugas-utd",
+        "name": "Petugas Unit Transfusi Darah",
+        "description": "Pendonor, siklus status unit darah (karantina/tersedia/ditahan/ditolak), dan penyerahan darah untuk transfusi.",
+        "_catatan_scope": "Domain N bersih — 11 kapabilitas semuanya memang milik blood, tidak ada mis-tagging. pengambilan_utd2/pengambilan_penunjang_utd2 (pengambilan BHP medis/non-medis) dan utd_medis_rusak/utd_penunjang_rusak (BHP rusak) belum digarap wave ini — itu manajemen consumable UTD, bukan siklus unit darah itu sendiri.",
+        "contexts": [],
+        "extra_permissions": [
+            "utd_pendonor",
+            "utd_stok_darah",
+            "utd_penyerahan_darah"
+        ]
     }
 ]

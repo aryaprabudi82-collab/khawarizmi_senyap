@@ -90,6 +90,19 @@
             <a class="nav-link" href="{{ route('reporting.dashboard') }}">Laporan</a>
           </li>
         @endcan
+        @canany(['utd_pendonor', 'utd_stok_darah'])
+          <li class="nav-item dropdown {{ request()->routeIs('blood.*') ? 'active' : '' }}">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">UTD</a>
+            <div class="dropdown-menu">
+              @can('utd_pendonor')
+                <a class="dropdown-item" href="{{ route('blood.pendonor.index') }}">Pendonor</a>
+              @endcan
+              @can('utd_stok_darah')
+                <a class="dropdown-item" href="{{ route('blood.stok.index') }}">Stok Darah</a>
+              @endcan
+            </div>
+          </li>
+        @endcanany
         @canany(['ipsrs_barang', 'pengajuan_barang_nonmedis'])
           <li class="nav-item dropdown {{ request()->routeIs('inventory.*') ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Logistik</a>
