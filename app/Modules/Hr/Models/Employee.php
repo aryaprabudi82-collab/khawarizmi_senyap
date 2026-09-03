@@ -29,4 +29,29 @@ class Employee extends Model
     {
         return $this->hasMany(AttendanceRecord::class);
     }
+
+    public function positionHistory(): HasMany
+    {
+        return $this->hasMany(EmployeePositionHistory::class)->orderByDesc('effective_date');
+    }
+
+    public function salaryHistory(): HasMany
+    {
+        return $this->hasMany(EmployeeSalaryHistory::class)->orderByDesc('effective_date');
+    }
+
+    public function educations(): HasMany
+    {
+        return $this->hasMany(EmployeeEducation::class)->orderByDesc('graduation_year');
+    }
+
+    public function records(): HasMany
+    {
+        return $this->hasMany(EmployeeRecord::class)->orderByDesc('record_date');
+    }
+
+    public function appraisals(): HasMany
+    {
+        return $this->hasMany(PerformanceAppraisal::class)->orderByDesc('period');
+    }
 }

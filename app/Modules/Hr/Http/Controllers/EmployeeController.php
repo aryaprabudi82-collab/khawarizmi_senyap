@@ -50,6 +50,13 @@ class EmployeeController
         return back()->with('sukses', "Pegawai {$data['name']} ditambahkan.");
     }
 
+    /**
+     * Koreksi data cepat (typo nama, ganti nomor telepon, dst.) — sengaja
+     * TIDAK mencatat riwayat jabatan meski field position ikut disunting di
+     * sini. Perubahan jabatan yang sesungguhnya (mutasi/promosi dengan SK)
+     * harus lewat form "Riwayat Jabatan" di halaman detail pegawai, supaya
+     * riwayatnya tercatat dengan tanggal efektif dan nomor SK yang benar.
+     */
     public function update(Request $request, Employee $pegawai): RedirectResponse
     {
         $data = $request->validate([

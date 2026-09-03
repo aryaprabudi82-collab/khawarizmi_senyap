@@ -7,9 +7,22 @@ use App\Modules\Hr\Models\LeaveType;
 
 class EmployeeService
 {
+    public function __construct(private readonly EmployeeHistoryService $history) {}
+
     public function createEmployee(array $data): Employee
     {
-        return Employee::query()->create($data);
+        $employee = Employee::query()->create($data);
+
+        // Baris pertama riwayat jabatan supaya profil pegawai tidak pernah
+        // tampak "belum ada riwayat" padahal jelas dia punya jabatan sejak masuk.
+        $this->history->recordPositionChange($employee, [
+            'position' => $data['position'],
+            'unit_id' => $data['unit_id'] ?? null,
+            'effective_date' => $data['hire_date'],
+            'note' => 'Jabatan awal saat masuk kerja.',
+        ]);
+
+        return $employee->fresh();
     }
 
     public function updateEmployee(Employee $employee, array $data): Employee

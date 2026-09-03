@@ -35,8 +35,8 @@ class ManagedPermissionCatalog
         'peristiwa_k3rs', 'persetujuan_penolakan_tindakan', 'presensi_harian', 'registrasi',
         'rekap_kunjungan', 'resep_obat', 'satu_sehat_kirim_condition', 'satu_sehat_kirim_encounter',
         'satu_sehat_mapping_lokasi', 'satu_sehat_referensi_dokter', 'satu_sehat_referensi_pasien',
-        'sirkulasi_cssd', 'surat_keterangan_sehat', 'surat_masuk', 'tarif_ralan', 'telaah_resep',
-        'utd_pendonor', 'utd_penyerahan_darah', 'utd_stok_darah',
+        'sirkulasi_cssd', 'skp_penilaian', 'surat_keterangan_sehat', 'surat_masuk', 'tarif_ralan',
+        'telaah_resep', 'utd_pendonor', 'utd_penyerahan_darah', 'utd_stok_darah',
         'user',
     ];
 

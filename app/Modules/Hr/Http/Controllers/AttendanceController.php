@@ -55,6 +55,16 @@ class AttendanceController
         return back()->with('sukses', "{$pegawai->name} presensi pulang.");
     }
 
+    public function monthly(Request $request): View
+    {
+        $bulan = CarbonImmutable::parse($request->query('bulan', now()->format('Y-m')) . '-01');
+
+        return view('hr::presensi.bulanan', [
+            'bulan' => $bulan,
+            'rekap' => $this->attendance->monthlyRecap($bulan),
+        ]);
+    }
+
     public function storeManual(Request $request): RedirectResponse
     {
         $data = $request->validate([

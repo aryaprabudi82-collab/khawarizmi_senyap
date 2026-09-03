@@ -181,13 +181,14 @@
     {
         "code": "admin-hr",
         "name": "Admin Kepegawaian",
-        "description": "Master pegawai, pengajuan dan persetujuan cuti, dan presensi harian.",
-        "_catatan_scope": "Domain C Khanza ('SDM/Kepegawaian') berisi 58 kapabilitas, tapi 34 di antaranya adalah audit PPI (audit_bundle_iadp, audit_cuci_tangan_medis, dst.) dan insiden K3 (bagian_tubuh_k3rs, dampak_cidera_k3rs, dst.) yang konseptual milik quality, kebetulan satu domain huruf dengan kepegawaian di menu Khanza. Sengaja tanpa 'contexts' supaya peran ini tidak diam-diam kebagian 34 kapabilitas audit/K3 itu — extra_permissions dibatasi persis pada tiga yang sudah dikerjakan Wave 1 ini.",
+        "description": "Master pegawai (termasuk riwayat jabatan, gaji, pendidikan, penghargaan/peringatan), pengajuan dan persetujuan cuti, presensi harian & bulanan, dan penilaian SKP.",
+        "_catatan_scope": "Domain C Khanza ('SDM/Kepegawaian') berisi 58 kapabilitas, tapi 34 di antaranya adalah audit PPI (audit_bundle_iadp, audit_cuci_tangan_medis, dst.) dan insiden K3 (bagian_tubuh_k3rs, dampak_cidera_k3rs, dst.) yang konseptual milik quality, kebetulan satu domain huruf dengan kepegawaian di menu Khanza. Dari 24 sisanya yang genuinely kepegawaian, riwayat_jabatan/riwayat_naik_gaji/riwayat_pendidikan/riwayat_penghargaan/riwayat_surat_peringatan sengaja tidak masing-masing dapat extra_permissions sendiri — kelimanya digerbangi pegawai_user yang sudah ada (satu gerbang untuk seluruh facet data pegawai, sama pola dengan pcra_icra_pengkajian_risiko_prakonstruksi menggerbangi 10 kapabilitas ICRA granular). skp_penilaian dapat gerbangnya sendiri karena penilaian kinerja idealnya dibatasi lebih ketat dari sekadar 'boleh lihat data pegawai' — untuk Wave 1 tetap diberikan ke admin-hr karena belum ada peran 'atasan langsung' terpisah; pertimbangkan role terpisah kalau kebutuhan itu jadi nyata. Sengaja tanpa 'contexts' supaya peran ini tidak diam-diam kebagian 34 kapabilitas audit/K3 itu.",
         "contexts": [],
         "extra_permissions": [
             "pegawai_user",
             "pengajuan_cuti",
-            "presensi_harian"
+            "presensi_harian",
+            "skp_penilaian"
         ]
     },
     {

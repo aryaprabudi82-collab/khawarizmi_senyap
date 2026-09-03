@@ -7,6 +7,10 @@
 @section('actions')
   <a href="{{ route('hr.cuti.index') }}" class="btn btn-link">Cuti &rarr;</a>
   <a href="{{ route('hr.presensi.index') }}" class="btn btn-link">Presensi &rarr;</a>
+  <a href="{{ route('hr.presensi.bulanan') }}" class="btn btn-link">Presensi Bulanan &rarr;</a>
+  @can('skp_penilaian')
+    <a href="{{ route('hr.skp.index') }}" class="btn btn-link">SKP &rarr;</a>
+  @endcan
 @endsection
 
 @section('content')
@@ -33,7 +37,10 @@
                     <span class="badge bg-red-lt">Nonaktif</span>
                   @endif
                 </td>
-                <td><button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#edit-pegawai-{{ $p->id }}">Ubah</button></td>
+                <td class="text-nowrap">
+                  <a href="{{ route('hr.pegawai.detail', $p) }}" class="btn btn-sm btn-outline-secondary">Detail</a>
+                  <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#edit-pegawai-{{ $p->id }}">Ubah</button>
+                </td>
               </tr>
             @empty
               <tr><td colspan="7" class="text-center text-secondary py-3">Belum ada pegawai.</td></tr>
