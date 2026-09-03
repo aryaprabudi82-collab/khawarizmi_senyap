@@ -17,6 +17,9 @@ class Prescription extends Model
     public const STATUS_DISERAHKAN = 'diserahkan';
     public const STATUS_BATAL = 'batal';
 
+    public const KIND_RAWAT_JALAN = 'rawat-jalan';
+    public const KIND_PULANG = 'pulang';
+
     protected $table = 'pharmacy.prescriptions';
 
     protected $guarded = ['id'];

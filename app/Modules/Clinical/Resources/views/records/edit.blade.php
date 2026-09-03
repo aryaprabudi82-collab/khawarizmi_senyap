@@ -408,13 +408,21 @@
       <div>
         <strong>Resep obat</strong>
         <div class="text-secondary small">
-          Membuka resep untuk kunjungan ini, atau melanjutkan resep yang sudah ditulis.
+          Membuka resep untuk kunjungan ini, atau melanjutkan resep yang sudah ditulis. Resep pulang
+          (resep_pulang) terpisah dari resep rawat jalan — dipakai menjelang pasien pulang, mis. dari ranap.
         </div>
       </div>
-      <form method="POST" action="{{ route('resep.buat', $assessment->registration_id) }}">
-        @csrf
-        <button class="btn btn-outline-primary">Tulis Resep</button>
-      </form>
+      <div class="d-flex gap-2">
+        <form method="POST" action="{{ route('resep.buat', $assessment->registration_id) }}">
+          @csrf
+          <button class="btn btn-outline-primary">Tulis Resep</button>
+        </form>
+        <form method="POST" action="{{ route('resep.buat', $assessment->registration_id) }}">
+          @csrf
+          <input type="hidden" name="kind" value="pulang">
+          <button class="btn btn-outline-secondary">Resep Pulang</button>
+        </form>
+      </div>
     </div>
   </div>
 @endcan

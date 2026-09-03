@@ -74,8 +74,12 @@ class PrescriptionController
     /** Membuka atau melanjutkan resep untuk satu kunjungan. */
     public function createForRegistration(Request $request, int $registrasi): RedirectResponse
     {
+        $data = $request->validate([
+            'kind' => ['nullable', 'in:rawat-jalan,pulang'],
+        ]);
+
         try {
-            $resep = $this->prescriptions->create($registrasi, $request->user());
+            $resep = $this->prescriptions->create($registrasi, $request->user(), $data['kind'] ?? Prescription::KIND_RAWAT_JALAN);
         } catch (PharmacyException $e) {
             return back()->with('galat', $e->getMessage());
         }

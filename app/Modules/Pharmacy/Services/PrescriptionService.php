@@ -32,15 +32,22 @@ class PrescriptionService
     ) {}
 
     /**
+     * resep_pulang (kind='pulang') sengaja diperiksa terpisah dari resep
+     * rawat-jalan biasa saat mencari resep "yang masih berjalan" — satu
+     * registrasi boleh punya keduanya sekaligus (obat harian selama
+     * dirawat, lalu resep terpisah saat pulang). Lihat catatan migrasi
+     * kolom kind.
+     *
      * @throws PharmacyException
      */
-    public function create(int $registrationId, ?User $actor = null): Prescription
+    public function create(int $registrationId, ?User $actor = null, string $kind = Prescription::KIND_RAWAT_JALAN): Prescription
     {
         $kunjungan = $this->registration($registrationId)
             ?? throw new PharmacyException('Kunjungan tidak ditemukan atau sudah dibatalkan.');
 
         $berjalan = Prescription::query()
             ->where('registration_id', $registrationId)
+            ->where('kind', $kind)
             ->whereIn('status', [Prescription::STATUS_DITULIS, Prescription::STATUS_MENUNGGU_TELAAH])
             ->first();
 
@@ -59,6 +66,7 @@ class PrescriptionService
             'prescriber_id' => $kunjungan->practitioner_id,
             'prescriber_name' => $kunjungan->practitioner_name,
             'status' => Prescription::STATUS_DITULIS,
+            'kind' => $kind,
             'prescribed_at' => now(),
             'created_by' => $actor?->id,
         ]);

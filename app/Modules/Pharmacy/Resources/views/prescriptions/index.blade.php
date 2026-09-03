@@ -66,7 +66,12 @@
           <tr class="{{ in_array($r->status, ['batal','ditolak'], true) ? 'opacity-75' : '' }}">
             <td class="font-monospace small">{{ $r->prescription_number }}</td>
             <td>
-              <div class="fw-semibold">{{ $r->patient_name }}</div>
+              <div class="fw-semibold">
+                {{ $r->patient_name }}
+                @if ($r->kind === 'pulang')
+                  <span class="badge bg-purple-lt ms-1">Pulang</span>
+                @endif
+              </div>
               <div class="text-secondary small font-monospace">{{ $r->patient_mrn }}</div>
             </td>
             <td>{{ $r->unit_name ?? '—' }}</td>

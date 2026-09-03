@@ -120,8 +120,10 @@ return [
         'pharmacy' => [
             'schema'      => 'pharmacy',
             'module'      => 'Pharmacy',
-            'description' => 'Resep, telaah apoteker, penyerahan, dan stok dengan batch serta kedaluwarsa.',
-            'domains'     => ['D'],
+            'description' => 'Resep (rawat jalan & resep_pulang lewat kolom kind, domain A Khanza tapi paket '
+                . 'Java-nya "inventory" — dibangun di sini karena sama-sama memicu potong stok), telaah '
+                . 'apoteker, penyerahan, dan stok dengan batch serta kedaluwarsa.',
+            'domains'     => ['D', 'A'],
             'publishes'   => [
                 'v_prescription_charge' => 'Obat yang sudah diserahkan berikut nilainya. Dipakai billing untuk menarik biaya obat ke tagihan kunjungan.',
             ],

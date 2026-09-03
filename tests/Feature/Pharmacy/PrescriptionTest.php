@@ -162,6 +162,24 @@ class PrescriptionTest extends TestCase
         $this->assertSame($registrasi->registration_number, $resep->registration_number);
         $this->assertSame(Prescription::STATUS_DITULIS, $resep->status);
         $this->assertStringStartsWith('R' . now()->format('Ymd'), $resep->prescription_number);
+        $this->assertSame(Prescription::KIND_RAWAT_JALAN, $resep->kind);
+    }
+
+    #[Test]
+    public function resep_pulang_terpisah_dari_resep_rawat_jalan_pada_kunjungan_yang_sama(): void
+    {
+        $registrasi = $this->daftarkan('Hendra Saputra');
+
+        $ralan = $this->resep->create($registrasi->id, null, Prescription::KIND_RAWAT_JALAN);
+        $pulang = $this->resep->create($registrasi->id, null, Prescription::KIND_PULANG);
+
+        $this->assertNotSame($ralan->id, $pulang->id);
+        $this->assertSame(Prescription::KIND_PULANG, $pulang->kind);
+
+        // Membuat lagi dengan kind yang sama pada resep yang masih berjalan
+        // mengembalikan yang sudah ada, bukan menggandakan.
+        $pulangLagi = $this->resep->create($registrasi->id, null, Prescription::KIND_PULANG);
+        $this->assertSame($pulang->id, $pulangLagi->id);
     }
 
     #[Test]
