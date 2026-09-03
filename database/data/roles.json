@@ -67,9 +67,11 @@
             "pasien",
             "registrasi",
             "resep_obat",
-            "penilaian_awal_medis_ralan"
+            "penilaian_awal_medis_ralan",
+            "persetujuan_penolakan_tindakan",
+            "surat_keterangan_sehat"
         ],
-        "_catatan_exclusion": "insiden_keselamatan(_pasien) tercatat context 'clinical' di katalog permission (warisan domain M Khanza), tapi modulnya sekarang di konteks quality (lihat config/contexts.php) dan Wave 1 ini sengaja admin-mutu-only — pelaporan insiden oleh staf klinis sendiri (bukan cuma admin mutu) adalah perluasan wajar untuk wave berikutnya, bukan dikecualikan selamanya.",
+        "_catatan_exclusion": "insiden_keselamatan(_pasien) tercatat context 'clinical' di katalog permission (warisan domain M Khanza), tapi modulnya sekarang di konteks quality (lihat config/contexts.php) dan Wave 1 ini sengaja admin-mutu-only — pelaporan insiden oleh staf klinis sendiri (bukan cuma admin mutu) adalah perluasan wajar untuk wave berikutnya, bukan dikecualikan selamanya. persetujuan_penolakan_tindakan dan surat_keterangan_sehat tercatat domain P/'correspondence' di Khanza (bercampur dengan surat-menyurat kantor) padahal dokumen klinis yang diterbitkan dokter — diberikan di sini, bukan ke petugas-tu.",
         "excluded_permissions": [
             "insiden_keselamatan",
             "insiden_keselamatan_pasien"

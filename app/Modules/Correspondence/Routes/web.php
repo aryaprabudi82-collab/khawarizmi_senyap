@@ -1,6 +1,8 @@
 <?php
 
 use App\Modules\Correspondence\Http\Controllers\AnnouncementController;
+use App\Modules\Correspondence\Http\Controllers\CertificateController;
+use App\Modules\Correspondence\Http\Controllers\ConsentController;
 use App\Modules\Correspondence\Http\Controllers\LetterController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +24,20 @@ Route::middleware(['web', 'auth'])
             Route::get('/', [AnnouncementController::class, 'index'])->name('index');
             Route::post('/', [AnnouncementController::class, 'store'])->name('simpan');
             Route::post('/{pengumuman}', [AnnouncementController::class, 'update'])->name('perbarui');
+        });
+
+        Route::middleware('can:persetujuan_penolakan_tindakan')->prefix('persetujuan')->name('persetujuan.')->group(function () {
+            Route::get('/', [ConsentController::class, 'index'])->name('index');
+            Route::post('/', [ConsentController::class, 'store'])->name('simpan');
+            Route::post('/{persetujuan}/batal', [ConsentController::class, 'cancel'])->name('batal');
+            Route::get('/{persetujuan}/cetak', [ConsentController::class, 'print'])->name('cetak');
+        });
+
+        Route::middleware('can:surat_keterangan_sehat')->prefix('keterangan')->name('keterangan.')->group(function () {
+            Route::get('/', [CertificateController::class, 'index'])->name('index');
+            Route::post('/', [CertificateController::class, 'store'])->name('simpan');
+            Route::post('/{surat}/batal', [CertificateController::class, 'cancel'])->name('batal');
+            Route::get('/{surat}/cetak', [CertificateController::class, 'print'])->name('cetak');
         });
 
     });

@@ -44,8 +44,8 @@
           per permission-nya sendiri, jadi satu pengguna cuma melihat
           tautan yang haknya dia punya, sekalipun dropdown-nya digabung.
         --}}
-        @canany(['registrasi', 'penilaian_awal_medis_ralan', 'periksa_lab', 'periksa_radiologi', 'resep_obat'])
-          <li class="nav-item dropdown {{ request()->routeIs(['registrasi.*', 'rme.*', 'order.*', 'resep.*']) ? 'active' : '' }}">
+        @canany(['registrasi', 'penilaian_awal_medis_ralan', 'periksa_lab', 'periksa_radiologi', 'resep_obat', 'persetujuan_penolakan_tindakan', 'surat_keterangan_sehat'])
+          <li class="nav-item dropdown {{ request()->routeIs(['registrasi.*', 'rme.*', 'order.*', 'resep.*', 'correspondence.persetujuan.*', 'correspondence.keterangan.*']) ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Pelayanan</a>
             <div class="dropdown-menu">
               @can('registrasi')
@@ -62,6 +62,15 @@
               @endcan
               @can('resep_obat')
                 <a class="dropdown-item" href="{{ route('resep.index') }}">Farmasi</a>
+              @endcan
+              @canany(['persetujuan_penolakan_tindakan', 'surat_keterangan_sehat'])
+                <div class="dropdown-divider"></div>
+              @endcanany
+              @can('persetujuan_penolakan_tindakan')
+                <a class="dropdown-item" href="{{ route('correspondence.persetujuan.index') }}">Persetujuan Tindakan</a>
+              @endcan
+              @can('surat_keterangan_sehat')
+                <a class="dropdown-item" href="{{ route('correspondence.keterangan.index') }}">Surat Keterangan</a>
               @endcan
             </div>
           </li>
