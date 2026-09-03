@@ -23,6 +23,16 @@ Route::middleware(['web', 'auth'])->group(function () {
         // clinical.procedures.
         Route::post('/kunjungan/{registrasi}/tindakan', [ClinicalRecordController::class, 'storeProcedure'])->name('tindakan.simpan');
 
+        // operasi — gerbang SENDIRI (bukan umbrella), ditumpuk di atas
+        // penilaian_awal_medis_ralan milik grup: mencatat operasi tetap
+        // butuh akses RME kunjungan, tapi kapabilitasnya sendiri dibatasi
+        // ke yang punya operasi (dokter, lewat wholesale context encounter —
+        // dikecualikan dari perawat/petugas-daftar, lihat roles.json), beda
+        // dari tindakan_ralan yang cukup umbrella. Lihat catatan migrasi
+        // clinical.operations.
+        Route::post('/kunjungan/{registrasi}/operasi', [ClinicalRecordController::class, 'storeOperation'])
+            ->name('operasi.simpan')->middleware('can:operasi');
+
         Route::delete('/diagnosis/{diagnosis}', [ClinicalRecordController::class, 'destroyDiagnosis'])->name('diagnosis.hapus');
 
         Route::get('/kode-diagnosis', [ClinicalRecordController::class, 'searchDiagnosisCodes'])->name('kode-diagnosis');

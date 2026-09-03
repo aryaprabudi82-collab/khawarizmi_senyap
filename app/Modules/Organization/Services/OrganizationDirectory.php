@@ -41,6 +41,19 @@ class OrganizationDirectory
         return Practitioner::query()->find($id);
     }
 
+    /**
+     * Praktisi aktif tanpa syarat jadwal praktik mingguan — dipakai memilih
+     * operator/dokter untuk booking_operasi dan konteks lain yang butuh
+     * daftar praktisi tanpa terikat tanggal tertentu, pola sama dengan
+     * inpatient.OrganizationContext::practitioners() untuk DPJP.
+     *
+     * @return Collection<int, Practitioner>
+     */
+    public function activePractitioners(): Collection
+    {
+        return Practitioner::query()->where('is_active', true)->orderBy('name')->get();
+    }
+
     /** Praktisi yang boleh melayani pada tanggal tertentu, opsional per unit. */
     public function practitionersServingOn(DateTimeInterface $date, ?int $unitId = null): Collection
     {

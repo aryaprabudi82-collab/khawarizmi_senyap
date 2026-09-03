@@ -14,13 +14,13 @@ use App\Modules\Platform\Models\Permission;
  * `$request->user()->can()`) sehingga peran custom yang dibuat lewat layar ini
  * hanya bisa mencentang kapabilitas yang sungguh menggerbangi sesuatu.
  *
- * Tujuh kode (audit_kepatuhan_apd, peristiwa_k3rs, insiden_keselamatan_pasien,
- * tindakan_ranap, diet_pasien, deposit_pasien, perkiraan_biaya_ranap) masih
- * tercatat context=hr/clinical/encounter di platform.permissions — peninggalan
- * salah-taut domain huruf Khanza (lihat catatan di database/data/roles.json).
- * Layarnya sendiri sudah dibangun di konteks quality/inpatient/finance, jadi
- * dikelompokkan ke situ di sini supaya admin tidak salah kira sedang memberi
- * akses HR/klinis/pendaftaran.
+ * Delapan kode (audit_kepatuhan_apd, peristiwa_k3rs, insiden_keselamatan_pasien,
+ * tindakan_ranap, diet_pasien, deposit_pasien, perkiraan_biaya_ranap, operasi)
+ * masih tercatat context=hr/clinical/encounter di platform.permissions —
+ * peninggalan salah-taut domain huruf Khanza (lihat catatan di
+ * database/data/roles.json). Layarnya sendiri sudah dibangun di konteks
+ * quality/inpatient/finance/clinical, jadi dikelompokkan ke situ di sini
+ * supaya admin tidak salah kira sedang memberi akses HR/klinis/pendaftaran.
  */
 class ManagedPermissionCatalog
 {
@@ -29,9 +29,9 @@ class ManagedPermissionCatalog
      * Menambah baru di sini berarti sudah ada layar untuk kode tersebut.
      */
     private const MANAGED_CODES = [
-        'audit_kepatuhan_apd', 'bayar_piutang', 'beri_obat', 'bpjs_cek_kartu', 'bpjs_sep', 'deposit_pasien', 'diet_pasien',
-        'igd', 'insiden_keselamatan_pasien', 'inventaris_inventaris', 'ipsrs_barang', 'limbah_b3_medis',
-        'mapping_poli_bpjs', 'pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi', 'pegawai_user',
+        'audit_kepatuhan_apd', 'bayar_piutang', 'beri_obat', 'booking_mcu_perusahaan', 'booking_operasi', 'bpjs_cek_kartu', 'bpjs_sep', 'deposit_pasien', 'diet_pasien',
+        'igd', 'insiden_keselamatan_pasien', 'inventaris_inventaris', 'ipsrs_barang', 'layanan_program_kfr', 'limbah_b3_medis',
+        'mapping_poli_bpjs', 'operasi', 'pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi', 'pegawai_user',
         'pembayaran_ralan', 'pemeriksaan_lab_pa', 'pengajuan_barang_nonmedis', 'pengajuan_cuti', 'pengumuman_epasien',
         'penilaian_awal_medis_ralan', 'perbaikan_inventaris', 'periksa_lab', 'periksa_radiologi',
         'peristiwa_k3rs', 'perkiraan_biaya_ranap', 'persetujuan_penolakan_tindakan', 'presensi_harian', 'registrasi',
@@ -59,6 +59,11 @@ class ManagedPermissionCatalog
         // dibangun di konteks finance.
         'deposit_pasien' => 'finance',
         'perkiraan_biaya_ranap' => 'finance',
+        // operasi tercatat context=encounter di katalog, tanpa penanda paket
+        // Java lain — tetap direlokasi ke clinical dengan alasan sama persis
+        // dengan tindakan_ralan (lihat migrasi clinical.operations): prosedur
+        // yang dilakukan ke pasien adalah rekam medis.
+        'operasi' => 'clinical',
     ];
 
     private const MODULE_LABELS = [

@@ -24,9 +24,10 @@ class ReferenceDataSeeder extends Seeder
         $this->seedPractitioners();
         $this->seedRegistrationTariffs();
         $this->seedProcedureTariffs();
+        $this->seedOperationTariffs();
 
-        $this->command?->info('Data referensi: penjamin, unit, praktisi, dan tarif registrasi & tindakan disiapkan.');
-        $this->command?->warn('Tarif tindakan contoh, hanya untuk penjamin Umum — perlu ditinjau ulang bersama bagian keuangan sebelum dipakai melayani pasien.');
+        $this->command?->info('Data referensi: penjamin, unit, praktisi, dan tarif registrasi, tindakan & operasi disiapkan.');
+        $this->command?->warn('Tarif tindakan/operasi contoh, hanya untuk penjamin Umum — perlu ditinjau ulang bersama bagian keuangan sebelum dipakai melayani pasien.');
     }
 
     private function seedPayers(): void
@@ -169,6 +170,44 @@ class ReferenceDataSeeder extends Seeder
                     'valid_until' => null,
                 ],
                 ['amount' => $t['amount'], 'amount_returning' => null, 'valid_from' => now()->startOfYear()->toDateString()]
+            );
+        }
+    }
+
+    /**
+     * operasi — lihat catatan migrasi clinical.operations. Tarif lump-sum
+     * per tindakan operasi, sama seperti seedProcedureTariffs(), belum
+     * dipecah per peran tim bedah.
+     */
+    private function seedOperationTariffs(): void
+    {
+        $umum = Payer::query()->where('code', 'UMUM')->first();
+
+        if ($umum === null) {
+            return;
+        }
+
+        $operasi = [
+            ['code' => 'OPR-APENDEKTOMI', 'name' => 'Apendektomi', 'amount' => 5000000],
+            ['code' => 'OPR-SC', 'name' => 'Seksio Sesarea', 'amount' => 7500000],
+            ['code' => 'OPR-HERNIOTOMI', 'name' => 'Herniotomi', 'amount' => 4500000],
+            ['code' => 'OPR-KATARAK', 'name' => 'Ekstraksi Katarak', 'amount' => 3500000],
+        ];
+
+        foreach ($operasi as $o) {
+            $service = Service::query()->updateOrCreate(
+                ['code' => $o['code']],
+                ['name' => $o['name'], 'category' => 'operasi', 'is_active' => true]
+            );
+
+            Tariff::query()->updateOrCreate(
+                [
+                    'service_id' => $service->id,
+                    'payer_id' => $umum->id,
+                    'care_class' => '-',
+                    'valid_until' => null,
+                ],
+                ['amount' => $o['amount'], 'amount_returning' => null, 'valid_from' => now()->startOfYear()->toDateString()]
             );
         }
     }

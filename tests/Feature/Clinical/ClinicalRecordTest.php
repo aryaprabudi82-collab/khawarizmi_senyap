@@ -482,6 +482,80 @@ class ClinicalRecordTest extends TestCase
     }
 
     #[Test]
+    public function operasi_tercatat_dengan_tarif_lump_sum_dari_katalog(): void
+    {
+        $registrasi = $this->daftarkan();
+
+        $operasi = $this->records->recordOperation(
+            $registrasi->id, 'OPR-APENDEKTOMI', 'dr. Bedah Uji', 'umum', 'OK 1', 'Apendisitis akut.', $this->dokter
+        );
+
+        $this->assertSame('5000000.00', $operasi->amount);
+        $this->assertSame('Apendektomi', $operasi->service_name);
+        $this->assertSame('dr. Bedah Uji', $operasi->surgeon_name);
+        $this->assertSame('umum', $operasi->anesthesia_type);
+        $this->assertSame($registrasi->patient_name, $operasi->patient_name);
+    }
+
+    #[Test]
+    public function operasi_dengan_kode_layanan_yang_tidak_ada_ditolak(): void
+    {
+        $registrasi = $this->daftarkan();
+
+        $this->expectException(ClinicalException::class);
+        $this->records->recordOperation($registrasi->id, 'OPR-TIDAK-ADA', 'dr. Bedah Uji', null, null, null, $this->dokter);
+    }
+
+    #[Test]
+    public function operasi_tanpa_tarif_untuk_penjamin_kunjungan_ditolak(): void
+    {
+        $pasien = app(PatientRegistry::class)->register(['name' => 'Pasien Operasi BPJS', 'sex' => 'L', 'birth_date' => '1990-01-01']);
+        $registrasi = app(RegistrationService::class)->register(
+            patientId: $pasien->id,
+            unitId: Unit::query()->where('code', 'POL-UMUM')->value('id'),
+            payerId: Payer::query()->where('code', 'BPJS')->value('id'),
+        );
+
+        $this->expectException(ClinicalException::class);
+        $this->records->recordOperation($registrasi->id, 'OPR-APENDEKTOMI', 'dr. Bedah Uji', null, null, null, $this->dokter);
+    }
+
+    #[Test]
+    public function operasi_bisa_dicatat_lewat_http_dan_tampil_di_layar_pemeriksaan(): void
+    {
+        $registrasi = $this->daftarkan();
+
+        $this->actingAs($this->dokter)
+            ->post(route('rme.operasi.simpan', $registrasi->id), [
+                'service_code' => 'OPR-HERNIOTOMI', 'surgeon_name' => 'dr. Bedah Uji', 'anesthesia_type' => 'regional',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('sukses');
+
+        $this->assertDatabaseHas('clinical.operations', [
+            'registration_id' => $registrasi->id, 'service_code' => 'OPR-HERNIOTOMI', 'amount' => 4500000,
+        ]);
+
+        $this->actingAs($this->dokter)
+            ->get(route('rme.edit', $registrasi->id))
+            ->assertOk()
+            ->assertSee('Herniotomi');
+    }
+
+    #[Test]
+    public function perawat_tidak_bisa_mencatat_operasi(): void
+    {
+        $registrasi = $this->daftarkan();
+        $perawat = $this->buatPengguna('perawat');
+
+        $this->actingAs($perawat)
+            ->post(route('rme.operasi.simpan', $registrasi->id), [
+                'service_code' => 'OPR-KATARAK', 'surgeon_name' => 'dr. Bedah Uji',
+            ])
+            ->assertForbidden();
+    }
+
+    #[Test]
     public function diagnosis_dihapus_secara_lunak_bukan_dihapus_keras(): void
     {
         $asesmen = $this->asesmen();

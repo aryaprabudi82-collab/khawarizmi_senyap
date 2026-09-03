@@ -183,6 +183,26 @@ class InvoiceTest extends TestCase
     }
 
     #[Test]
+    public function operasi_ikut_tertarik_sebagai_charge_line(): void
+    {
+        $registrasi = $this->daftarkan('Umum');
+
+        $operasi = app(\App\Modules\Clinical\Services\ClinicalRecordService::class)
+            ->recordOperation($registrasi->id, 'OPR-HERNIOTOMI', 'dr. Bedah Uji', null, null, null, $this->kasir);
+
+        $tagihan = $this->invoices->openInvoice($registrasi->id);
+
+        $this->assertSame('4550000.00', $tagihan->total_amount); // 50000 registrasi + 4500000 operasi
+        $this->assertSame(2, $tagihan->chargeLines()->count());
+        $this->assertDatabaseHas('billing.charge_lines', [
+            'registration_id' => $registrasi->id,
+            'source_type' => 'operasi',
+            'source_id' => $operasi->id,
+            'description' => 'Operasi: Herniotomi',
+        ]);
+    }
+
+    #[Test]
     public function sinkronisasi_ulang_tidak_menggandakan_charge_line_obat(): void
     {
         $registrasi = $this->daftarkan('Umum');

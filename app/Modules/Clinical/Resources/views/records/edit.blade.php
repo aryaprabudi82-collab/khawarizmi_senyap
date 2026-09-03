@@ -235,6 +235,60 @@
       </div>
     </div>
 
+    {{-- Operasi — gerbang sendiri (operasi), bukan umbrella, lihat catatan rute --}}
+    @can('operasi')
+      <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title">Operasi</h3></div>
+        @if ($operasi->isNotEmpty())
+          <div class="table-responsive">
+            <table class="table table-sm table-vcenter mb-0">
+              <thead><tr><th>Tindakan</th><th>Operator</th><th>Anestesi</th><th class="text-end">Tarif</th><th>Waktu</th></tr></thead>
+              <tbody>
+                @foreach ($operasi as $o)
+                  <tr>
+                    <td>{{ $o->service_name }}@if ($o->note)<div class="text-secondary small">{{ $o->note }}</div>@endif</td>
+                    <td>{{ $o->surgeon_name }} {{ $o->operating_room ? '· ' . $o->operating_room : '' }}</td>
+                    <td>{{ $o->anesthesia_type ?? '—' }}</td>
+                    <td class="text-end">{{ number_format($o->amount, 0, ',', '.') }}</td>
+                    <td class="text-secondary small">{{ $o->performed_at->format('d-m H:i') }}</td>
+                  </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
+        @endif
+        <div class="card-body {{ $operasi->isNotEmpty() ? 'border-top' : '' }}">
+          <form method="POST" action="{{ route('rme.operasi.simpan', $kunjungan->id) }}" class="row g-2">
+            @csrf
+            <div class="col-6">
+              <select name="service_code" class="form-select form-select-sm" required>
+                <option value="">— pilih tindakan operasi —</option>
+                @foreach ($katalogOperasi as $layanan)
+                  <option value="{{ $layanan->code }}">{{ $layanan->name }}</option>
+                @endforeach
+              </select>
+              @if ($katalogOperasi->isEmpty())
+                <div class="form-hint text-danger">Belum ada layanan berkategori operasi di Data Master.</div>
+              @endif
+            </div>
+            <div class="col-6"><input type="text" name="surgeon_name" class="form-control form-control-sm" placeholder="Nama operator" required></div>
+            <div class="col-4">
+              <select name="anesthesia_type" class="form-select form-select-sm">
+                <option value="">— Anestesi —</option>
+                <option value="umum">Umum</option>
+                <option value="lokal">Lokal</option>
+                <option value="regional">Regional</option>
+                <option value="tanpa">Tanpa</option>
+              </select>
+            </div>
+            <div class="col-4"><input type="text" name="operating_room" class="form-control form-control-sm" placeholder="Ruang Operasi"></div>
+            <div class="col-4"><button class="btn btn-sm btn-outline-primary w-100">Catat</button></div>
+            <div class="col-12"><input type="text" name="note" class="form-control form-control-sm" placeholder="Catatan (opsional)"></div>
+          </form>
+        </div>
+      </div>
+    @endcan
+
     <form method="POST" action="{{ route('rme.update', $assessment) }}">
       @csrf
 

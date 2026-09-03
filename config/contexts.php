@@ -112,7 +112,12 @@ return [
                 . 'dicabut 2023), bukan kewajiban akreditasi Kemenkes/KARS yang terus berlaku seperti skrining '
                 . 'itu sendiri — flag infectious_symptom umum di clinical.screenings sudah menutup kebutuhan '
                 . '"ada gejala menular yang perlu diwaspadai", sama seperti billing_ralan yang dianggap '
-                . 'terpenuhi oleh pembayaran_ralan.',
+                . 'terpenuhi oleh pembayaran_ralan. operasi (domain A, "Operasi/VK", kelas '
+                . 'DlgCariTagihanOperasi, tanpa penanda paket lain) juga direlokasi ke sini — sama persis '
+                . 'alasannya dengan tindakan_ralan — tapi gerbangnya SENDIRI (bukan umbrella), karena tarifnya '
+                . 'jauh lebih besar dan tim operator berbeda dari tindakan ralan biasa. Tarif operasi masih '
+                . 'lump-sum, belum dipecah per peran tim bedah seperti Khanza asli — lihat catatan migrasi '
+                . 'clinical.operations.',
             'domains'     => ['M', 'A'],
             'publishes'   => [
                 'v_patient_allergy' => 'Alergi aktif per pasien. Dipakai pharmacy untuk telaah resep.',
@@ -121,6 +126,8 @@ return [
                 'v_procedure_charge' => 'Tindakan rawat jalan yang sudah dicatat berikut nilainya. '
                     . 'Dipakai billing untuk menyusun baris tagihan, pola sama dengan '
                     . 'pharmacy.v_prescription_charge dan orders.v_order_charge.',
+                'v_operation_charge' => 'Operasi yang sudah dicatat berikut nilainya. '
+                    . 'Dipakai billing untuk menyusun baris tagihan, pola sama dengan v_procedure_charge.',
             ],
         ],
 
@@ -139,7 +146,7 @@ return [
         'billing' => [
             'schema'      => 'billing',
             'module'      => 'Billing',
-            'description' => 'Tagihan dan pembayaran rawat jalan. Charge line ditarik dari encounter, pharmacy, order, dan clinical (tindakan_ralan).',
+            'description' => 'Tagihan dan pembayaran rawat jalan. Charge line ditarik dari encounter, pharmacy, order, dan clinical (tindakan_ralan, operasi).',
             'domains'     => ['I'],
             'publishes'   => [
                 'v_settled_invoice' => 'Tagihan yang sudah lunas atau ditanggung penjamin. '

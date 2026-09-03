@@ -76,6 +76,8 @@ class ClinicalRecordController
             'skrining' => $this->records->screeningFor($registrasi),
             'tindakan' => $this->records->proceduresFor($registrasi),
             'katalogTindakan' => $this->tariffs->servicesByCategory('tindakan'),
+            'operasi' => $this->records->operationsFor($registrasi),
+            'katalogOperasi' => $this->tariffs->servicesByCategory('operasi'),
         ]);
     }
 
@@ -96,6 +98,33 @@ class ClinicalRecordController
         }
 
         return back()->with('sukses', 'Tindakan tercatat.');
+    }
+
+    public function storeOperation(Request $request, int $registrasi): RedirectResponse
+    {
+        $data = $request->validate([
+            'service_code' => ['required', 'string', 'max:40'],
+            'surgeon_name' => ['required', 'string', 'max:150'],
+            'anesthesia_type' => ['nullable', 'string', 'in:umum,lokal,regional,tanpa'],
+            'operating_room' => ['nullable', 'string', 'max:50'],
+            'note' => ['nullable', 'string', 'max:500'],
+        ], [], ['service_code' => 'tindakan operasi', 'surgeon_name' => 'nama operator']);
+
+        try {
+            $this->records->recordOperation(
+                $registrasi,
+                $data['service_code'],
+                $data['surgeon_name'],
+                $data['anesthesia_type'] ?? null,
+                $data['operating_room'] ?? null,
+                $data['note'] ?? null,
+                $request->user(),
+            );
+        } catch (ClinicalException $e) {
+            return back()->with('galat', $e->getMessage());
+        }
+
+        return back()->with('sukses', 'Operasi tercatat.');
     }
 
     public function storeScreening(Request $request, int $registrasi): RedirectResponse

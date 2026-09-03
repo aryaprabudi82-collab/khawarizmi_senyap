@@ -44,12 +44,18 @@
           per permission-nya sendiri, jadi satu pengguna cuma melihat
           tautan yang haknya dia punya, sekalipun dropdown-nya digabung.
         --}}
-        @canany(['registrasi', 'penilaian_awal_medis_ralan', 'periksa_lab', 'periksa_radiologi', 'pemeriksaan_lab_pa', 'resep_obat', 'persetujuan_penolakan_tindakan', 'surat_keterangan_sehat', 'tindakan_ranap', 'rujukan_keluar', 'igd'])
-          <li class="nav-item dropdown {{ request()->routeIs(['registrasi.*', 'rme.*', 'order.*', 'resep.*', 'correspondence.persetujuan.*', 'correspondence.keterangan.*', 'inpatient.*', 'rujukan-keluar.*', 'igd.*']) ? 'active' : '' }}">
+        @canany(['registrasi', 'penilaian_awal_medis_ralan', 'periksa_lab', 'periksa_radiologi', 'pemeriksaan_lab_pa', 'resep_obat', 'persetujuan_penolakan_tindakan', 'surat_keterangan_sehat', 'tindakan_ranap', 'rujukan_keluar', 'igd', 'booking_mcu_perusahaan', 'booking_operasi', 'layanan_program_kfr'])
+          <li class="nav-item dropdown {{ request()->routeIs(['registrasi.*', 'rme.*', 'order.*', 'resep.*', 'correspondence.persetujuan.*', 'correspondence.keterangan.*', 'inpatient.*', 'rujukan-keluar.*', 'igd.*', 'mcu-perusahaan.*', 'booking-operasi.*', 'program-kfr.*']) ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Pelayanan</a>
             <div class="dropdown-menu">
               @can('registrasi')
                 <a class="dropdown-item" href="{{ route('registrasi.index') }}">Pendaftaran</a>
+              @endcan
+              @can('booking_mcu_perusahaan')
+                <a class="dropdown-item" href="{{ route('mcu-perusahaan.index') }}">Booking MCU Perusahaan</a>
+              @endcan
+              @can('booking_operasi')
+                <a class="dropdown-item" href="{{ route('booking-operasi.index') }}">Jadwal Operasi</a>
               @endcan
               @can('igd')
                 <a class="dropdown-item" href="{{ route('igd.index') }}">IGD/UGD</a>
@@ -72,7 +78,7 @@
               @can('resep_obat')
                 <a class="dropdown-item" href="{{ route('resep.index') }}">Farmasi</a>
               @endcan
-              @canany(['persetujuan_penolakan_tindakan', 'surat_keterangan_sehat', 'rujukan_keluar'])
+              @canany(['persetujuan_penolakan_tindakan', 'surat_keterangan_sehat', 'rujukan_keluar', 'layanan_program_kfr'])
                 <div class="dropdown-divider"></div>
               @endcanany
               @can('persetujuan_penolakan_tindakan')
@@ -83,6 +89,9 @@
               @endcan
               @can('rujukan_keluar')
                 <a class="dropdown-item" href="{{ route('rujukan-keluar.index') }}">Rujukan Keluar</a>
+              @endcan
+              @can('layanan_program_kfr')
+                <a class="dropdown-item" href="{{ route('program-kfr.index') }}">Program KFR</a>
               @endcan
             </div>
           </li>

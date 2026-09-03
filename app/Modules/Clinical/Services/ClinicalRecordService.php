@@ -8,6 +8,7 @@ use App\Modules\Clinical\Models\Assessment;
 use App\Modules\Clinical\Models\AssessmentRevision;
 use App\Modules\Clinical\Models\Diagnosis;
 use App\Modules\Clinical\Models\Observation;
+use App\Modules\Clinical\Models\Operation;
 use App\Modules\Clinical\Models\Procedure;
 use App\Modules\Clinical\Models\Screening;
 use App\Modules\Platform\Models\User;
@@ -398,6 +399,66 @@ class ClinicalRecordService
     public function proceduresFor(int $registrationId): Collection
     {
         return Procedure::query()
+            ->where('registration_id', $registrationId)
+            ->orderByDesc('performed_at')
+            ->get();
+    }
+
+    /**
+     * operasi — lihat catatan migrasi clinical.operations soal tarif
+     * lump-sum yang belum dipecah per peran tim bedah.
+     *
+     * @throws ClinicalException
+     */
+    public function recordOperation(
+        int $registrationId,
+        string $serviceCode,
+        string $surgeonName,
+        ?string $anesthesiaType,
+        ?string $operatingRoom,
+        ?string $note,
+        ?User $actor = null,
+    ): Operation {
+        $kunjungan = $this->registrations->find($registrationId)
+            ?? throw new ClinicalException('Kunjungan tidak ditemukan atau sudah dibatalkan.');
+
+        $layanan = $this->tariffs->findServiceByCode($serviceCode)
+            ?? throw new ClinicalException("Tindakan operasi {$serviceCode} tidak ada di katalog layanan.");
+
+        $tarif = $this->tariffs->resolve(
+            serviceCode: $serviceCode,
+            payerId: $kunjungan->payer_id,
+            on: now(),
+        );
+
+        if ($tarif === null) {
+            throw new ClinicalException(
+                "Tarif {$layanan->name} untuk penjamin {$kunjungan->payer_name} belum ditetapkan."
+            );
+        }
+
+        return Operation::query()->create([
+            'registration_id' => $kunjungan->id,
+            'patient_id' => $kunjungan->patient_id,
+            'registration_number' => $kunjungan->registration_number,
+            'patient_mrn' => $kunjungan->patient_mrn,
+            'patient_name' => $kunjungan->patient_name,
+            'service_id' => $layanan->id,
+            'service_code' => $layanan->code,
+            'service_name' => $layanan->name,
+            'amount' => $tarif,
+            'surgeon_name' => $surgeonName,
+            'anesthesia_type' => $anesthesiaType,
+            'operating_room' => $operatingRoom,
+            'performed_at' => now(),
+            'note' => $note,
+            'created_by' => $actor?->id,
+        ]);
+    }
+
+    public function operationsFor(int $registrationId): Collection
+    {
+        return Operation::query()
             ->where('registration_id', $registrationId)
             ->orderByDesc('performed_at')
             ->get();
