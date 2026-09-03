@@ -9,6 +9,7 @@ use App\Modules\Inpatient\Services\AdmissionService;
 use App\Modules\Inpatient\Services\DietOrderService;
 use App\Modules\Inpatient\Services\EncounterContext;
 use App\Modules\Inpatient\Services\InpatientException;
+use App\Modules\Inpatient\Services\OrganizationContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -20,6 +21,7 @@ class AdmissionController
         private readonly AdmissionService $admissions,
         private readonly DietOrderService $dietOrders,
         private readonly EncounterContext $encounter,
+        private readonly OrganizationContext $organization,
     ) {}
 
     public function index(Request $request): View
@@ -35,6 +37,7 @@ class AdmissionController
             'menunggu' => $this->encounter->awaitingAdmission(),
             'dirawat' => Admission::query()->with(['bed.room', 'activeDietOrder'])->where('status', Admission::STATUS_DIRAWAT)->orderBy('admitted_at')->get(),
             'bedTersedia' => Bed::query()->with('room')->where('status', Bed::STATUS_TERSEDIA)->get(),
+            'praktisi' => $this->organization->practitioners(),
         ]);
     }
 
@@ -70,6 +73,22 @@ class AdmissionController
         }
 
         return back()->with('sukses', "{$admisi->patient_name} dipulangkan. Bed {$admisi->bed->bed_number} menunggu dibersihkan.");
+    }
+
+    public function reassignDpjp(Request $request, Admission $admisi): RedirectResponse
+    {
+        $data = $request->validate([
+            'practitioner_id' => ['required', 'integer'],
+            'reason' => ['nullable', 'string', 'max:500'],
+        ], [], ['practitioner_id' => 'dokter', 'reason' => 'alasan']);
+
+        try {
+            $this->admissions->reassignDpjp($admisi, $data['practitioner_id'], $data['reason'] ?? null, $request->user()?->id);
+        } catch (InpatientException $e) {
+            return back()->with('galat', $e->getMessage());
+        }
+
+        return back()->with('sukses', "DPJP {$admisi->patient_name} diganti.");
     }
 
     public function storeDiet(Request $request, Admission $admisi): RedirectResponse

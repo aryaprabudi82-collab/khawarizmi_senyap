@@ -56,7 +56,15 @@
             @forelse ($dirawat as $a)
               <tr>
                 <td class="font-monospace small">{{ $a->admission_number }}</td>
-                <td>{{ $a->patient_name }}<div class="text-secondary small">{{ $a->dpjp_name ?? '—' }}</div></td>
+                <td>
+                  {{ $a->patient_name }}
+                  <div class="text-secondary small">
+                    {{ $a->dpjp_name ?? '— belum ada DPJP —' }}
+                    @can('tindakan_ranap')
+                      <button class="btn btn-sm btn-link p-0 ms-1" data-bs-toggle="modal" data-bs-target="#dpjp-{{ $a->id }}">Ganti</button>
+                    @endcan
+                  </div>
+                </td>
                 <td>{{ $a->bed->room->room_number }} / {{ $a->bed->bed_number }}<div class="text-secondary small text-uppercase">{{ $a->bed->room->room_class }}</div></td>
                 <td>{{ $a->lengthOfStayDays() }} hari</td>
                 @can('diet_pasien')
@@ -157,6 +165,32 @@
       </div>
     </div>
   @endforeach
+@endcan
+
+@can('tindakan_ranap')
+@foreach ($dirawat as $a)
+  <div class="modal fade" id="dpjp-{{ $a->id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <form class="modal-content" method="POST" action="{{ route('inpatient.admisi.dpjp.simpan', $a) }}">
+        @csrf
+        <div class="modal-header"><h5 class="modal-title">Ganti DPJP — {{ $a->patient_name }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="form-hint mb-2">DPJP saat ini: {{ $a->dpjp_name ?? '— belum ada —' }}</div>
+          <label class="form-label">DPJP Baru</label>
+          <select name="practitioner_id" class="form-select mb-2" required>
+            <option value="">— pilih dokter —</option>
+            @foreach ($praktisi as $p)
+              <option value="{{ $p->id }}">{{ $p->title ? $p->title . ' ' : '' }}{{ $p->name }} — {{ $p->specialty }}</option>
+            @endforeach
+          </select>
+          <label class="form-label">Alasan (opsional)</label>
+          <input type="text" name="reason" class="form-control" placeholder="mis. alih rawat, konsul spesialis">
+        </div>
+        <div class="modal-footer"><button type="submit" class="btn btn-primary">Simpan</button></div>
+      </form>
+    </div>
+  </div>
+@endforeach
 @endcan
 
 @can('tindakan_ranap')

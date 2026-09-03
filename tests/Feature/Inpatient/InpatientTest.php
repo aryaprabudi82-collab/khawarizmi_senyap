@@ -14,6 +14,7 @@ use App\Modules\Inpatient\Services\AdmissionService;
 use App\Modules\Inpatient\Services\DietOrderService;
 use App\Modules\Inpatient\Services\InpatientException;
 use App\Modules\Inpatient\Services\RoomService;
+use App\Modules\Organization\Models\Practitioner;
 use App\Modules\Organization\Models\Unit;
 use App\Modules\Platform\Database\Seeders\PermissionCatalogSeeder;
 use App\Modules\Platform\Database\Seeders\RoleSeeder;
@@ -71,6 +72,88 @@ class InpatientTest extends TestCase
         $this->assertSame(Admission::STATUS_DIRAWAT, $admisi->status);
         $this->assertSame(Bed::STATUS_TERISI, $bed->fresh()->status);
         $this->assertSame('Budi Santoso', $admisi->patient_name);
+    }
+
+    #[Test]
+    public function admisi_dengan_dpjp_langsung_membuka_riwayat_dpjp(): void
+    {
+        $bed = $this->buatBed();
+        $dokter = Practitioner::query()->where('code', 'DR001')->firstOrFail();
+        $registrasi = $this->daftarkanRanapDenganDpjp('Budi Santoso', $dokter);
+
+        $admisi = $this->admissions->admit($registrasi->id, $bed);
+
+        $riwayat = $admisi->dpjpHistory;
+        $this->assertCount(1, $riwayat);
+        $this->assertSame($dokter->id, $riwayat->first()->practitioner_id);
+        $this->assertNull($riwayat->first()->end_at);
+    }
+
+    #[Test]
+    public function mengganti_dpjp_menutup_riwayat_lama_dan_menyamakan_snapshot(): void
+    {
+        $bed = $this->buatBed();
+        $dokterLama = Practitioner::query()->where('code', 'DR001')->firstOrFail();
+        $dokterBaru = Practitioner::query()->where('code', 'DR002')->firstOrFail();
+        $registrasi = $this->daftarkanRanapDenganDpjp('Budi Santoso', $dokterLama);
+        $admisi = $this->admissions->admit($registrasi->id, $bed);
+
+        $diganti = $this->admissions->reassignDpjp($admisi, $dokterBaru->id, 'Alih rawat spesialis');
+
+        $this->assertSame($dokterBaru->id, $diganti->dpjp_practitioner_id);
+        $this->assertSame($dokterBaru->name, $diganti->dpjp_name);
+
+        $riwayatLama = $admisi->dpjpHistory()->where('practitioner_id', $dokterLama->id)->firstOrFail();
+        $this->assertNotNull($riwayatLama->end_at);
+
+        $riwayatBaru = $admisi->dpjpHistory()->where('practitioner_id', $dokterBaru->id)->firstOrFail();
+        $this->assertNull($riwayatBaru->end_at);
+        $this->assertSame('Alih rawat spesialis', $riwayatBaru->reason);
+    }
+
+    #[Test]
+    public function mengganti_dpjp_dengan_dokter_yang_sama_ditolak(): void
+    {
+        $bed = $this->buatBed();
+        $dokter = Practitioner::query()->where('code', 'DR001')->firstOrFail();
+        $registrasi = $this->daftarkanRanapDenganDpjp('Budi Santoso', $dokter);
+        $admisi = $this->admissions->admit($registrasi->id, $bed);
+
+        $this->expectException(InpatientException::class);
+        $this->admissions->reassignDpjp($admisi, $dokter->id, null);
+    }
+
+    #[Test]
+    public function dpjp_admisi_yang_sudah_pulang_tidak_bisa_diganti(): void
+    {
+        $bed = $this->buatBed();
+        $dokterLama = Practitioner::query()->where('code', 'DR001')->firstOrFail();
+        $dokterBaru = Practitioner::query()->where('code', 'DR002')->firstOrFail();
+        $registrasi = $this->daftarkanRanapDenganDpjp('Budi Santoso', $dokterLama);
+        $admisi = $this->admissions->admit($registrasi->id, $bed);
+        $this->admissions->discharge($admisi, 'sembuh', null);
+
+        $this->expectException(InpatientException::class);
+        $this->admissions->reassignDpjp($admisi->fresh(), $dokterBaru->id, null);
+    }
+
+    #[Test]
+    public function dpjp_bisa_diganti_lewat_http(): void
+    {
+        $bed = $this->buatBed();
+        $dokterLama = Practitioner::query()->where('code', 'DR001')->firstOrFail();
+        $dokterBaru = Practitioner::query()->where('code', 'DR002')->firstOrFail();
+        $registrasi = $this->daftarkanRanapDenganDpjp('Budi Santoso', $dokterLama);
+        $admisi = $this->admissions->admit($registrasi->id, $bed);
+
+        $this->actingAs($this->petugasRanap)
+            ->post(route('inpatient.admisi.dpjp.simpan', $admisi), [
+                'practitioner_id' => $dokterBaru->id, 'reason' => 'Konsul spesialis',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('sukses');
+
+        $this->assertSame($dokterBaru->id, $admisi->fresh()->dpjp_practitioner_id);
     }
 
     #[Test]
@@ -322,6 +405,19 @@ class InpatientTest extends TestCase
             patientId: $pasien->id,
             unitId: Unit::query()->where('code', 'POL-UMUM')->firstOrFail()->id,
             payerId: Payer::query()->where('code', 'UMUM')->value('id'),
+            extra: ['care_type' => 'ranap'],
+        );
+    }
+
+    private function daftarkanRanapDenganDpjp(string $nama, Practitioner $dokter): Registration
+    {
+        $pasien = app(PatientRegistry::class)->register(['name' => $nama, 'sex' => 'L', 'birth_date' => '1990-01-01']);
+
+        return $this->registrations->register(
+            patientId: $pasien->id,
+            unitId: Unit::query()->where('code', 'POL-UMUM')->firstOrFail()->id,
+            payerId: Payer::query()->where('code', 'UMUM')->value('id'),
+            practitionerId: $dokter->id,
             extra: ['care_type' => 'ranap'],
         );
     }

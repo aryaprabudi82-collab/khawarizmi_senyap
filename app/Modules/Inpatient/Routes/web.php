@@ -23,6 +23,10 @@ Route::middleware(['web', 'auth'])
         Route::middleware('can:tindakan_ranap')->group(function () {
             Route::post('/admisi', [AdmissionController::class, 'store'])->name('admisi.simpan');
             Route::post('/admisi/{admisi}/pulang', [AdmissionController::class, 'discharge'])->name('admisi.pulang');
+            // dpjp_ranap — ganti DPJP di tengah rawatan, digerbangi bareng
+            // aksi admisi/pulangkan lainnya (keputusan alih rawat datang dari
+            // dokter, tapi dicatat lewat layar bangsal yang sama).
+            Route::post('/admisi/{admisi}/dpjp', [AdmissionController::class, 'reassignDpjp'])->name('admisi.dpjp.simpan');
 
             Route::prefix('kamar')->name('kamar.')->group(function () {
                 Route::get('/', [RoomController::class, 'index'])->name('index');

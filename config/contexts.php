@@ -262,12 +262,13 @@ return [
             'schema'      => 'inpatient',
             'module'      => 'Inpatient',
             'description' => 'Kamar/bed dan admisi rawat inap (masuk, siklus bed tersedia-terisi-dibersihkan, '
-                . 'keluar). Ranap Khanza sebenarnya ~70 kapabilitas tersebar di domain A/B/D/I/J/K/L/M/O/P — '
-                . 'nursing notes, billing per-hari, SIRANAP, RL4A, dst. Wave 1 ini fondasinya saja: siapa dirawat, '
-                . 'di kamar/bed mana, sejak kapan. Registrasi ranap TETAP di encounter (care_type=ranap pada '
-                . 'registrasi biasa) — modul ini membaca registrasi yang belum dapat kamar, tidak mendaftarkan '
-                . 'pasien sendiri. Nursing/medical assessment ranap (domain M), billing akumulasi harian (domain I), '
-                . 'dan integrasi SIRANAP (domain L) belum digarap.',
+                . 'keluar), order diet (diet_pasien), dan riwayat DPJP dengan aksi ganti DPJP (dpjp_ranap) untuk '
+                . 'alih rawat/konsul di tengah rawatan. Ranap Khanza sebenarnya ~70 kapabilitas tersebar di domain '
+                . 'A/B/D/I/J/K/L/M/O/P — nursing notes, billing per-hari, SIRANAP, RL4A, dst. Wave 1 ini '
+                . 'fondasinya saja. Registrasi ranap TETAP di encounter (care_type=ranap pada registrasi biasa) — '
+                . 'modul ini membaca registrasi yang belum dapat kamar, tidak mendaftarkan pasien sendiri. '
+                . 'Nursing/medical assessment ranap (domain M), billing akumulasi harian (domain I), dan '
+                . 'integrasi SIRANAP (domain L) belum digarap.',
             'domains'     => ['A', 'K'],
             'publishes'   => [],
         ],

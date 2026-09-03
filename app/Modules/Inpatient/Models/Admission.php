@@ -41,6 +41,11 @@ class Admission extends Model
         return $this->hasOne(DietOrder::class)->where('status', DietOrder::STATUS_AKTIF);
     }
 
+    public function dpjpHistory(): HasMany
+    {
+        return $this->hasMany(DpjpHistory::class)->orderByDesc('start_at');
+    }
+
     public function lengthOfStayDays(): int
     {
         $sampai = $this->discharged_at ?? now();
