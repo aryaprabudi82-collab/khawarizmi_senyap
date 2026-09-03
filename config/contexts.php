@@ -105,7 +105,14 @@ return [
                 . 'Java-nya (RMSKriningRawatJalan) berpaket "rekammedis" (lihat '
                 . 'Khanza_Functional_Dependency_Map.xlsx), tindakan_ralan karena "apa yang terjadi ke pasien" '
                 . 'adalah rekam medis meski Khanza sendiri tidak memberi penanda paket lain untuknya. Keduanya '
-                . 'digerbangi umbrella penilaian_awal_medis_ralan yang sudah ada, bukan kode terpisah.',
+                . 'digerbangi umbrella penilaian_awal_medis_ralan yang sudah ada, bukan kode terpisah. '
+                . 'deteksi_corona (domain A, kelas RMDeteksiDiniCorona, paket "rekammedis" — juga clinical, '
+                . 'tanpa relokasi) SENGAJA tidak dibangun sebagai layar tersendiri, disetujui pengguna '
+                . '2026-09-03: skrining COVID-19 khusus adalah fitur era kedaruratan pandemi (status PHEIC '
+                . 'dicabut 2023), bukan kewajiban akreditasi Kemenkes/KARS yang terus berlaku seperti skrining '
+                . 'itu sendiri — flag infectious_symptom umum di clinical.screenings sudah menutup kebutuhan '
+                . '"ada gejala menular yang perlu diwaspadai", sama seperti billing_ralan yang dianggap '
+                . 'terpenuhi oleh pembayaran_ralan.',
             'domains'     => ['M', 'A'],
             'publishes'   => [
                 'v_patient_allergy' => 'Alergi aktif per pasien. Dipakai pharmacy untuk telaah resep.',
