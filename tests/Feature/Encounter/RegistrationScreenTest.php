@@ -158,6 +158,33 @@ class RegistrationScreenTest extends TestCase
     }
 
     #[Test]
+    public function rujukan_masuk_tercatat_pada_registrasi(): void
+    {
+        $pasien = $this->buatPasien('Rudi Hartono');
+        $unit = Unit::query()->where('code', 'POL-UMUM')->firstOrFail();
+        $penjamin = Payer::query()->where('code', 'UMUM')->firstOrFail();
+
+        $this->actingAs($this->petugas)
+            ->post(route('registrasi.store'), [
+                'pasien_id' => $pasien->id,
+                'unit_id' => $unit->id,
+                'penjamin_id' => $penjamin->id,
+                'tanggal' => now()->toDateString(),
+                'asal_faskes' => 'Puskesmas Kecamatan Uji',
+                'kode_faskes' => 'P123456',
+                'tanggal_rujukan' => now()->toDateString(),
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('sukses');
+
+        $this->assertDatabaseHas('encounter.registrations', [
+            'patient_id' => $pasien->id,
+            'referring_facility_name' => 'Puskesmas Kecamatan Uji',
+            'referring_facility_code' => 'P123456',
+        ]);
+    }
+
+    #[Test]
     public function petugas_dapat_menyimpan_registrasi_lewat_formulir(): void
     {
         $pasien = $this->buatPasien('Rudi Hartono');

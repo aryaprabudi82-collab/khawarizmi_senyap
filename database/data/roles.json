@@ -24,7 +24,7 @@
         "extra_permissions": [
             "pasien"
         ],
-        "_catatan_exclusion": "Domain A Khanza mencampur menu registrasi dengan resep, operasi, dan periksa lab/radiologi dalam satu grup. Dikecualikan di sini supaya petugas loket tidak diam-diam kebagian kapabilitas klinis/farmasi. permintaan_ranap SENGAJA TIDAK dikecualikan — memilih 'Jenis Rawat: Rawat Inap' saat registrasi tetap tugas loket, cuma alokasi kamar/bed-nya (tindakan_ranap) yang dikecualikan ke petugas-ranap di konteks inpatient.",
+        "_catatan_exclusion": "Domain A Khanza mencampur menu registrasi dengan resep, operasi, dan periksa lab/radiologi dalam satu grup. Dikecualikan di sini supaya petugas loket tidak diam-diam kebagian kapabilitas klinis/farmasi. permintaan_ranap SENGAJA TIDAK dikecualikan — memilih 'Jenis Rawat: Rawat Inap' saat registrasi tetap tugas loket, cuma alokasi kamar/bed-nya (tindakan_ranap) yang dikecualikan ke petugas-ranap di konteks inpatient. rujukan_masuk juga sengaja tidak dikecualikan (bukan gerbang permission sendiri — cuma kolom tambahan di formulir registrasi yang sudah ada); rujukan_keluar DIKECUALIKAN karena surat rujukan medis diterbitkan dokter, bukan loket.",
         "excluded_permissions": [
             "beri_obat",
             "resep_obat",
@@ -42,7 +42,8 @@
             "layanan_program_kfr",
             "sekrining_rawat_jalan",
             "diet_pasien",
-            "dpjp_ranap"
+            "dpjp_ranap",
+            "rujukan_keluar"
         ]
     },
     {
@@ -102,7 +103,7 @@
             "registrasi",
             "penilaian_awal_keperawatan_ralan"
         ],
-        "_catatan_exclusion": "Menulis resep dan tindakan operasi bukan kewenangan perawat, meski ikut kebawa dari context encounter yang bercampur. insiden_keselamatan(_pasien) dan tindakan_ranap dikecualikan dengan alasan sama seperti pada peran dokter — lihat catatannya di sana.",
+        "_catatan_exclusion": "Menulis resep dan tindakan operasi bukan kewenangan perawat, meski ikut kebawa dari context encounter yang bercampur. insiden_keselamatan(_pasien) dan tindakan_ranap dikecualikan dengan alasan sama seperti pada peran dokter — lihat catatannya di sana. rujukan_keluar juga dikecualikan — surat rujukan medis diterbitkan dokter, bukan perawat.",
         "excluded_permissions": [
             "resep_obat",
             "resep_pulang",
@@ -110,7 +111,8 @@
             "billing_ralan",
             "insiden_keselamatan",
             "insiden_keselamatan_pasien",
-            "tindakan_ranap"
+            "tindakan_ranap",
+            "rujukan_keluar"
         ]
     },
     {

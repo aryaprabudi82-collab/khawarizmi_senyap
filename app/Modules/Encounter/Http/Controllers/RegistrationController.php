@@ -85,6 +85,9 @@ class RegistrationController
             'tanggal' => ['required', 'date'],
             'nomor_rujukan' => ['nullable', 'string', 'max:60'],
             'nomor_kartu' => ['nullable', 'string', 'max:40'],
+            'asal_faskes' => ['nullable', 'string', 'max:150'],
+            'kode_faskes' => ['nullable', 'string', 'max:30'],
+            'tanggal_rujukan' => ['nullable', 'date'],
             // Gerbang lapis kedua: field jenis_rawat hanya muncul di form untuk
             // pemegang permintaan_ranap, tapi validasi ini juga mencegah POST
             // langsung dari pengguna lain yang tidak punya izin itu.
@@ -108,6 +111,9 @@ class RegistrationController
                     'referral_number' => $data['nomor_rujukan'] ?? null,
                     'membership_number' => $data['nomor_kartu'] ?? null,
                     'care_type' => $data['jenis_rawat'] ?? 'ralan',
+                    'referring_facility_name' => $data['asal_faskes'] ?? null,
+                    'referring_facility_code' => $data['kode_faskes'] ?? null,
+                    'referral_date' => $data['tanggal_rujukan'] ?? null,
                 ],
                 actorId: $request->user()?->id,
             );

@@ -34,7 +34,7 @@ class ManagedPermissionCatalog
         'pembayaran_ralan', 'pengajuan_barang_nonmedis', 'pengajuan_cuti', 'pengumuman_epasien',
         'penilaian_awal_medis_ralan', 'perbaikan_inventaris', 'periksa_lab', 'periksa_radiologi',
         'peristiwa_k3rs', 'persetujuan_penolakan_tindakan', 'presensi_harian', 'registrasi',
-        'rekap_kunjungan', 'resep_obat', 'satu_sehat_kirim_condition', 'satu_sehat_kirim_encounter',
+        'rekap_kunjungan', 'resep_obat', 'rujukan_keluar', 'satu_sehat_kirim_condition', 'satu_sehat_kirim_encounter',
         'satu_sehat_mapping_lokasi', 'satu_sehat_referensi_dokter', 'satu_sehat_referensi_pasien',
         'permintaan_ranap', 'sirkulasi_cssd', 'skp_penilaian', 'surat_keterangan_sehat', 'surat_masuk',
         'tarif_ralan', 'telaah_resep', 'tindakan_ranap', 'utd_pendonor', 'utd_penyerahan_darah', 'utd_stok_darah',

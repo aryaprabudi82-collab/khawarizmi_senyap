@@ -145,6 +145,13 @@ class RegistrationService
                 'referral_number' => $extra['referral_number'] ?? null,
                 'membership_number' => $extra['membership_number'] ?? null,
 
+                // rujukan_masuk — asal rujukan yang dibawa pasien, lihat
+                // catatan migrasi encounter untuk alasan diperluas di sini
+                // (bukan tabel baru).
+                'referring_facility_name' => $extra['referring_facility_name'] ?? null,
+                'referring_facility_code' => $extra['referring_facility_code'] ?? null,
+                'referral_date' => $extra['referral_date'] ?? null,
+
                 'created_by' => $actorId,
             ]);
         });

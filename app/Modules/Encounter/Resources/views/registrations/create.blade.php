@@ -194,6 +194,20 @@
                        value="{{ old('nomor_rujukan') }}">
                 <div class="form-hint">Dari FKTP atau faskes perujuk.</div>
               </div>
+
+              {{-- rujukan_masuk: dicatat kalau pasien datang membawa rujukan, tanpa syarat penjamin tertentu --}}
+              <div class="col-md-4">
+                <label class="form-label" for="asal_faskes">Asal Faskes Perujuk (opsional)</label>
+                <input type="text" id="asal_faskes" name="asal_faskes" class="form-control" value="{{ old('asal_faskes') }}" placeholder="mis. Puskesmas Kecamatan">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="kode_faskes">Kode Faskes (opsional)</label>
+                <input type="text" id="kode_faskes" name="kode_faskes" class="form-control" value="{{ old('kode_faskes') }}" placeholder="Kode PPK Kemenkes bila ada">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="tanggal_rujukan">Tanggal Rujukan (opsional)</label>
+                <input type="date" id="tanggal_rujukan" name="tanggal_rujukan" class="form-control" value="{{ old('tanggal_rujukan') }}">
+              </div>
             </div>
           </div>
 
