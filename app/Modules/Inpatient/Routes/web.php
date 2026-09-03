@@ -9,10 +9,18 @@ Route::middleware(['web', 'auth'])
     ->name('inpatient.')
     ->group(function () {
 
-        // Gerbang tunggal tindakan_ranap untuk seluruh modul — sama pola
-        // dengan pegawai_user di hr, lihat catatan migrasi inpatient.
+        // Dashboardnya sendiri boleh dilihat siapa pun yang punya tindakan_ranap
+        // ATAU diet_pasien — gerbangnya diperiksa imperatif di controller (pola
+        // sama dengan Order::assertAccess()) karena middleware can: tidak
+        // mendukung OR. Tombol per aksi (admisi/pulangkan/kelola kamar) tetap
+        // digerbangi @can('tindakan_ranap') di view, jadi pemegang diet_pasien
+        // saja (mis. dokter lewat wholesale context encounter) cuma melihat
+        // kolom diet, bukan tombol kelola kamar/bed.
+        Route::get('/', [AdmissionController::class, 'index'])->name('index');
+
+        // Gerbang tunggal tindakan_ranap untuk seluruh aksi kelola kamar/admisi —
+        // sama pola dengan pegawai_user di hr, lihat catatan migrasi inpatient.
         Route::middleware('can:tindakan_ranap')->group(function () {
-            Route::get('/', [AdmissionController::class, 'index'])->name('index');
             Route::post('/admisi', [AdmissionController::class, 'store'])->name('admisi.simpan');
             Route::post('/admisi/{admisi}/pulang', [AdmissionController::class, 'discharge'])->name('admisi.pulang');
 
@@ -25,6 +33,15 @@ Route::middleware(['web', 'auth'])
                 Route::post('/bed/{bed}/nonaktifkan', [RoomController::class, 'deactivateBed'])->name('bed.nonaktifkan');
                 Route::post('/bed/{bed}/aktifkan', [RoomController::class, 'reactivateBed'])->name('bed.aktifkan');
             });
+        });
+
+        // diet_pasien digerbangi terpisah dari tindakan_ranap — kelola kamar/bed
+        // itu kerja bangsal/administratif, order diet itu keputusan yang
+        // (kelak) mungkin dipegang peran lain (mis. ahli gizi), bukan otomatis
+        // ikut siapa pun yang bisa mengelola kamar.
+        Route::middleware('can:diet_pasien')->prefix('admisi/{admisi}/diet')->name('admisi.diet.')->group(function () {
+            Route::post('/', [AdmissionController::class, 'storeDiet'])->name('simpan');
+            Route::post('/{diet}/hentikan', [AdmissionController::class, 'stopDiet'])->name('hentikan');
         });
 
     });

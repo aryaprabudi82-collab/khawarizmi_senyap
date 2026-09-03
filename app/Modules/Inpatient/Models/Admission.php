@@ -4,6 +4,8 @@ namespace App\Modules\Inpatient\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Admission extends Model
 {
@@ -27,6 +29,16 @@ class Admission extends Model
     public function bed(): BelongsTo
     {
         return $this->belongsTo(Bed::class);
+    }
+
+    public function dietOrders(): HasMany
+    {
+        return $this->hasMany(DietOrder::class)->orderByDesc('start_date');
+    }
+
+    public function activeDietOrder(): HasOne
+    {
+        return $this->hasOne(DietOrder::class)->where('status', DietOrder::STATUS_AKTIF);
     }
 
     public function lengthOfStayDays(): int

@@ -48,11 +48,12 @@
     {
         "code": "petugas-ranap",
         "name": "Petugas Rawat Inap",
-        "description": "Kelola kamar/bed dan admisi-pemulangan pasien rawat inap.",
-        "_catatan_scope": "tindakan_ranap tercatat context=encounter di katalog (domain A Khanza mencampur registrasi dengan tindakan ranap dalam satu grup) — dikecualikan dari petugas-daftar (lihat _catatan_exclusion di sana) dan diberikan di sini, ke konteks inpatient yang baru dibangun. permintaan_ranap (opsi 'Jenis Rawat: Rawat Inap' saat registrasi) tetap milik petugas-daftar lewat wholesale context encounter mereka — alur ranap dimulai loket pendaftaran, kamar/bed dialokasikan di sini oleh petugas bangsal.",
+        "description": "Kelola kamar/bed, admisi-pemulangan, dan order diet pasien rawat inap.",
+        "_catatan_scope": "tindakan_ranap tercatat context=encounter di katalog (domain A Khanza mencampur registrasi dengan tindakan ranap dalam satu grup) — dikecualikan dari petugas-daftar (lihat _catatan_exclusion di sana) dan diberikan di sini, ke konteks inpatient yang baru dibangun. permintaan_ranap (opsi 'Jenis Rawat: Rawat Inap' saat registrasi) tetap milik petugas-daftar lewat wholesale context encounter mereka — alur ranap dimulai loket pendaftaran, kamar/bed dialokasikan di sini oleh petugas bangsal. diet_pasien SENGAJA tidak dikecualikan dari dokter/perawat (beda dari tindakan_ranap) — order diet keputusan klinis, wajar kalau dokter/perawat juga bisa mencatatnya; mereka mewarisinya lewat wholesale context encounter yang sama. Wave 1 ini layar /rawat-inap bisa dibuka siapa pun yang punya tindakan_ranap ATAU diet_pasien (diperiksa imperatif di AdmissionController::index, bukan cuma petugas-ranap) — supaya dokter/perawat yang cuma punya diet_pasien tetap bisa melihat daftar pasien dirawat untuk mencatat order diet, meski tombol admisi/pulangkan/kelola kamar tetap tersembunyi dari mereka.",
         "contexts": [],
         "extra_permissions": [
-            "tindakan_ranap"
+            "tindakan_ranap",
+            "diet_pasien"
         ]
     },
     {
@@ -81,7 +82,7 @@
             "persetujuan_penolakan_tindakan",
             "surat_keterangan_sehat"
         ],
-        "_catatan_exclusion": "insiden_keselamatan(_pasien) tercatat context 'clinical' di katalog permission (warisan domain M Khanza), tapi modulnya sekarang di konteks quality (lihat config/contexts.php) dan Wave 1 ini sengaja admin-mutu-only — pelaporan insiden oleh staf klinis sendiri (bukan cuma admin mutu) adalah perluasan wajar untuk wave berikutnya, bukan dikecualikan selamanya. persetujuan_penolakan_tindakan dan surat_keterangan_sehat tercatat domain P/'correspondence' di Khanza (bercampur dengan surat-menyurat kantor) padahal dokumen klinis yang diterbitkan dokter — diberikan di sini, bukan ke petugas-tu. tindakan_ranap tercatat context 'encounter' tapi modulnya sekarang konteks inpatient (kelola kamar/bed) — kewenangan bangsal/administratif, bukan kewenangan klinis dokter, dikecualikan sama seperti pada peran perawat.",
+        "_catatan_exclusion": "insiden_keselamatan(_pasien) tercatat context 'clinical' di katalog permission (warisan domain M Khanza), tapi modulnya sekarang di konteks quality (lihat config/contexts.php) dan Wave 1 ini sengaja admin-mutu-only — pelaporan insiden oleh staf klinis sendiri (bukan cuma admin mutu) adalah perluasan wajar untuk wave berikutnya, bukan dikecualikan selamanya. persetujuan_penolakan_tindakan dan surat_keterangan_sehat tercatat domain P/'correspondence' di Khanza (bercampur dengan surat-menyurat kantor) padahal dokumen klinis yang diterbitkan dokter — diberikan di sini, bukan ke petugas-tu. tindakan_ranap tercatat context 'encounter' tapi modulnya sekarang konteks inpatient (kelola kamar/bed) — kewenangan bangsal/administratif, bukan kewenangan klinis dokter, dikecualikan sama seperti pada peran perawat. diet_pasien (juga context 'encounter', juga sungguhan di konteks inpatient) SEBALIKNYA sengaja TIDAK dikecualikan — order diet keputusan klinis dokter, lihat catatan lengkap di peran petugas-ranap soal bagaimana dokter tetap bisa membuka /rawat-inap untuk itu tanpa ikut kebagian akses kelola kamar/bed.",
         "excluded_permissions": [
             "insiden_keselamatan",
             "insiden_keselamatan_pasien",

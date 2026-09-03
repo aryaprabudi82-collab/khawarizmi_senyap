@@ -4,6 +4,7 @@ namespace App\Modules\Inpatient\Services;
 
 use App\Modules\Inpatient\Models\Admission;
 use App\Modules\Inpatient\Models\Bed;
+use App\Modules\Inpatient\Models\DietOrder;
 use Illuminate\Support\Facades\DB;
 
 class AdmissionService
@@ -63,6 +64,13 @@ class AdmissionService
 
         return DB::transaction(function () use ($admission, $dischargeStatus, $note, $actorId) {
             $admission->bed->update(['status' => Bed::STATUS_DIBERSIHKAN]);
+
+            // Order diet berhenti otomatis bersama kepulangan — tidak ada
+            // gunanya diet order tetap "aktif" untuk pasien yang sudah pulang.
+            $admission->activeDietOrder?->update([
+                'status' => DietOrder::STATUS_DIHENTIKAN,
+                'end_date' => now()->toDateString(),
+            ]);
 
             $admission->update([
                 'status' => Admission::STATUS_PULANG,

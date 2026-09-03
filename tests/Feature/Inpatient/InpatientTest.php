@@ -8,8 +8,10 @@ use App\Modules\Encounter\Services\RegistrationService;
 use App\Modules\Identity\Services\PatientRegistry;
 use App\Modules\Inpatient\Models\Admission;
 use App\Modules\Inpatient\Models\Bed;
+use App\Modules\Inpatient\Models\DietOrder;
 use App\Modules\Inpatient\Models\Room;
 use App\Modules\Inpatient\Services\AdmissionService;
+use App\Modules\Inpatient\Services\DietOrderService;
 use App\Modules\Inpatient\Services\InpatientException;
 use App\Modules\Inpatient\Services\RoomService;
 use App\Modules\Organization\Models\Unit;
@@ -28,6 +30,7 @@ class InpatientTest extends TestCase
 
     private RoomService $rooms;
     private AdmissionService $admissions;
+    private DietOrderService $dietOrders;
     private RegistrationService $registrations;
     private User $petugasRanap;
 
@@ -39,6 +42,7 @@ class InpatientTest extends TestCase
 
         $this->rooms = app(RoomService::class);
         $this->admissions = app(AdmissionService::class);
+        $this->dietOrders = app(DietOrderService::class);
         $this->registrations = app(RegistrationService::class);
 
         $this->petugasRanap = User::query()->create([
@@ -163,17 +167,114 @@ class InpatientTest extends TestCase
     }
 
     #[Test]
-    public function layar_rawat_inap_hanya_untuk_petugas_ranap(): void
+    public function order_diet_baru_menutup_yang_lama(): void
+    {
+        $bed = $this->buatBed();
+        $admisi = $this->admissions->admit($this->daftarkanRanap('Budi Santoso')->id, $bed);
+
+        $ordersLama = $this->dietOrders->order($admisi, ['diet_type' => 'biasa', 'start_date' => '2026-09-01'], $this->petugasRanap);
+        $ordersBaru = $this->dietOrders->order($admisi->fresh(), ['diet_type' => 'rendah-garam', 'start_date' => '2026-09-05'], $this->petugasRanap);
+
+        $this->assertSame(DietOrder::STATUS_DIHENTIKAN, $ordersLama->fresh()->status);
+        $this->assertSame('2026-09-05', $ordersLama->fresh()->end_date->toDateString());
+        $this->assertSame(DietOrder::STATUS_AKTIF, $ordersBaru->status);
+        $this->assertSame($ordersBaru->id, $admisi->fresh()->activeDietOrder->id);
+    }
+
+    #[Test]
+    public function order_diet_bisa_dihentikan_tanpa_pengganti(): void
+    {
+        $bed = $this->buatBed();
+        $admisi = $this->admissions->admit($this->daftarkanRanap('Budi Santoso')->id, $bed);
+        $order = $this->dietOrders->order($admisi, ['diet_type' => 'biasa', 'start_date' => now()->toDateString()], $this->petugasRanap);
+
+        $this->dietOrders->stop($order);
+
+        $this->assertSame(DietOrder::STATUS_DIHENTIKAN, $order->fresh()->status);
+        $this->assertNull($admisi->fresh()->activeDietOrder);
+    }
+
+    #[Test]
+    public function order_diet_yang_sudah_dihentikan_tidak_bisa_dihentikan_ulang(): void
+    {
+        $bed = $this->buatBed();
+        $admisi = $this->admissions->admit($this->daftarkanRanap('Budi Santoso')->id, $bed);
+        $order = $this->dietOrders->order($admisi, ['diet_type' => 'biasa', 'start_date' => now()->toDateString()], $this->petugasRanap);
+        $this->dietOrders->stop($order);
+
+        $this->expectException(InpatientException::class);
+        $this->dietOrders->stop($order->fresh());
+    }
+
+    #[Test]
+    public function tidak_bisa_order_diet_untuk_admisi_yang_sudah_pulang(): void
+    {
+        $bed = $this->buatBed();
+        $admisi = $this->admissions->admit($this->daftarkanRanap('Budi Santoso')->id, $bed);
+        $this->admissions->discharge($admisi, 'sembuh', null);
+
+        $this->expectException(InpatientException::class);
+        $this->dietOrders->order($admisi->fresh(), ['diet_type' => 'biasa', 'start_date' => now()->toDateString()], $this->petugasRanap);
+    }
+
+    #[Test]
+    public function pemulangan_otomatis_menghentikan_order_diet_yang_masih_aktif(): void
+    {
+        $bed = $this->buatBed();
+        $admisi = $this->admissions->admit($this->daftarkanRanap('Budi Santoso')->id, $bed);
+        $order = $this->dietOrders->order($admisi, ['diet_type' => 'biasa', 'start_date' => now()->toDateString()], $this->petugasRanap);
+
+        $this->admissions->discharge($admisi->fresh(), 'sembuh', null);
+
+        $this->assertSame(DietOrder::STATUS_DIHENTIKAN, $order->fresh()->status);
+    }
+
+    #[Test]
+    public function layar_kelola_kamar_dan_aksi_admisi_hanya_untuk_pemegang_tindakan_ranap(): void
     {
         $this->actingAs($this->petugasRanap)->get(route('inpatient.index'))->assertOk();
         $this->actingAs($this->petugasRanap)->get(route('inpatient.kamar.index'))->assertOk();
 
+        $tanpaAkses = User::query()->create([
+            'username' => 'uji-admin-hr-ranap', 'name' => 'Admin HR Uji', 'password' => 'password', 'is_active' => true,
+        ]);
+        $tanpaAkses->roles()->attach(Role::query()->where('code', 'admin-hr')->firstOrFail());
+
+        $this->actingAs($tanpaAkses)->get(route('inpatient.index'))->assertForbidden();
+        $this->actingAs($tanpaAkses)->get(route('inpatient.kamar.index'))->assertForbidden();
+    }
+
+    #[Test]
+    public function dokter_bisa_melihat_daftar_dirawat_untuk_diet_tapi_tidak_kelola_kamar(): void
+    {
         $dokter = User::query()->create([
             'username' => 'uji-dokter-ranap', 'name' => 'Dokter Uji', 'password' => 'password', 'is_active' => true,
         ]);
         $dokter->roles()->attach(Role::query()->where('code', 'dokter')->firstOrFail());
 
-        $this->actingAs($dokter)->get(route('inpatient.index'))->assertForbidden();
+        // dokter punya diet_pasien (wholesale context encounter, tidak
+        // dikecualikan) tapi tidak tindakan_ranap (dikecualikan) — jadi bisa
+        // buka /rawat-inap untuk mencatat diet, tapi tidak bisa kelola kamar.
+        $this->actingAs($dokter)->get(route('inpatient.index'))->assertOk();
+        $this->actingAs($dokter)->get(route('inpatient.kamar.index'))->assertForbidden();
+
+        $bed = $this->buatBed();
+        $admisi = $this->admissions->admit($this->daftarkanRanap('Budi Santoso')->id, $bed);
+
+        $this->actingAs($dokter)
+            ->post(route('inpatient.admisi.diet.simpan', $admisi), [
+                'diet_type' => 'rendah-garam',
+                'start_date' => now()->toDateString(),
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('sukses');
+
+        $this->assertDatabaseHas('inpatient.diet_orders', ['admission_id' => $admisi->id, 'diet_type' => 'rendah-garam']);
+
+        // Tapi tidak bisa mengadmisi atau mengelola kamar.
+        $this->actingAs($dokter)
+            ->post(route('inpatient.admisi.simpan'), ['registration_id' => 1, 'bed_id' => $bed->id])
+            ->assertForbidden();
     }
 
     #[Test]

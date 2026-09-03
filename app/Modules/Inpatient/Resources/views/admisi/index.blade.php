@@ -5,7 +5,9 @@
 @section('heading', 'Admisi Rawat Inap')
 
 @section('actions')
-  <a href="{{ route('inpatient.kamar.index') }}" class="btn btn-link">Kelola Kamar &amp; Bed &rarr;</a>
+  @can('tindakan_ranap')
+    <a href="{{ route('inpatient.kamar.index') }}" class="btn btn-link">Kelola Kamar &amp; Bed &rarr;</a>
+  @endcan
 @endsection
 
 @section('content')
@@ -27,7 +29,9 @@
                 <td>{{ $r->patient_name }}<div class="text-secondary small font-monospace">{{ $r->patient_mrn }}</div></td>
                 <td class="text-secondary">{{ $r->practitioner_name ?? '—' }}</td>
                 <td>
-                  <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#admisi-{{ $r->id }}">Admisi</button>
+                  @can('tindakan_ranap')
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#admisi-{{ $r->id }}">Admisi</button>
+                  @endcan
                 </td>
               </tr>
             @empty
@@ -47,7 +51,7 @@
       </div>
       <div class="table-responsive">
         <table class="table table-vcenter card-table">
-          <thead><tr><th>No. Admisi</th><th>Pasien</th><th>Kamar/Bed</th><th>Lama Rawat</th><th class="w-1"></th></tr></thead>
+          <thead><tr><th>No. Admisi</th><th>Pasien</th><th>Kamar/Bed</th><th>Lama Rawat</th>@can('diet_pasien')<th>Diet</th>@endcan<th class="w-1"></th></tr></thead>
           <tbody>
             @forelse ($dirawat as $a)
               <tr>
@@ -55,12 +59,24 @@
                 <td>{{ $a->patient_name }}<div class="text-secondary small">{{ $a->dpjp_name ?? '—' }}</div></td>
                 <td>{{ $a->bed->room->room_number }} / {{ $a->bed->bed_number }}<div class="text-secondary small text-uppercase">{{ $a->bed->room->room_class }}</div></td>
                 <td>{{ $a->lengthOfStayDays() }} hari</td>
+                @can('diet_pasien')
+                  <td>
+                    @if ($a->activeDietOrder)
+                      <span class="badge bg-blue-lt text-uppercase">{{ $a->activeDietOrder->diet_type }}</span>
+                    @else
+                      <span class="text-secondary small">— belum ada —</span>
+                    @endif
+                    <button class="btn btn-sm btn-link p-0 ms-1" data-bs-toggle="modal" data-bs-target="#diet-{{ $a->id }}">Atur</button>
+                  </td>
+                @endcan
                 <td>
-                  <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#pulang-{{ $a->id }}">Pulangkan</button>
+                  @can('tindakan_ranap')
+                    <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#pulang-{{ $a->id }}">Pulangkan</button>
+                  @endcan
                 </td>
               </tr>
             @empty
-              <tr><td colspan="5" class="text-center text-secondary py-3">Tidak ada pasien yang sedang dirawat.</td></tr>
+              <tr><td colspan="6" class="text-center text-secondary py-3">Tidak ada pasien yang sedang dirawat.</td></tr>
             @endforelse
           </tbody>
         </table>
@@ -69,6 +85,7 @@
   </div>
 </div>
 
+@can('tindakan_ranap')
 @foreach ($menunggu as $r)
   <div class="modal fade" id="admisi-{{ $r->id }}" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -93,7 +110,56 @@
     </div>
   </div>
 @endforeach
+@endcan
 
+@can('diet_pasien')
+  @foreach ($dirawat as $a)
+    <div class="modal fade" id="diet-{{ $a->id }}" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header"><h5 class="modal-title">Order Diet — {{ $a->patient_name }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            @if ($a->dietOrders->isNotEmpty())
+              <div class="mb-3">
+                <div class="fw-bold small text-secondary mb-1">Riwayat</div>
+                <ul class="list-unstyled small mb-0">
+                  @foreach ($a->dietOrders as $d)
+                    <li class="mb-1">
+                      <span class="badge bg-{{ $d->status === 'aktif' ? 'blue' : 'secondary' }}-lt text-uppercase">{{ $d->diet_type }}</span>
+                      {{ $d->start_date->format('d M') }}{{ $d->end_date ? ' – ' . $d->end_date->format('d M') : ' – sekarang' }}
+                      @if ($d->status === 'aktif')
+                        <form method="POST" action="{{ route('inpatient.admisi.diet.hentikan', [$a, $d]) }}" class="d-inline">
+                          @csrf
+                          <button class="btn btn-sm btn-link text-danger p-0">Hentikan</button>
+                        </form>
+                      @endif
+                    </li>
+                  @endforeach
+                </ul>
+              </div>
+              <hr>
+            @endif
+            <form method="POST" action="{{ route('inpatient.admisi.diet.simpan', $a) }}" class="row g-2">
+              @csrf
+              <div class="col-6">
+                <select name="diet_type" class="form-select form-select-sm" required>
+                  @foreach (\App\Modules\Inpatient\Models\DietOrder::TYPES as $t)
+                    <option value="{{ $t }}">{{ strtoupper($t) }}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="col-6"><input type="date" name="start_date" class="form-control form-control-sm" value="{{ now()->toDateString() }}" required></div>
+              <div class="col-12"><input type="text" name="note" class="form-control form-control-sm" placeholder="Tekstur/pantangan/alergi (opsional)"></div>
+              <div class="col-12"><button class="btn btn-sm btn-outline-primary w-100">Catat Order Diet</button></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  @endforeach
+@endcan
+
+@can('tindakan_ranap')
 @foreach ($dirawat as $a)
   <div class="modal fade" id="pulang-{{ $a->id }}" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -117,5 +183,6 @@
     </div>
   </div>
 @endforeach
+@endcan
 
 @endsection
