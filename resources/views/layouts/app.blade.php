@@ -132,8 +132,8 @@
           </li>
         @endcanany
 
-        @canany(['inventaris_inventaris', 'perbaikan_inventaris', 'sirkulasi_cssd', 'limbah_b3_medis', 'ipsrs_barang', 'pengajuan_barang_nonmedis', 'utd_pendonor', 'utd_stok_darah'])
-          <li class="nav-item dropdown {{ request()->routeIs(['asset.*', 'inventory.*', 'blood.*']) ? 'active' : '' }}">
+        @canany(['inventaris_inventaris', 'perbaikan_inventaris', 'sirkulasi_cssd', 'limbah_b3_medis', 'pelanggan_lab_kesehatan_lingkungan', 'ipsrs_barang', 'pengajuan_barang_nonmedis', 'utd_pendonor', 'utd_stok_darah'])
+          <li class="nav-item dropdown {{ request()->routeIs(['asset.*', 'inventory.*', 'blood.*', 'envlab-master.*']) ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Penunjang</a>
             <div class="dropdown-menu">
               @can('inventaris_inventaris')
@@ -147,6 +147,9 @@
               @endcan
               @can('limbah_b3_medis')
                 <a class="dropdown-item" href="{{ route('asset.kesling.index') }}">Kesehatan Lingkungan</a>
+              @endcan
+              @can('pelanggan_lab_kesehatan_lingkungan')
+                <a class="dropdown-item" href="{{ route('envlab-master.index') }}">Lab Kesehatan Lingkungan</a>
               @endcan
               @canany(['ipsrs_barang', 'pengajuan_barang_nonmedis'])
                 <div class="dropdown-divider"></div>

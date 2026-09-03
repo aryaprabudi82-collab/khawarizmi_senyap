@@ -303,6 +303,22 @@ return [
             ],
         ],
 
+        'envlab' => [
+            'schema'      => 'envlab',
+            'module'      => 'Envlab',
+            'description' => 'Laboratorium kesehatan lingkungan & K3 (Khanza domain B "Barcode & Lab Kesling") — '
+                . 'pengujian sampel air/udara/makanan/usap alat, BUKAN tentang pasien. Pelanggan bisa internal '
+                . '(K3RS/kesling RS sendiri) atau eksternal. Seluruh 16 kode domain B berpaket Java "viabarcode" '
+                . '(satu paket untuk seluruh grup menu, bukan penanda relokasi per kode seperti domain A) — '
+                . 'barcoderalan/barcoderanap (cetak label kunjungan pasien) tetap direlokasi ke encounter meski '
+                . 'tercatat context=envlab di katalog, karena fungsinya genuinely soal kunjungan, bukan lab '
+                . 'lingkungan. Data master (pelanggan, jenis sampel/master_sampel_bakumutu, parameter pengujian, '
+                . 'nilai baku mutu) Wave 1 ini; alur transaksi (permintaan->triase->penugasan->hasil->verifikasi/'
+                . 'validasi) dan rekap/pembayaran menyusul.',
+            'domains'     => ['B'],
+            'publishes'   => [],
+        ],
+
     ],
 
     /*

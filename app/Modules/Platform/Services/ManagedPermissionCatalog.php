@@ -33,6 +33,7 @@ class ManagedPermissionCatalog
         'audit_kepatuhan_apd', 'barcoderalan', 'barcoderanap', 'bayar_piutang', 'beri_obat', 'booking_mcu_perusahaan', 'booking_operasi', 'bpjs_cek_kartu', 'bpjs_sep', 'deposit_pasien', 'diet_pasien',
         'igd', 'insiden_keselamatan_pasien', 'inventaris_inventaris', 'ipsrs_barang', 'layanan_program_kfr', 'limbah_b3_medis',
         'mapping_poli_bpjs', 'operasi', 'pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi', 'pegawai_user',
+        'pelanggan_lab_kesehatan_lingkungan',
         'pembayaran_ralan', 'pemeriksaan_lab_pa', 'pengajuan_barang_nonmedis', 'pengajuan_cuti', 'pengumuman_epasien',
         'penilaian_awal_medis_ralan', 'perbaikan_inventaris', 'periksa_lab', 'periksa_radiologi',
         'peristiwa_k3rs', 'perkiraan_biaya_ranap', 'persetujuan_penolakan_tindakan', 'presensi_harian', 'registrasi',

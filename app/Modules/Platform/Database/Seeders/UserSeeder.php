@@ -50,6 +50,7 @@ class UserSeeder extends Seeder
             ['username' => 'aset1', 'name' => 'Hendra Gunawan', 'role' => 'petugas-aset', 'mfa' => false],
             ['username' => 'cssd1', 'name' => 'Ratna Sari', 'role' => 'petugas-cssd', 'mfa' => false],
             ['username' => 'kesling1', 'name' => 'Agus Prasetyo', 'role' => 'petugas-kesling', 'mfa' => false],
+            ['username' => 'labkesling1', 'name' => 'Nur Aini', 'role' => 'petugas-lab-kesling', 'mfa' => false],
         ];
 
         foreach ($akun as $data) {

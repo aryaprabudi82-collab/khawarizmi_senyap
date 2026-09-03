@@ -310,5 +310,15 @@
         "extra_permissions": [
             "limbah_b3_medis"
         ]
+    },
+    {
+        "code": "petugas-lab-kesling",
+        "name": "Petugas Laboratorium Kesehatan Lingkungan",
+        "description": "Data master dan pengujian sampel lab kesehatan lingkungan & K3 (air, udara, makanan, usap alat) untuk pelanggan internal maupun eksternal.",
+        "_catatan_scope": "Peran terpisah dari petugas-kesling (domain G, pencatatan limbah B3/mutu air limbah/pest control di RS sendiri) — envlab adalah laboratorium pengujian sungguhan (bisa melayani pelanggan eksternal), domain B Khanza, paket Java \"viabarcode\". pelanggan_lab_kesehatan_lingkungan dipakai sebagai gerbang tunggal seluruh layar data master lab kesling (pelanggan, jenis sampel, parameter, baku mutu), pola sama dengan tarif_ralan untuk organization::master.index — tiga kode Khanza lain (master_sampel_bakumutu, parameter_pengujian_lab_kesehatan_lingkungan, nilai_normal_baku_mutu_lab_kesehatan_lingkungan) tidak jadi gerbang literal terpisah.",
+        "contexts": [],
+        "extra_permissions": [
+            "pelanggan_lab_kesehatan_lingkungan"
+        ]
     }
 ]
