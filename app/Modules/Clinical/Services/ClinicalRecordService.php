@@ -2,11 +2,13 @@
 
 namespace App\Modules\Clinical\Services;
 
+use App\Modules\Catalog\Services\TariffLookup;
 use App\Modules\Clinical\Models\Allergy;
 use App\Modules\Clinical\Models\Assessment;
 use App\Modules\Clinical\Models\AssessmentRevision;
 use App\Modules\Clinical\Models\Diagnosis;
 use App\Modules\Clinical\Models\Observation;
+use App\Modules\Clinical\Models\Procedure;
 use App\Modules\Clinical\Models\Screening;
 use App\Modules\Platform\Models\User;
 use Illuminate\Support\Collection;
@@ -22,7 +24,10 @@ use Illuminate\Support\Facades\DB;
  */
 class ClinicalRecordService
 {
-    public function __construct(private readonly RegistrationContext $registrations) {}
+    public function __construct(
+        private readonly RegistrationContext $registrations,
+        private readonly TariffLookup $tariffs,
+    ) {}
 
     /**
      * Membuka asesmen untuk satu kunjungan, membuat draf bila belum ada.
@@ -336,5 +341,65 @@ class ClinicalRecordService
     public function screeningFor(int $registrationId): ?Screening
     {
         return Screening::query()->where('registration_id', $registrationId)->first();
+    }
+
+    /**
+     * tindakan_ralan — tarif diambil dari catalog.tariffs milik penjamin
+     * kunjungan ini dan DISALIN ke unit_price/amount, bukan dirujuk live.
+     * Lihat catatan migrasi procedures.
+     *
+     * @throws ClinicalException
+     */
+    public function recordProcedure(
+        int $registrationId,
+        string $serviceCode,
+        float $quantity,
+        ?string $note,
+        ?User $actor = null,
+    ): Procedure {
+        $kunjungan = $this->registrations->find($registrationId)
+            ?? throw new ClinicalException('Kunjungan tidak ditemukan atau sudah dibatalkan.');
+
+        $layanan = $this->tariffs->findServiceByCode($serviceCode)
+            ?? throw new ClinicalException("Tindakan {$serviceCode} tidak ada di katalog layanan.");
+
+        $tarif = $this->tariffs->resolve(
+            serviceCode: $serviceCode,
+            payerId: $kunjungan->payer_id,
+            on: now(),
+        );
+
+        if ($tarif === null) {
+            throw new ClinicalException(
+                "Tarif {$layanan->name} untuk penjamin {$kunjungan->payer_name} belum ditetapkan."
+            );
+        }
+
+        return Procedure::query()->create([
+            'registration_id' => $kunjungan->id,
+            'patient_id' => $kunjungan->patient_id,
+            'registration_number' => $kunjungan->registration_number,
+            'patient_mrn' => $kunjungan->patient_mrn,
+            'patient_name' => $kunjungan->patient_name,
+            'service_id' => $layanan->id,
+            'service_code' => $layanan->code,
+            'service_name' => $layanan->name,
+            'quantity' => $quantity,
+            'unit_price' => $tarif,
+            'amount' => round($tarif * $quantity, 2),
+            'practitioner_id' => $kunjungan->practitioner_id,
+            'practitioner_name' => $kunjungan->practitioner_name,
+            'performed_at' => now(),
+            'note' => $note,
+            'created_by' => $actor?->id,
+        ]);
+    }
+
+    public function proceduresFor(int $registrationId): Collection
+    {
+        return Procedure::query()
+            ->where('registration_id', $registrationId)
+            ->orderByDesc('performed_at')
+            ->get();
     }
 }

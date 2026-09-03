@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\DB;
  *
  * Tagihan tidak ditulis manual. Ia dibuka dari satu kunjungan, lalu diisi
  * lewat sinkronisasi charge line dari konteks lain — encounter (biaya
- * registrasi), pharmacy (obat yang diserahkan), dan order (pemeriksaan
- * lab/radiologi yang selesai), dengan tindakan menyusul saat konteksnya
- * digarap.
+ * registrasi), pharmacy (obat yang diserahkan), order (pemeriksaan lab/
+ * radiologi yang selesai), dan clinical (tindakan_ralan, menyusul setelah
+ * domain A digarap berurutan — lihat catatan migrasi clinical.procedures).
  *
  * Penjamin selain 'umum' tidak menagih pasien di kasir rawat jalan: tagihan
  * itu langsung ditandai 'ditanggung-penjamin' dan menunggu alur klaim di
@@ -28,6 +28,7 @@ class InvoiceService
         private readonly PayerContext $payers,
         private readonly PrescriptionChargeContext $prescriptionCharges,
         private readonly OrderChargeContext $orderCharges,
+        private readonly ProcedureChargeContext $procedureCharges,
     ) {}
 
     /**
@@ -88,6 +89,7 @@ class InvoiceService
             $this->syncRegistrationFee($invoice);
             $this->syncPrescriptionCharges($invoice);
             $this->syncOrderCharges($invoice);
+            $this->syncProcedureCharges($invoice);
             $this->recalculateTotal($invoice);
             $this->settleIfGuaranteed($invoice);
         });
@@ -281,6 +283,25 @@ class InvoiceService
                     'order_penunjang', $baris->item_id,
                     ($baris->category === 'lab' ? 'Lab: ' : 'Radiologi: ') . $baris->test_name,
                     (float) $baris->unit_price, (float) $baris->amount,
+                ]
+            );
+        }
+    }
+
+    private function syncProcedureCharges(Invoice $invoice): void
+    {
+        foreach ($this->procedureCharges->forRegistration($invoice->registration_id) as $baris) {
+            DB::statement(
+                'INSERT INTO billing.charge_lines
+                    (charged_at, invoice_id, registration_id, source_type, source_id,
+                     description, quantity, unit_price, amount)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 ON CONFLICT (charged_at, source_type, source_id) DO NOTHING',
+                [
+                    $baris->performed_at, $invoice->id, $invoice->registration_id,
+                    'tindakan_ralan', $baris->item_id,
+                    'Tindakan: ' . $baris->service_name,
+                    (float) $baris->quantity, (float) $baris->unit_price, (float) $baris->amount,
                 ]
             );
         }

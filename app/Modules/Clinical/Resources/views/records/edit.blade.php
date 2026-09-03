@@ -193,6 +193,48 @@
       @endif
     </div>
 
+    {{-- Tindakan rawat jalan — setiap baris otomatis tertagih lewat sinkronisasi billing --}}
+    <div class="card mb-3">
+      <div class="card-header"><h3 class="card-title">Tindakan</h3></div>
+      @if ($tindakan->isNotEmpty())
+        <div class="table-responsive">
+          <table class="table table-sm table-vcenter mb-0">
+            <thead><tr><th>Tindakan</th><th class="text-end">Jml</th><th class="text-end">Tarif</th><th class="text-end">Total</th><th>Waktu</th></tr></thead>
+            <tbody>
+              @foreach ($tindakan as $t)
+                <tr>
+                  <td>{{ $t->service_name }}@if ($t->note)<div class="text-secondary small">{{ $t->note }}</div>@endif</td>
+                  <td class="text-end">{{ rtrim(rtrim($t->quantity, '0'), '.') }}</td>
+                  <td class="text-end">{{ number_format($t->unit_price, 0, ',', '.') }}</td>
+                  <td class="text-end">{{ number_format($t->amount, 0, ',', '.') }}</td>
+                  <td class="text-secondary small">{{ $t->performed_at->format('d-m H:i') }}</td>
+                </tr>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
+      @endif
+      <div class="card-body {{ $tindakan->isNotEmpty() ? 'border-top' : '' }}">
+        <form method="POST" action="{{ route('rme.tindakan.simpan', $kunjungan->id) }}" class="row g-2">
+          @csrf
+          <div class="col-6">
+            <select name="service_code" class="form-select form-select-sm" required>
+              <option value="">— pilih tindakan —</option>
+              @foreach ($katalogTindakan as $layanan)
+                <option value="{{ $layanan->code }}">{{ $layanan->name }}</option>
+              @endforeach
+            </select>
+            @if ($katalogTindakan->isEmpty())
+              <div class="form-hint text-danger">Belum ada layanan berkategori tindakan di Data Master.</div>
+            @endif
+          </div>
+          <div class="col-3"><input type="number" name="quantity" class="form-control form-control-sm" value="1" min="0.01" step="0.01" required></div>
+          <div class="col-3"><button class="btn btn-sm btn-outline-primary w-100">Catat</button></div>
+          <div class="col-12"><input type="text" name="note" class="form-control form-control-sm" placeholder="Catatan (opsional)"></div>
+        </form>
+      </div>
+    </div>
+
     <form method="POST" action="{{ route('rme.update', $assessment) }}">
       @csrf
 

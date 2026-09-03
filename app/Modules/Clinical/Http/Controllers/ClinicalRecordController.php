@@ -2,6 +2,7 @@
 
 namespace App\Modules\Clinical\Http\Controllers;
 
+use App\Modules\Catalog\Services\TariffLookup;
 use App\Modules\Clinical\Models\Assessment;
 use App\Modules\Clinical\Models\Diagnosis;
 use App\Modules\Clinical\Models\DiagnosisCode;
@@ -21,6 +22,7 @@ class ClinicalRecordController
         private readonly ClinicalRecordService $records,
         private readonly RegistrationContext $registrations,
         private readonly OrganizationDirectory $organization,
+        private readonly TariffLookup $tariffs,
     ) {}
 
     /** Daftar pasien yang menunggu diperiksa. */
@@ -72,7 +74,28 @@ class ClinicalRecordController
             'riwayat' => $this->registrations->historyFor($assessment->patient_id, 10),
             'revisi' => $assessment->revisions()->get(),
             'skrining' => $this->records->screeningFor($registrasi),
+            'tindakan' => $this->records->proceduresFor($registrasi),
+            'katalogTindakan' => $this->tariffs->servicesByCategory('tindakan'),
         ]);
+    }
+
+    public function storeProcedure(Request $request, int $registrasi): RedirectResponse
+    {
+        $data = $request->validate([
+            'service_code' => ['required', 'string', 'max:40'],
+            'quantity' => ['required', 'numeric', 'min:0.01'],
+            'note' => ['nullable', 'string', 'max:500'],
+        ], [], ['service_code' => 'tindakan', 'quantity' => 'jumlah']);
+
+        try {
+            $this->records->recordProcedure(
+                $registrasi, $data['service_code'], (float) $data['quantity'], $data['note'] ?? null, $request->user()
+            );
+        } catch (ClinicalException $e) {
+            return back()->with('galat', $e->getMessage());
+        }
+
+        return back()->with('sukses', 'Tindakan tercatat.');
     }
 
     public function storeScreening(Request $request, int $registrasi): RedirectResponse

@@ -96,17 +96,22 @@ return [
         'clinical' => [
             'schema'      => 'clinical',
             'module'      => 'Clinical',
-            'description' => 'Rekam medis elektronik: asesmen, SOAP, tanda vital, diagnosis, alergi, dan '
-                . 'skrining awal rawat jalan (risiko jatuh/nyeri/gizi/gejala menular). Mengacu Permenkes '
-                . '24/2022. sekrining_rawat_jalan tercatat domain A/context=encounter di katalog, tapi kelas '
-                . 'Java-nya (RMSKriningRawatJalan) ada di package "rekammedis" milik Khanza sendiri (lihat '
-                . 'Khanza_Functional_Dependency_Map.xlsx) — dibangun di sini, digerbangi umbrella '
-                . 'penilaian_awal_medis_ralan yang sudah ada, bukan kode terpisah.',
+            'description' => 'Rekam medis elektronik: asesmen, SOAP, tanda vital, diagnosis, alergi, skrining '
+                . 'awal rawat jalan (risiko jatuh/nyeri/gizi/gejala menular), dan tindakan rawat jalan '
+                . '(tindakan_ralan) berikut tarifnya. Mengacu Permenkes 24/2022. sekrining_rawat_jalan dan '
+                . 'tindakan_ralan tercatat domain A/context=encounter di katalog — sekrining karena kelas '
+                . 'Java-nya (RMSKriningRawatJalan) berpaket "rekammedis" (lihat '
+                . 'Khanza_Functional_Dependency_Map.xlsx), tindakan_ralan karena "apa yang terjadi ke pasien" '
+                . 'adalah rekam medis meski Khanza sendiri tidak memberi penanda paket lain untuknya. Keduanya '
+                . 'digerbangi umbrella penilaian_awal_medis_ralan yang sudah ada, bukan kode terpisah.',
             'domains'     => ['M', 'A'],
             'publishes'   => [
                 'v_patient_allergy' => 'Alergi aktif per pasien. Dipakai pharmacy untuk telaah resep.',
                 'v_encounter_diagnosis' => 'Diagnosis per kunjungan berikut kode ICD-10. '
                     . 'Dipakai billing untuk pengajuan klaim.',
+                'v_procedure_charge' => 'Tindakan rawat jalan yang sudah dicatat berikut nilainya. '
+                    . 'Dipakai billing untuk menyusun baris tagihan, pola sama dengan '
+                    . 'pharmacy.v_prescription_charge dan orders.v_order_charge.',
             ],
         ],
 
@@ -123,7 +128,7 @@ return [
         'billing' => [
             'schema'      => 'billing',
             'module'      => 'Billing',
-            'description' => 'Tagihan dan pembayaran rawat jalan. Charge line ditarik dari encounter, pharmacy, dan order.',
+            'description' => 'Tagihan dan pembayaran rawat jalan. Charge line ditarik dari encounter, pharmacy, order, dan clinical (tindakan_ralan).',
             'domains'     => ['I'],
             'publishes'   => [
                 'v_settled_invoice' => 'Tagihan yang sudah lunas atau ditanggung penjamin. '

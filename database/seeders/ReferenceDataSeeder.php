@@ -23,8 +23,10 @@ class ReferenceDataSeeder extends Seeder
         $this->seedUnits();
         $this->seedPractitioners();
         $this->seedRegistrationTariffs();
+        $this->seedProcedureTariffs();
 
-        $this->command?->info('Data referensi: penjamin, unit, praktisi, dan tarif registrasi disiapkan.');
+        $this->command?->info('Data referensi: penjamin, unit, praktisi, dan tarif registrasi & tindakan disiapkan.');
+        $this->command?->warn('Tarif tindakan contoh, hanya untuk penjamin Umum — perlu ditinjau ulang bersama bagian keuangan sebelum dipakai melayani pasien.');
     }
 
     private function seedPayers(): void
@@ -126,6 +128,47 @@ class ReferenceDataSeeder extends Seeder
                     'valid_until' => null,
                 ],
                 $amounts + ['valid_from' => now()->startOfYear()->toDateString()]
+            );
+        }
+    }
+
+    /**
+     * tindakan_ralan — lihat catatan migrasi clinical.procedures. Contoh
+     * tindakan rawat jalan umum, hanya tarif Umum yang diisi (bukan matriks
+     * lengkap tiap penjamin seperti tarif registrasi) supaya fitur bisa
+     * langsung didemokan tanpa berpura-pura sudah selesai ditinjau keuangan.
+     */
+    private function seedProcedureTariffs(): void
+    {
+        $umum = Payer::query()->where('code', 'UMUM')->first();
+
+        if ($umum === null) {
+            return;
+        }
+
+        $tindakan = [
+            ['code' => 'TDK-GANTI-VERBAN', 'name' => 'Ganti Verban', 'amount' => 35000],
+            ['code' => 'TDK-INJEKSI-IM', 'name' => 'Injeksi Intramuskular', 'amount' => 20000],
+            ['code' => 'TDK-NEBULIZER', 'name' => 'Nebulizer', 'amount' => 50000],
+            ['code' => 'TDK-JAHIT-LUKA', 'name' => 'Jahit Luka (s.d. 5 jahitan)', 'amount' => 150000],
+            ['code' => 'TDK-EKG', 'name' => 'Pemeriksaan EKG', 'amount' => 75000],
+            ['code' => 'TDK-ANGKAT-JAHITAN', 'name' => 'Angkat Jahitan', 'amount' => 25000],
+        ];
+
+        foreach ($tindakan as $t) {
+            $service = Service::query()->updateOrCreate(
+                ['code' => $t['code']],
+                ['name' => $t['name'], 'category' => 'tindakan', 'is_active' => true]
+            );
+
+            Tariff::query()->updateOrCreate(
+                [
+                    'service_id' => $service->id,
+                    'payer_id' => $umum->id,
+                    'care_class' => '-',
+                    'valid_until' => null,
+                ],
+                ['amount' => $t['amount'], 'amount_returning' => null, 'valid_from' => now()->startOfYear()->toDateString()]
             );
         }
     }

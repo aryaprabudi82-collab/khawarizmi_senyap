@@ -6,6 +6,7 @@ use App\Modules\Catalog\Models\Payer;
 use App\Modules\Catalog\Models\Service;
 use App\Modules\Catalog\Models\Tariff;
 use DateTimeInterface;
+use Illuminate\Support\Collection;
 
 /**
  * Pintu masuk konteks catalog.
@@ -63,5 +64,15 @@ class TariffLookup
     public function findServiceByCode(string $code): ?Service
     {
         return Service::query()->where('code', $code)->first();
+    }
+
+    /** @return Collection<int, Service> */
+    public function servicesByCategory(string $category): Collection
+    {
+        return Service::query()
+            ->where('category', $category)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
     }
 }

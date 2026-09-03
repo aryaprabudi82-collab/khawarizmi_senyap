@@ -19,6 +19,10 @@ Route::middleware(['web', 'auth'])->group(function () {
         // catatan migrasi clinical.screenings.
         Route::post('/kunjungan/{registrasi}/skrining', [ClinicalRecordController::class, 'storeScreening'])->name('skrining.simpan');
 
+        // tindakan_ralan — gerbang umbrella yang sama, lihat catatan migrasi
+        // clinical.procedures.
+        Route::post('/kunjungan/{registrasi}/tindakan', [ClinicalRecordController::class, 'storeProcedure'])->name('tindakan.simpan');
+
         Route::delete('/diagnosis/{diagnosis}', [ClinicalRecordController::class, 'destroyDiagnosis'])->name('diagnosis.hapus');
 
         Route::get('/kode-diagnosis', [ClinicalRecordController::class, 'searchDiagnosisCodes'])->name('kode-diagnosis');

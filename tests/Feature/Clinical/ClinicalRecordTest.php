@@ -422,6 +422,66 @@ class ClinicalRecordTest extends TestCase
     }
 
     #[Test]
+    public function tindakan_tercatat_dengan_tarif_yang_disalin_dari_katalog(): void
+    {
+        $registrasi = $this->daftarkan();
+
+        $tindakan = $this->records->recordProcedure($registrasi->id, 'TDK-GANTI-VERBAN', 2, 'Luka operasi.', $this->dokter);
+
+        $this->assertSame('35000.00', $tindakan->unit_price);
+        $this->assertSame('70000.00', $tindakan->amount);
+        $this->assertSame('Ganti Verban', $tindakan->service_name);
+        $this->assertSame($registrasi->patient_name, $tindakan->patient_name);
+    }
+
+    #[Test]
+    public function tindakan_dengan_kode_layanan_yang_tidak_ada_ditolak(): void
+    {
+        $registrasi = $this->daftarkan();
+
+        $this->expectException(ClinicalException::class);
+        $this->records->recordProcedure($registrasi->id, 'TDK-TIDAK-ADA', 1, null, $this->dokter);
+    }
+
+    #[Test]
+    public function tindakan_tanpa_tarif_untuk_penjamin_kunjungan_ditolak(): void
+    {
+        // Tarif tindakan contoh cuma diisi untuk Umum — kunjungan BPJS
+        // harus ditolak dengan pesan jelas, bukan diam-diam bertarif 0.
+        $pasien = app(PatientRegistry::class)->register(['name' => 'Pasien BPJS', 'sex' => 'L', 'birth_date' => '1990-01-01']);
+        $registrasi = app(RegistrationService::class)->register(
+            patientId: $pasien->id,
+            unitId: Unit::query()->where('code', 'POL-UMUM')->value('id'),
+            payerId: Payer::query()->where('code', 'BPJS')->value('id'),
+        );
+
+        $this->expectException(ClinicalException::class);
+        $this->records->recordProcedure($registrasi->id, 'TDK-GANTI-VERBAN', 1, null, $this->dokter);
+    }
+
+    #[Test]
+    public function tindakan_bisa_dicatat_lewat_http_dan_tampil_di_layar_pemeriksaan(): void
+    {
+        $registrasi = $this->daftarkan();
+
+        $this->actingAs($this->dokter)
+            ->post(route('rme.tindakan.simpan', $registrasi->id), [
+                'service_code' => 'TDK-NEBULIZER', 'quantity' => 1,
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('sukses');
+
+        $this->assertDatabaseHas('clinical.procedures', [
+            'registration_id' => $registrasi->id, 'service_code' => 'TDK-NEBULIZER', 'amount' => 50000,
+        ]);
+
+        $this->actingAs($this->dokter)
+            ->get(route('rme.edit', $registrasi->id))
+            ->assertOk()
+            ->assertSee('Nebulizer');
+    }
+
+    #[Test]
     public function diagnosis_dihapus_secara_lunak_bukan_dihapus_keras(): void
     {
         $asesmen = $this->asesmen();
