@@ -31,6 +31,7 @@ class UserSeeder extends Seeder
             ['username' => 'sistem1', 'name' => 'Guntur Wibisono', 'role' => 'admin-sistem', 'mfa' => false],
             ['username' => 'loket1', 'name' => 'Rina Oktaviani', 'role' => 'petugas-daftar', 'mfa' => false],
             ['username' => 'loket2', 'name' => 'Dedi Kurniawan', 'role' => 'petugas-daftar', 'mfa' => false],
+            ['username' => 'ranap1', 'name' => 'Yayan Sofyan', 'role' => 'petugas-ranap', 'mfa' => false],
             ['username' => 'master', 'name' => 'Sri Handayani', 'role' => 'admin-master', 'mfa' => false],
             ['username' => 'dokter1', 'name' => 'Andi Wijaya', 'role' => 'dokter', 'mfa' => false],
             ['username' => 'apoteker1', 'name' => 'Yuli Astuti', 'role' => 'apoteker', 'mfa' => false],

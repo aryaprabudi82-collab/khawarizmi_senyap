@@ -261,6 +261,71 @@ class RegistrationScreenTest extends TestCase
     }
 
     #[Test]
+    public function petugas_daftar_bisa_mendaftarkan_pasien_untuk_rawat_inap(): void
+    {
+        $pasien = $this->buatPasien('Rudi Hartono');
+        $unit = Unit::query()->where('code', 'POL-UMUM')->firstOrFail();
+        $penjamin = Payer::query()->where('code', 'UMUM')->firstOrFail();
+
+        $this->actingAs($this->petugas)
+            ->post(route('registrasi.store'), [
+                'pasien_id' => $pasien->id,
+                'unit_id' => $unit->id,
+                'penjamin_id' => $penjamin->id,
+                'tanggal' => now()->toDateString(),
+                'jenis_rawat' => 'ranap',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('sukses');
+
+        $this->assertDatabaseHas('encounter.registrations', [
+            'patient_id' => $pasien->id,
+            'care_type' => 'ranap',
+        ]);
+    }
+
+    #[Test]
+    public function peran_dengan_registrasi_tapi_tanpa_permintaan_ranap_tidak_bisa_pilih_ranap(): void
+    {
+        // Setiap peran bawaan yang punya 'registrasi' saat ini juga otomatis
+        // punya 'permintaan_ranap' lewat wholesale context encounter — jadi
+        // gerbang lapis-kedua di RegistrationController (bukan cuma tautan
+        // formulir yang disembunyikan) diuji lewat peran custom buatan tes ini,
+        // yang sengaja hanya diberi 'registrasi' saja.
+        $peranTerbatas = Role::query()->create(['code' => 'uji-registrasi-saja', 'name' => 'Uji Registrasi Saja', 'is_system' => false]);
+        $peranTerbatas->syncPermissionCodes(['registrasi']);
+
+        $petugasTerbatas = $this->buatPengguna('uji-registrasi-saja');
+
+        $pasien = $this->buatPasien('Rudi Hartono');
+        $unit = Unit::query()->where('code', 'POL-UMUM')->firstOrFail();
+        $penjamin = Payer::query()->where('code', 'UMUM')->firstOrFail();
+
+        $this->actingAs($petugasTerbatas)
+            ->post(route('registrasi.store'), [
+                'pasien_id' => $pasien->id,
+                'unit_id' => $unit->id,
+                'penjamin_id' => $penjamin->id,
+                'tanggal' => now()->toDateString(),
+                'jenis_rawat' => 'ranap',
+            ])
+            ->assertSessionHasErrors('jenis_rawat');
+
+        $this->assertDatabaseMissing('encounter.registrations', ['patient_id' => $pasien->id]);
+
+        // Tapi tetap bisa mendaftarkan rawat jalan biasa.
+        $this->actingAs($petugasTerbatas)
+            ->post(route('registrasi.store'), [
+                'pasien_id' => $pasien->id,
+                'unit_id' => $unit->id,
+                'penjamin_id' => $penjamin->id,
+                'tanggal' => now()->toDateString(),
+                'jenis_rawat' => 'ralan',
+            ])
+            ->assertSessionHas('sukses');
+    }
+
+    #[Test]
     public function peran_tanpa_kapabilitas_registrasi_ditolak(): void
     {
         $adminMaster = $this->buatPengguna('admin-master');

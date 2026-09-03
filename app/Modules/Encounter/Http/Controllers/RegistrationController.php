@@ -11,6 +11,7 @@ use App\Modules\Organization\Services\OrganizationDirectory;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class RegistrationController
@@ -84,6 +85,10 @@ class RegistrationController
             'tanggal' => ['required', 'date'],
             'nomor_rujukan' => ['nullable', 'string', 'max:60'],
             'nomor_kartu' => ['nullable', 'string', 'max:40'],
+            // Gerbang lapis kedua: field jenis_rawat hanya muncul di form untuk
+            // pemegang permintaan_ranap, tapi validasi ini juga mencegah POST
+            // langsung dari pengguna lain yang tidak punya izin itu.
+            'jenis_rawat' => ['nullable', Rule::in($request->user()?->can('permintaan_ranap') ? ['ralan', 'ranap'] : ['ralan'])],
         ], [], [
             'pasien_id' => 'pasien',
             'unit_id' => 'unit layanan',
@@ -102,6 +107,7 @@ class RegistrationController
                 extra: [
                     'referral_number' => $data['nomor_rujukan'] ?? null,
                     'membership_number' => $data['nomor_kartu'] ?? null,
+                    'care_type' => $data['jenis_rawat'] ?? 'ralan',
                 ],
                 actorId: $request->user()?->id,
             );

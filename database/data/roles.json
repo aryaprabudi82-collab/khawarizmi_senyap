@@ -24,7 +24,7 @@
         "extra_permissions": [
             "pasien"
         ],
-        "_catatan_exclusion": "Domain A Khanza mencampur menu registrasi dengan resep, operasi, dan periksa lab/radiologi dalam satu grup. Dikecualikan di sini supaya petugas loket tidak diam-diam kebagian kapabilitas klinis/farmasi.",
+        "_catatan_exclusion": "Domain A Khanza mencampur menu registrasi dengan resep, operasi, dan periksa lab/radiologi dalam satu grup. Dikecualikan di sini supaya petugas loket tidak diam-diam kebagian kapabilitas klinis/farmasi. permintaan_ranap SENGAJA TIDAK dikecualikan — memilih 'Jenis Rawat: Rawat Inap' saat registrasi tetap tugas loket, cuma alokasi kamar/bed-nya (tindakan_ranap) yang dikecualikan ke petugas-ranap di konteks inpatient.",
         "excluded_permissions": [
             "beri_obat",
             "resep_obat",
@@ -43,6 +43,16 @@
             "sekrining_rawat_jalan",
             "diet_pasien",
             "dpjp_ranap"
+        ]
+    },
+    {
+        "code": "petugas-ranap",
+        "name": "Petugas Rawat Inap",
+        "description": "Kelola kamar/bed dan admisi-pemulangan pasien rawat inap.",
+        "_catatan_scope": "tindakan_ranap tercatat context=encounter di katalog (domain A Khanza mencampur registrasi dengan tindakan ranap dalam satu grup) — dikecualikan dari petugas-daftar (lihat _catatan_exclusion di sana) dan diberikan di sini, ke konteks inpatient yang baru dibangun. permintaan_ranap (opsi 'Jenis Rawat: Rawat Inap' saat registrasi) tetap milik petugas-daftar lewat wholesale context encounter mereka — alur ranap dimulai loket pendaftaran, kamar/bed dialokasikan di sini oleh petugas bangsal.",
+        "contexts": [],
+        "extra_permissions": [
+            "tindakan_ranap"
         ]
     },
     {
@@ -71,10 +81,11 @@
             "persetujuan_penolakan_tindakan",
             "surat_keterangan_sehat"
         ],
-        "_catatan_exclusion": "insiden_keselamatan(_pasien) tercatat context 'clinical' di katalog permission (warisan domain M Khanza), tapi modulnya sekarang di konteks quality (lihat config/contexts.php) dan Wave 1 ini sengaja admin-mutu-only — pelaporan insiden oleh staf klinis sendiri (bukan cuma admin mutu) adalah perluasan wajar untuk wave berikutnya, bukan dikecualikan selamanya. persetujuan_penolakan_tindakan dan surat_keterangan_sehat tercatat domain P/'correspondence' di Khanza (bercampur dengan surat-menyurat kantor) padahal dokumen klinis yang diterbitkan dokter — diberikan di sini, bukan ke petugas-tu.",
+        "_catatan_exclusion": "insiden_keselamatan(_pasien) tercatat context 'clinical' di katalog permission (warisan domain M Khanza), tapi modulnya sekarang di konteks quality (lihat config/contexts.php) dan Wave 1 ini sengaja admin-mutu-only — pelaporan insiden oleh staf klinis sendiri (bukan cuma admin mutu) adalah perluasan wajar untuk wave berikutnya, bukan dikecualikan selamanya. persetujuan_penolakan_tindakan dan surat_keterangan_sehat tercatat domain P/'correspondence' di Khanza (bercampur dengan surat-menyurat kantor) padahal dokumen klinis yang diterbitkan dokter — diberikan di sini, bukan ke petugas-tu. tindakan_ranap tercatat context 'encounter' tapi modulnya sekarang konteks inpatient (kelola kamar/bed) — kewenangan bangsal/administratif, bukan kewenangan klinis dokter, dikecualikan sama seperti pada peran perawat.",
         "excluded_permissions": [
             "insiden_keselamatan",
-            "insiden_keselamatan_pasien"
+            "insiden_keselamatan_pasien",
+            "tindakan_ranap"
         ]
     },
     {
@@ -90,14 +101,15 @@
             "registrasi",
             "penilaian_awal_keperawatan_ralan"
         ],
-        "_catatan_exclusion": "Menulis resep dan tindakan operasi bukan kewenangan perawat, meski ikut kebawa dari context encounter yang bercampur. insiden_keselamatan(_pasien) dikecualikan dengan alasan sama seperti pada peran dokter — lihat catatannya di sana.",
+        "_catatan_exclusion": "Menulis resep dan tindakan operasi bukan kewenangan perawat, meski ikut kebawa dari context encounter yang bercampur. insiden_keselamatan(_pasien) dan tindakan_ranap dikecualikan dengan alasan sama seperti pada peran dokter — lihat catatannya di sana.",
         "excluded_permissions": [
             "resep_obat",
             "resep_pulang",
             "operasi",
             "billing_ralan",
             "insiden_keselamatan",
-            "insiden_keselamatan_pasien"
+            "insiden_keselamatan_pasien",
+            "tindakan_ranap"
         ]
     },
     {

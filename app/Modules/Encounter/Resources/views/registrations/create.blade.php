@@ -2,7 +2,7 @@
 
 @section('title', 'Daftarkan Pasien')
 @section('breadcrumb', 'Modul A &middot; Registrasi dan Pelayanan')
-@section('heading', 'Daftarkan Pasien Rawat Jalan')
+@section('heading', 'Daftarkan Pasien')
 
 @section('actions')
   <a href="{{ route('registrasi.index', ['tanggal' => $tanggal->toDateString()]) }}" class="btn btn-link">
@@ -127,6 +127,17 @@
                 <input type="date" id="tanggal_layanan" name="tanggal" class="form-control"
                        value="{{ old('tanggal', $tanggal->toDateString()) }}" required>
               </div>
+
+              @can('permintaan_ranap')
+                <div class="col-md-6">
+                  <label class="form-label" for="jenis_rawat">Jenis rawat</label>
+                  <select id="jenis_rawat" name="jenis_rawat" class="form-select">
+                    <option value="ralan" @selected(old('jenis_rawat', 'ralan') === 'ralan')>Rawat Jalan</option>
+                    <option value="ranap" @selected(old('jenis_rawat') === 'ranap')>Rawat Inap</option>
+                  </select>
+                  <div class="form-hint">Rawat inap: kamar/bed dialokasikan berikutnya di layar Rawat Inap.</div>
+                </div>
+              @endcan
 
               <div class="col-md-6">
                 <label class="form-label required" for="unit_id">Unit layanan</label>

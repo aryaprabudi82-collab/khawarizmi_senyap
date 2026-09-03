@@ -14,11 +14,12 @@ use App\Modules\Platform\Models\Permission;
  * `$request->user()->can()`) sehingga peran custom yang dibuat lewat layar ini
  * hanya bisa mencentang kapabilitas yang sungguh menggerbangi sesuatu.
  *
- * Tiga kode (audit_kepatuhan_apd, peristiwa_k3rs, insiden_keselamatan_pasien)
- * masih tercatat context=hr/clinical di platform.permissions — peninggalan
- * salah-taut domain huruf Khanza (lihat catatan di database/data/roles.json).
- * Layarnya sendiri sudah dibangun di konteks quality, jadi dikelompokkan ke
- * situ di sini supaya admin tidak salah kira sedang memberi akses HR/klinis.
+ * Empat kode (audit_kepatuhan_apd, peristiwa_k3rs, insiden_keselamatan_pasien,
+ * tindakan_ranap) masih tercatat context=hr/clinical/encounter di
+ * platform.permissions — peninggalan salah-taut domain huruf Khanza (lihat
+ * catatan di database/data/roles.json). Layarnya sendiri sudah dibangun di
+ * konteks quality/inpatient, jadi dikelompokkan ke situ di sini supaya admin
+ * tidak salah kira sedang memberi akses HR/klinis/pendaftaran.
  */
 class ManagedPermissionCatalog
 {
@@ -35,8 +36,8 @@ class ManagedPermissionCatalog
         'peristiwa_k3rs', 'persetujuan_penolakan_tindakan', 'presensi_harian', 'registrasi',
         'rekap_kunjungan', 'resep_obat', 'satu_sehat_kirim_condition', 'satu_sehat_kirim_encounter',
         'satu_sehat_mapping_lokasi', 'satu_sehat_referensi_dokter', 'satu_sehat_referensi_pasien',
-        'sirkulasi_cssd', 'skp_penilaian', 'surat_keterangan_sehat', 'surat_masuk', 'tarif_ralan',
-        'telaah_resep', 'utd_pendonor', 'utd_penyerahan_darah', 'utd_stok_darah',
+        'permintaan_ranap', 'sirkulasi_cssd', 'skp_penilaian', 'surat_keterangan_sehat', 'surat_masuk',
+        'tarif_ralan', 'telaah_resep', 'tindakan_ranap', 'utd_pendonor', 'utd_penyerahan_darah', 'utd_stok_darah',
         'user',
     ];
 
@@ -45,10 +46,15 @@ class ManagedPermissionCatalog
         'audit_kepatuhan_apd' => 'quality',
         'peristiwa_k3rs' => 'quality',
         'insiden_keselamatan_pasien' => 'quality',
+        // tindakan_ranap tercatat context=encounter di katalog (domain A Khanza
+        // mencampur registrasi dengan tindakan ranap) — layarnya (kamar/bed/
+        // admisi) sungguhan dibangun di konteks inpatient yang baru.
+        'tindakan_ranap' => 'inpatient',
     ];
 
     private const MODULE_LABELS = [
         'encounter' => 'Pendaftaran & Rawat Jalan',
+        'inpatient' => 'Rawat Inap',
         'clinical' => 'Rekam Medis Klinis',
         'pharmacy' => 'Farmasi',
         'billing' => 'Billing Rawat Jalan',
