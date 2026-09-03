@@ -23,6 +23,10 @@
           <option value="penolakan-anjuran-medis">Penolakan Anjuran Medis</option>
           <option value="resusitasi">Penolakan Resusitasi (DNR)</option>
           <option value="umum">Persetujuan Umum</option>
+          <option value="rawat-inap">Persetujuan Rawat Inap</option>
+          <option value="penundaan-pelayanan">Persetujuan Penundaan Pelayanan</option>
+          <option value="pemeriksaan-hiv">Persetujuan Pemeriksaan HIV</option>
+          <option value="pulang-permintaan-sendiri">Pulang Atas Permintaan Sendiri (APS)</option>
         </select>
       </div>
       <div class="col-6 col-md-3">

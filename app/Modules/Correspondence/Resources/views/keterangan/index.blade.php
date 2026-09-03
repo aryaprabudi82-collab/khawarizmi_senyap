@@ -21,6 +21,13 @@
           <option value="sehat">Keterangan Sehat</option>
           <option value="sakit">Keterangan Sakit</option>
           <option value="berobat">Keterangan Berobat</option>
+          <option value="bebas_narkoba">Bebas Narkoba</option>
+          <option value="bebas_tbc">Bebas TBC</option>
+          <option value="buta_warna">Buta Warna</option>
+          <option value="layak_terbang">Layak Terbang</option>
+          <option value="kewaspadaan_kesehatan">Kewaspadaan Kesehatan</option>
+          <option value="covid">Covid-19</option>
+          <option value="cuti_hamil">Cuti Hamil</option>
         </select>
       </div>
       <div class="col-12 col-md-6"><label class="form-label">Nama Pasien</label><input type="text" name="patient_name" class="form-control" required></div>

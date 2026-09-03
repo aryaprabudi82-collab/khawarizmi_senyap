@@ -7,6 +7,7 @@ use App\Modules\Correspondence\Services\ConsentService;
 use App\Modules\Correspondence\Services\CorrespondenceException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ConsentController
@@ -23,7 +24,7 @@ class ConsentController
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'consent_type' => ['required', 'in:tindakan,penolakan-anjuran-medis,resusitasi,umum'],
+            'consent_type' => ['required', Rule::in(PatientConsent::TYPES)],
             'registration_id' => ['nullable', 'integer'],
             'patient_id' => ['nullable', 'integer'],
             'patient_name' => ['required', 'string', 'max:150'],

@@ -232,7 +232,7 @@
         "code": "petugas-tu",
         "name": "Petugas Tata Usaha",
         "description": "Surat masuk/keluar dan pengumuman e-pasien.",
-        "_catatan_scope": "Domain P Khanza 45 kapabilitas, tapi sekitar 30 di antaranya (persetujuan_penolakan_tindakan, penolakan_anjuran_medis, dan aneka surat_keterangan_*) adalah formulir persetujuan klinis & surat keterangan medis — konseptual beda dari korespondensi kantor, perlu alur tanda tangan/template cetak tersendiri, belum digarap wave ini. extra_permissions dibatasi pada tiga yang sudah dikerjakan.",
+        "_catatan_scope": "Domain P Khanza 45 kapabilitas, tapi sekitar 30 di antaranya adalah formulir persetujuan klinis & surat keterangan medis — konseptual beda dari korespondensi kantor, dokumennya diterbitkan dokter (lihat extra_permissions peran dokter, persetujuan_penolakan_tindakan/surat_keterangan_sehat sebagai gerbang umbrella yang kini mencakup ~11 varian consent_type/certificate_type, bukan cuma 2). Sisa domain P yang masih belum digarap (permintaan privasi, perlindungan dari kekerasan, bimbingan rohani, second opinion, serah terima barang, cuti pasien, skdp_bpjs, dan metadata filing fisik surat_rak/surat_map/dst.) bentuknya beda dari consent/certificate atau murni arsip kertas Khanza — belum tentu relevan untuk petugas-tu juga. extra_permissions dibatasi pada tiga yang sudah dikerjakan.",
         "contexts": [],
         "extra_permissions": [
             "surat_masuk",

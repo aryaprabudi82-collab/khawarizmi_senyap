@@ -9,6 +9,13 @@
     'sehat' => 'Surat Keterangan Sehat',
     'sakit' => 'Surat Keterangan Sakit',
     'berobat' => 'Surat Keterangan Berobat',
+    'bebas_narkoba' => 'Surat Keterangan Bebas Narkoba',
+    'bebas_tbc' => 'Surat Keterangan Bebas TBC',
+    'buta_warna' => 'Surat Keterangan Buta Warna',
+    'layak_terbang' => 'Surat Keterangan Layak Terbang',
+    'kewaspadaan_kesehatan' => 'Surat Kewaspadaan Kesehatan',
+    'covid' => 'Surat Keterangan Covid-19',
+    'cuti_hamil' => 'Surat Keterangan Cuti Hamil',
   ][$surat->certificate_type];
 @endphp
 

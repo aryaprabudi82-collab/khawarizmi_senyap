@@ -7,6 +7,7 @@ use App\Modules\Correspondence\Services\CertificateService;
 use App\Modules\Correspondence\Services\CorrespondenceException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class CertificateController
@@ -23,7 +24,7 @@ class CertificateController
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'certificate_type' => ['required', 'in:sehat,sakit,berobat'],
+            'certificate_type' => ['required', Rule::in(MedicalCertificate::TYPES)],
             'registration_id' => ['nullable', 'integer'],
             'patient_id' => ['nullable', 'integer'],
             'patient_name' => ['required', 'string', 'max:150'],

@@ -10,6 +10,10 @@
     'penolakan-anjuran-medis' => 'Surat Penolakan Anjuran Medis',
     'resusitasi' => 'Surat Penolakan Resusitasi (Do Not Resuscitate)',
     'umum' => 'Formulir Persetujuan Umum',
+    'pemeriksaan-hiv' => 'Formulir Persetujuan Pemeriksaan HIV',
+    'penundaan-pelayanan' => 'Formulir Persetujuan Penundaan Pelayanan',
+    'rawat-inap' => 'Formulir Persetujuan Rawat Inap',
+    'pulang-permintaan-sendiri' => 'Surat Pernyataan Pulang Atas Permintaan Sendiri',
   ][$persetujuan->consent_type];
 @endphp
 
@@ -25,6 +29,9 @@
 <div class="isi">
   <p>Saya yang bertanda tangan di bawah ini, {{ $persetujuan->decision === 'setuju' ? 'menyatakan SETUJU' : 'menyatakan MENOLAK' }} atas hal berikut, setelah mendapat penjelasan yang cukup dari petugas kesehatan:</p>
   <p>{{ $persetujuan->procedure_description }}</p>
+  @if ($persetujuan->consent_type === 'pemeriksaan-hiv')
+    <p><em>Hasil pemeriksaan bersifat rahasia dan hanya dapat dibuka kepada pihak yang berwenang sesuai ketentuan kerahasiaan medis.</em></p>
+  @endif
 </div>
 
 <div class="ttd">

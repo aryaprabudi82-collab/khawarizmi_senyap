@@ -9,6 +9,11 @@ class MedicalCertificate extends Model
     public const STATUS_DITERBITKAN = 'diterbitkan';
     public const STATUS_DIBATALKAN = 'dibatalkan';
 
+    public const TYPES = [
+        'sehat', 'sakit', 'berobat',
+        'bebas_narkoba', 'bebas_tbc', 'buta_warna', 'layak_terbang', 'kewaspadaan_kesehatan', 'covid', 'cuti_hamil',
+    ];
+
     protected $table = 'correspondence.medical_certificates';
 
     protected $guarded = ['id'];

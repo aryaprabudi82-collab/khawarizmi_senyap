@@ -105,4 +105,53 @@ class ClinicalDocumentTest extends TestCase
 
         $this->actingAs($petugasTu)->get(route('correspondence.persetujuan.index'))->assertForbidden();
     }
+
+    #[Test]
+    public function persetujuan_pemeriksaan_hiv_bisa_dicatat_dan_mencetak_catatan_kerahasiaan(): void
+    {
+        $persetujuan = $this->consents->issue([
+            'consent_type' => 'pemeriksaan-hiv', 'patient_name' => 'Andi Wijaya',
+            'procedure_description' => 'Pemeriksaan HIV sebelum tindakan operasi elektif.', 'decision' => 'setuju',
+        ], $this->dokter->id);
+
+        $this->assertContains($persetujuan->consent_type, PatientConsent::TYPES);
+
+        $this->actingAs($this->dokter)
+            ->get(route('correspondence.persetujuan.cetak', $persetujuan))
+            ->assertOk()
+            ->assertSee('Persetujuan Pemeriksaan HIV')
+            ->assertSee('rahasia');
+    }
+
+    #[Test]
+    public function seluruh_jenis_consent_dan_certificate_yang_diperlebar_bisa_dicatat(): void
+    {
+        foreach (PatientConsent::TYPES as $jenis) {
+            $persetujuan = $this->consents->issue([
+                'consent_type' => $jenis, 'patient_name' => 'Pasien Uji',
+                'procedure_description' => 'Uraian untuk jenis ' . $jenis, 'decision' => 'setuju',
+            ], $this->dokter->id);
+
+            $this->assertSame($jenis, $persetujuan->consent_type);
+
+            // Menjamin $judul di cetak.blade.php punya entri untuk setiap TYPES —
+            // key yang hilang berarti "Undefined array key" saat dicetak.
+            $this->actingAs($this->dokter)
+                ->get(route('correspondence.persetujuan.cetak', $persetujuan))
+                ->assertOk();
+        }
+
+        foreach (MedicalCertificate::TYPES as $jenis) {
+            $surat = $this->certificates->issue([
+                'certificate_type' => $jenis, 'patient_name' => 'Pasien Uji', 'purpose' => 'uji coba',
+                'content' => 'Isi untuk jenis ' . $jenis, 'valid_from' => now()->toDateString(),
+            ], $this->dokter->id);
+
+            $this->assertSame($jenis, $surat->certificate_type);
+
+            $this->actingAs($this->dokter)
+                ->get(route('correspondence.keterangan.cetak', $surat))
+                ->assertOk();
+        }
+    }
 }
