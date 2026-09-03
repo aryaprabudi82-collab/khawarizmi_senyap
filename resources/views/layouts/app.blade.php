@@ -175,8 +175,8 @@
           </li>
         @endcanany
 
-        @canany(['surat_masuk', 'pengumuman_epasien', 'rekap_kunjungan', 'bpjs_cek_kartu', 'satu_sehat_referensi_pasien'])
-          <li class="nav-item dropdown {{ request()->routeIs(['correspondence.*', 'reporting.*', 'integrasi.*']) ? 'active' : '' }}">
+        @canany(['surat_masuk', 'pengumuman_epasien', 'rekap_kunjungan', 'bpjs_cek_kartu', 'satu_sehat_referensi_pasien', 'user'])
+          <li class="nav-item dropdown {{ request()->routeIs(['correspondence.*', 'reporting.*', 'integrasi.*', 'platform.*']) ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Administrasi</a>
             <div class="dropdown-menu">
               @can('surat_masuk')
@@ -196,6 +196,11 @@
               @endcan
               @can('satu_sehat_referensi_pasien')
                 <a class="dropdown-item" href="{{ route('integrasi.satusehat.index') }}">Integrasi SATUSEHAT</a>
+              @endcan
+              @can('user')
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="{{ route('platform.pengguna.index') }}">Kelola Pengguna</a>
+                <a class="dropdown-item" href="{{ route('platform.peran.index') }}">Kelola Peran</a>
               @endcan
             </div>
           </li>

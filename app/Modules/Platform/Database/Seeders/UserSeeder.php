@@ -24,6 +24,11 @@ class UserSeeder extends Seeder
 
         $akun = [
             ['username' => 'admin', 'name' => 'Administrator Sistem', 'role' => 'super-admin', 'mfa' => true],
+            // admin-sistem, beda dari super-admin: hanya diberi hak 'user' (kelola
+            // pengguna/peran) lewat Gate biasa, bukan bypass Gate::before penuh —
+            // supaya layar kelola pengguna teruji lewat jalur pemeriksaan permission
+            // yang sesungguhnya dipakai peran custom nanti, bukan jalur super-admin.
+            ['username' => 'sistem1', 'name' => 'Guntur Wibisono', 'role' => 'admin-sistem', 'mfa' => false],
             ['username' => 'loket1', 'name' => 'Rina Oktaviani', 'role' => 'petugas-daftar', 'mfa' => false],
             ['username' => 'loket2', 'name' => 'Dedi Kurniawan', 'role' => 'petugas-daftar', 'mfa' => false],
             ['username' => 'master', 'name' => 'Sri Handayani', 'role' => 'admin-master', 'mfa' => false],
