@@ -45,8 +45,8 @@ class RegistrationTest extends TestCase
         }
 
         $this->assertCount(50, array_unique($nomor), 'Ada nomor rekam medis yang kembar.');
-        $this->assertSame('000001', $nomor[0]);
-        $this->assertSame('000050', $nomor[49]);
+        $this->assertSame('00000001', $nomor[0]);
+        $this->assertSame('00000050', $nomor[49]);
     }
 
     #[Test]

@@ -20,6 +20,10 @@ class PatientRegistry
      * tidak ada dua loket mendapat nomor yang sama. Khanza memakai
      * SELECT MAX(no_rkm_medis)+1 — pada 2.000 pendaftaran per hari dengan
      * beberapa loket paralel, itu menghasilkan nomor kembar.
+     *
+     * 8 digit sesuai ketentuan RSP UI — menampung sampai 99.999.999 nomor
+     * per prefix sebelum perlu prefix baru, jauh di atas proyeksi
+     * 2.000 pendaftaran/hari (~730.000/tahun).
      */
     public function allocateMedicalRecordNumber(string $prefix = ''): string
     {
@@ -35,7 +39,7 @@ class PatientRegistry
             [$key]
         );
 
-        return $prefix . str_pad((string) $row->last_number, 6, '0', STR_PAD_LEFT);
+        return $prefix . str_pad((string) $row->last_number, 8, '0', STR_PAD_LEFT);
     }
 
     /**
