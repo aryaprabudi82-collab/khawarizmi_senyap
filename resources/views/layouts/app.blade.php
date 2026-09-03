@@ -90,6 +90,19 @@
             <a class="nav-link" href="{{ route('reporting.dashboard') }}">Laporan</a>
           </li>
         @endcan
+        @canany(['ipsrs_barang', 'pengajuan_barang_nonmedis'])
+          <li class="nav-item dropdown {{ request()->routeIs('inventory.*') ? 'active' : '' }}">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Logistik</a>
+            <div class="dropdown-menu">
+              @can('ipsrs_barang')
+                <a class="dropdown-item" href="{{ route('inventory.index') }}">Barang</a>
+              @endcan
+              @can('pengajuan_barang_nonmedis')
+                <a class="dropdown-item" href="{{ route('inventory.permintaan.index') }}">Permintaan</a>
+              @endcan
+            </div>
+          </li>
+        @endcanany
         @canany(['insiden_keselamatan_pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi'])
           <li class="nav-item dropdown {{ request()->routeIs('quality.*') ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Mutu</a>

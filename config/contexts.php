@@ -189,6 +189,17 @@ return [
             'publishes'   => [],
         ],
 
+        'inventory' => [
+            'schema'      => 'inventory',
+            'module'      => 'Inventory',
+            'description' => 'Barang non-medis dan penunjang: master barang/suplier, pengajuan dari unit, dan buku '
+                . 'besar stok (masuk/keluar/opname). Domain E Khanza 31 kapabilitas, bersih tanpa mis-tagging — pola '
+                . 'arsitekturnya diturunkan langsung dari pharmacy.StockLedger (UPDATE bersyarat, ledger append-only), '
+                . 'tanpa kerumitan batch/kedaluwarsa yang tidak relevan untuk barang non-medis.',
+            'domains'     => ['E'],
+            'publishes'   => [],
+        ],
+
     ],
 
     /*
@@ -196,7 +207,6 @@ return [
     | supaya batasnya dipikirkan sejak awal, bukan ditemukan saat kepepet.
     */
     'planned' => [
-        'inventory'      => ['schema' => 'inventory',      'domains' => ['E'],      'description' => 'Barang non-medis dan penunjang.'],
         'asset'          => ['schema' => 'asset',          'domains' => ['G'],      'description' => 'Aset, inventaris, CSSD, pemeliharaan, kesehatan lingkungan.'],
         'blood'          => ['schema' => 'blood',          'domains' => ['N'],      'description' => 'Unit transfusi darah.'],
         'correspondence' => ['schema' => 'correspondence', 'domains' => ['P'],      'description' => 'Surat masuk, surat keluar, pengumuman e-pasien.'],

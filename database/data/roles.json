@@ -199,5 +199,16 @@
             "insiden_keselamatan_pasien",
             "pcra_icra_pengkajian_risiko_prakonstruksi"
         ]
+    },
+    {
+        "code": "petugas-logistik",
+        "name": "Petugas Logistik Non-Medis",
+        "description": "Master barang/kategori/suplier, stok masuk/opname, dan persetujuan permintaan barang dari unit.",
+        "_catatan_scope": "Domain E bersih — 31 kapabilitas semuanya memang milik inventory, tidak ada mis-tagging seperti domain C/M. Sengaja tetap 'contexts': [] dan bukan [\"inventory\"] karena sekitar 20 dari 31 kapabilitasnya adalah laporan (rekap_*, ringkasan_*, sirkulasi_*) yang belum ada layarnya di Wave 1 ini — extra_permissions dibatasi pada dua yang sudah dikerjakan.",
+        "contexts": [],
+        "extra_permissions": [
+            "ipsrs_barang",
+            "pengajuan_barang_nonmedis"
+        ]
     }
 ]
