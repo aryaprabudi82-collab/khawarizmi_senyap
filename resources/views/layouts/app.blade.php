@@ -96,7 +96,7 @@
           </li>
         @endcanany
 
-        @canany(['inventaris_inventaris', 'perbaikan_inventaris', 'ipsrs_barang', 'pengajuan_barang_nonmedis', 'utd_pendonor', 'utd_stok_darah'])
+        @canany(['inventaris_inventaris', 'perbaikan_inventaris', 'sirkulasi_cssd', 'ipsrs_barang', 'pengajuan_barang_nonmedis', 'utd_pendonor', 'utd_stok_darah'])
           <li class="nav-item dropdown {{ request()->routeIs(['asset.*', 'inventory.*', 'blood.*']) ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Penunjang</a>
             <div class="dropdown-menu">
@@ -105,6 +105,9 @@
               @endcan
               @can('perbaikan_inventaris')
                 <a class="dropdown-item" href="{{ route('asset.pemeliharaan.index') }}">Pemeliharaan Aset</a>
+              @endcan
+              @can('sirkulasi_cssd')
+                <a class="dropdown-item" href="{{ route('asset.cssd.index') }}">CSSD</a>
               @endcan
               @canany(['ipsrs_barang', 'pengajuan_barang_nonmedis'])
                 <div class="dropdown-divider"></div>

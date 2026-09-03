@@ -245,5 +245,15 @@
             "inventaris_inventaris",
             "perbaikan_inventaris"
         ]
+    },
+    {
+        "code": "petugas-cssd",
+        "name": "Petugas CSSD",
+        "description": "Sirkulasi set instrumen steril: terima kotor, proses, tandai steril, distribusikan.",
+        "_catatan_scope": "Peran terpisah dari petugas-aset meski satu domain G/konteks asset — CSSD di RS sungguhan biasanya unit kerja sendiri, bukan bagian IPSRS/pemeliharaan. barang_cssd (master set, domain G) belum jadi gerbang tersendiri di kode; sirkulasi_cssd sudah menggerbangi seluruh layar CSSD termasuk tambah set, konsisten dengan pola satu-gerbang-per-fitur di tempat lain.",
+        "contexts": [],
+        "extra_permissions": [
+            "sirkulasi_cssd"
+        ]
     }
 ]
