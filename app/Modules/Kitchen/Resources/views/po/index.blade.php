@@ -12,6 +12,12 @@
   @can('dapur_returbeli')
     <a href="{{ route('kitchen.retur.index') }}" class="btn btn-outline-primary">Retur</a>
   @endcan
+  @can('hibah_dapur')
+    <a href="{{ route('kitchen.hibah.index') }}" class="btn btn-outline-primary">Hibah</a>
+  @endcan
+  @can('rekap_pengadaan_dapur')
+    <a href="{{ route('kitchen.rekap.index') }}" class="btn btn-outline-primary">Rekap</a>
+  @endcan
 @endsection
 
 @section('content')

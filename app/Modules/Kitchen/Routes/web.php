@@ -1,6 +1,8 @@
 <?php
 
+use App\Modules\Kitchen\Http\Controllers\DonationController;
 use App\Modules\Kitchen\Http\Controllers\GoodsReceiptController;
+use App\Modules\Kitchen\Http\Controllers\KitchenRecapController;
 use App\Modules\Kitchen\Http\Controllers\MasterDataController;
 use App\Modules\Kitchen\Http\Controllers\PurchaseOrderController;
 use App\Modules\Kitchen\Http\Controllers\RequisitionController;
@@ -78,5 +80,17 @@ Route::middleware(['web', 'auth'])
         // sirkulasi_dapur2 — satu layar gabungan, lihat catatan migrasi
         // 2026_10_06_000001.
         Route::middleware('can:dapur_riwayat_barang')->get('/laporan', [StockReportController::class, 'index'])->name('laporan.index');
+
+        // Domain F item D (terakhir) — hibah barang & rekap gabungan.
+        // Lihat catatan migrasi 2026_10_07_000001.
+        Route::middleware('can:hibah_dapur')->prefix('hibah')->name('hibah.')->group(function () {
+            Route::get('/', [DonationController::class, 'index'])->name('index');
+            Route::post('/donor', [DonationController::class, 'storeDonor'])->name('donor.simpan');
+            Route::post('/', [DonationController::class, 'store'])->name('simpan');
+        });
+
+        // rekap_pengadaan_dapur menaungi 9 kode ringkasan/rekap lain —
+        // satu layar gabungan, lihat catatan migrasi 2026_10_07_000001.
+        Route::middleware('can:rekap_pengadaan_dapur')->get('/rekap', [KitchenRecapController::class, 'index'])->name('rekap.index');
 
     });
