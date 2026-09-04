@@ -6,6 +6,12 @@
 
 @section('actions')
   <a href="{{ route('kitchen.permintaan.index') }}" class="btn btn-link">Permintaan &rarr;</a>
+  @can('dapur_opname')
+    <a href="{{ route('kitchen.opname.index') }}" class="btn btn-outline-primary">Stok Opname</a>
+  @endcan
+  @can('dapur_riwayat_barang')
+    <a href="{{ route('kitchen.laporan.index') }}" class="btn btn-outline-primary">Riwayat &amp; Sirkulasi</a>
+  @endcan
 @endsection
 
 @section('content')

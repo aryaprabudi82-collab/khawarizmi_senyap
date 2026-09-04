@@ -4,6 +4,8 @@ use App\Modules\Kitchen\Http\Controllers\GoodsReceiptController;
 use App\Modules\Kitchen\Http\Controllers\MasterDataController;
 use App\Modules\Kitchen\Http\Controllers\PurchaseOrderController;
 use App\Modules\Kitchen\Http\Controllers\RequisitionController;
+use App\Modules\Kitchen\Http\Controllers\StockOpnameController;
+use App\Modules\Kitchen\Http\Controllers\StockReportController;
 use App\Modules\Kitchen\Http\Controllers\SupplierReturnController;
 use Illuminate\Support\Facades\Route;
 
@@ -60,5 +62,21 @@ Route::middleware(['web', 'auth'])
             Route::post('/', [SupplierReturnController::class, 'store'])->name('simpan');
             Route::post('/{retur}/selesai', [SupplierReturnController::class, 'complete'])->name('selesai');
         });
+
+        // Domain F item C — stok opname (sesi multi-barang, beda dari
+        // opname() ad-hoc di atas) & riwayat/sirkulasi barang. Lihat
+        // catatan migrasi 2026_10_06_000001.
+        Route::middleware('can:dapur_opname')->prefix('opname')->name('opname.')->group(function () {
+            Route::get('/', [StockOpnameController::class, 'index'])->name('index');
+            Route::get('/{opname}', [StockOpnameController::class, 'show'])->name('show');
+            Route::post('/', [StockOpnameController::class, 'store'])->name('simpan');
+            Route::post('/{opname}/hitung', [StockOpnameController::class, 'recordCount'])->name('hitung');
+            Route::post('/{opname}/selesai', [StockOpnameController::class, 'complete'])->name('selesai');
+        });
+
+        // dapur_riwayat_barang menaungi sirkulasi_dapur dan
+        // sirkulasi_dapur2 — satu layar gabungan, lihat catatan migrasi
+        // 2026_10_06_000001.
+        Route::middleware('can:dapur_riwayat_barang')->get('/laporan', [StockReportController::class, 'index'])->name('laporan.index');
 
     });
