@@ -1,0 +1,150 @@
+<?php
+
+namespace Tests\Feature\Pharmacy;
+
+use App\Modules\Catalog\Models\Payer;
+use App\Modules\Clinical\Database\Seeders\DiagnosisCodeSeeder;
+use App\Modules\Encounter\Models\Registration;
+use App\Modules\Encounter\Services\RegistrationService;
+use App\Modules\Identity\Services\PatientRegistry;
+use App\Modules\Organization\Models\Unit;
+use App\Modules\Pharmacy\Database\Seeders\PharmacySeeder;
+use App\Modules\Pharmacy\Models\Drug;
+use App\Modules\Pharmacy\Models\Prescription;
+use App\Modules\Pharmacy\Models\StockLocation;
+use App\Modules\Pharmacy\Services\DrugUsageReportService;
+use App\Modules\Pharmacy\Services\PharmacyRecapService;
+use App\Modules\Pharmacy\Services\PrescriptionService;
+use App\Modules\Pharmacy\Services\StockLedger;
+use App\Modules\Pharmacy\Services\WardStockRequestService;
+use App\Modules\Platform\Database\Seeders\PermissionCatalogSeeder;
+use App\Modules\Platform\Database\Seeders\RoleSeeder;
+use App\Modules\Platform\Models\Role;
+use App\Modules\Platform\Models\User;
+use Database\Seeders\ReferenceDataSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
+
+class DrugUsageReportTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private PrescriptionService $prescriptions;
+    private DrugUsageReportService $reports;
+    private PharmacyRecapService $recap;
+    private WardStockRequestService $wardRequests;
+
+    private User $apoteker;
+    private User $dokter;
+    private Drug $obat;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed([
+            PermissionCatalogSeeder::class, RoleSeeder::class, ReferenceDataSeeder::class,
+            DiagnosisCodeSeeder::class, PharmacySeeder::class,
+        ]);
+
+        $this->prescriptions = app(PrescriptionService::class);
+        $this->reports = app(DrugUsageReportService::class);
+        $this->recap = app(PharmacyRecapService::class);
+        $this->wardRequests = app(WardStockRequestService::class);
+
+        $this->apoteker = User::query()->create([
+            'username' => 'uji-laporan-obat', 'name' => 'Apoteker Uji', 'password' => 'password', 'is_active' => true,
+        ]);
+        $this->apoteker->roles()->attach(Role::query()->where('code', 'apoteker')->firstOrFail());
+
+        $this->dokter = User::query()->create([
+            'username' => 'uji-dokter-laporan-obat', 'name' => 'Dokter Uji', 'password' => 'password', 'is_active' => true,
+        ]);
+        $this->dokter->roles()->attach(Role::query()->where('code', 'dokter')->firstOrFail());
+
+        $this->obat = Drug::query()->where('code', 'OBT-001')->firstOrFail();
+    }
+
+    #[Test]
+    public function laporan_mengelompokkan_per_pasien_dokter_dan_unit(): void
+    {
+        $resep = $this->resepDiserahkan();
+
+        $perPasien = $this->reports->byPatient(now()->subDay()->toDateString(), now()->addDay()->toDateString());
+        $perDokter = $this->reports->byPrescriber(now()->subDay()->toDateString(), now()->addDay()->toDateString());
+        $perUnit = $this->reports->byUnit(now()->subDay()->toDateString(), now()->addDay()->toDateString());
+        $perObat = $this->reports->byDrug(now()->subDay()->toDateString(), now()->addDay()->toDateString());
+        $top10 = $this->reports->top10(now()->subDay()->toDateString(), now()->addDay()->toDateString());
+
+        $this->assertTrue($perPasien->contains(fn ($p) => $p->patient_mrn === $resep->patient_mrn));
+        // Registrasi uji tidak menetapkan practitioner_id, jadi prescriber_name null — dikelompokkan sebagai '—' (lihat coalesce di byPrescriber()).
+        $this->assertTrue($perDokter->contains(fn ($d) => $d->prescriber_name === ($resep->prescriber_name ?? '—')));
+        $this->assertTrue($perUnit->contains(fn ($u) => $u->unit_name === $resep->unit_name));
+        $this->assertTrue($perObat->contains(fn ($o) => $o->drug_name === $this->obat->name));
+        $this->assertTrue($top10->contains(fn ($t) => $t->drug_name === $this->obat->name));
+    }
+
+    #[Test]
+    public function biaya_per_tanggal_menjumlah_per_pasien_per_hari(): void
+    {
+        $resep = $this->resepDiserahkan();
+
+        $biaya = $this->reports->biayaPerTanggal(now()->subDay()->toDateString(), now()->addDay()->toDateString());
+
+        $baris = $biaya->firstWhere('patient_mrn', $resep->patient_mrn);
+        $this->assertNotNull($baris);
+        $this->assertGreaterThan(0, (float) $baris->total_biaya);
+    }
+
+    #[Test]
+    public function rekap_permintaan_ruangan_menghitung_status(): void
+    {
+        $unit = Unit::query()->where('code', 'FARMASI')->firstOrFail();
+        $permintaan = $this->wardRequests->request($unit->id, $unit->name, [$this->obat->id => 5], null, $this->apoteker->id);
+        $this->wardRequests->issue($permintaan, $this->apoteker);
+
+        $ringkasan = $this->recap->permintaanRuanganRingkasan(now()->subDay()->toDateString(), now()->addDay()->toDateString());
+
+        $this->assertSame(1, $ringkasan['jumlah']);
+        $this->assertSame(1, $ringkasan['jumlah_dikeluarkan']);
+    }
+
+    #[Test]
+    public function layar_laporan_penggunaan_obat_hanya_untuk_apoteker(): void
+    {
+        $this->actingAs($this->apoteker)->get(route('pharmacy.laporan-obat.index'))->assertOk();
+        $this->actingAs($this->dokter)->get(route('pharmacy.laporan-obat.index'))->assertForbidden();
+    }
+
+    private function resepDiserahkan(): Prescription
+    {
+        $depo = StockLocation::query()->where('code', 'DEPO-RJ')->firstOrFail();
+        app(StockLedger::class)->receive($this->obat->id, $depo->id, 'BATCH-LAPORAN-1', 50, now()->addYear()->toDateString(), 1500, $this->apoteker);
+
+        $registrasi = $this->daftarkan();
+        $resep = $this->prescriptions->create($registrasi->id, $this->dokter);
+
+        $this->prescriptions->addItem($resep, $this->obat->id, 2, '2x1 tablet');
+        $this->prescriptions->submit($resep->refresh());
+        $this->prescriptions->review($resep->refresh(), 'disetujui', null, $this->apoteker);
+
+        return $this->prescriptions->dispense($resep->refresh(), $depo->id, $this->apoteker);
+    }
+
+    private function daftarkan(string $nama = 'Pasien Laporan Obat'): Registration
+    {
+        static $urut = 0;
+        $urut++;
+
+        $pasien = app(PatientRegistry::class)->register([
+            'name' => $nama . ' ' . $urut, 'sex' => 'L', 'birth_date' => '1990-01-01',
+        ]);
+
+        return app(RegistrationService::class)->register(
+            patientId: $pasien->id,
+            unitId: Unit::query()->where('code', 'POL-UMUM')->value('id'),
+            payerId: Payer::query()->where('code', 'UMUM')->value('id'),
+        );
+    }
+}

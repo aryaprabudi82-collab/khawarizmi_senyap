@@ -23,6 +23,7 @@ class PharmacyRecapController
             'beriObat' => $this->recap->beriObatKeuntungan($dari, $sampai),
             'stokKeluar' => $this->recap->stokKeluarRingkasan($dari, $sampai),
             'hibah' => $this->recap->hibahRingkasan($dari, $sampai),
+            'permintaanRuangan' => $this->recap->permintaanRuanganRingkasan($dari, $sampai),
         ]);
     }
 }

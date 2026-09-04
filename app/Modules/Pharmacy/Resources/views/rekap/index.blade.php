@@ -6,11 +6,14 @@
 
 @section('actions')
   <a href="{{ route('pharmacy.penjualan.index') }}" class="btn btn-link">&larr; Penjualan</a>
+  @can('rekap_obat_pasien')
+    <a href="{{ route('pharmacy.laporan-obat.index') }}" class="btn btn-outline-primary">Laporan Penggunaan Obat</a>
+  @endcan
 @endsection
 
 @section('content')
 
-<p class="text-secondary small mb-3">Menaungi 9 kode Khanza (keuntungan_penjualan, keuntungan_beri_obat, keuntungan_beri_obat_nonpiutang, ringkasan_penjualan_obat, ringkasan_retur_pembeli_obat, ringkasan_piutang_obat, ringkasan_stok_keluar_obat, ringkasan_beri_obat, ringkasan_hibah_obat).</p>
+<p class="text-secondary small mb-3">Menaungi 10 kode Khanza (item 5: keuntungan_penjualan, keuntungan_beri_obat, keuntungan_beri_obat_nonpiutang, ringkasan_penjualan_obat, ringkasan_retur_pembeli_obat, ringkasan_piutang_obat, ringkasan_stok_keluar_obat, ringkasan_beri_obat, ringkasan_hibah_obat &middot; item 6: rekap_permintaan_medis).</p>
 
 <div class="card mb-3">
   <div class="card-body">
@@ -62,24 +65,31 @@
 </div>
 
 <div class="row row-deck row-cards mb-3">
-  <div class="col-6 col-md-4">
+  <div class="col-6 col-md-3">
     <div class="card"><div class="card-body py-3">
       <div class="text-secondary small">Omzet Resep Diserahkan</div>
       <div class="h2 mb-0">Rp {{ number_format($beriObat['omzet'], 0, ',', '.') }}</div>
       <div class="text-secondary small">{{ $beriObat['jumlah_resep'] }} resep</div>
     </div></div>
   </div>
-  <div class="col-6 col-md-4">
+  <div class="col-6 col-md-3">
     <div class="card"><div class="card-body py-3">
       <div class="text-secondary small">Untung Beri Obat <span class="text-secondary">(estimasi, HPP rata-rata batch aktif)</span></div>
       <div class="h2 mb-0 text-success">Rp {{ number_format($beriObat['untung'], 0, ',', '.') }}</div>
     </div></div>
   </div>
-  <div class="col-6 col-md-4">
+  <div class="col-6 col-md-3">
     <div class="card"><div class="card-body py-3">
       <div class="text-secondary small">Hibah Diterima</div>
       <div class="h2 mb-0">{{ $hibah['jumlah_penerimaan'] }}</div>
       <div class="text-secondary small">{{ rtrim(rtrim(number_format($hibah['jumlah_unit'], 2, ',', '.'), '0'), ',') }} unit</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card"><div class="card-body py-3">
+      <div class="text-secondary small">Permintaan Ruangan</div>
+      <div class="h2 mb-0">{{ $permintaanRuangan['jumlah'] }}</div>
+      <div class="text-secondary small">{{ $permintaanRuangan['jumlah_dikeluarkan'] }} sudah dikeluarkan</div>
     </div></div>
   </div>
 </div>

@@ -2,6 +2,7 @@
 
 use App\Modules\Pharmacy\Http\Controllers\DonationReceiptController;
 use App\Modules\Pharmacy\Http\Controllers\DrugRequisitionController;
+use App\Modules\Pharmacy\Http\Controllers\DrugUsageReportController;
 use App\Modules\Pharmacy\Http\Controllers\ExternalPrescriptionController;
 use App\Modules\Pharmacy\Http\Controllers\GoodsReceiptController;
 use App\Modules\Pharmacy\Http\Controllers\MasterDataController;
@@ -148,6 +149,13 @@ Route::middleware(['web', 'auth'])->group(function () {
     });
 
     Route::middleware('can:keuntungan_penjualan')->get('/farmasi/rekap', [PharmacyRecapController::class, 'index'])->name('pharmacy.rekap.index');
+
+    // Item 6 kode sisa — laporan penggunaan obat berbasis resep. Digerbangi
+    // rekap_obat_pasien, menaungi 5 kode lain (pengguna_obat_resep,
+    // obat_per_resep, obat10_terbanyak_poli, rekap_obat_poli,
+    // ringkasan_biaya_obat_pasien_pertanggal). Lihat catatan DrugUsageReportService
+    // untuk 5 kode item 6 yang TIDAK di sini (sudah terpenuhi layar lain).
+    Route::middleware('can:rekap_obat_pasien')->get('/farmasi/laporan-obat', [DrugUsageReportController::class, 'index'])->name('pharmacy.laporan-obat.index');
 
     Route::prefix('resep')->name('resep.')->group(function () {
         // Antrean farmasi dan rincian resep: apoteker maupun dokter penulis.

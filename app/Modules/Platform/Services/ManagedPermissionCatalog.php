@@ -40,7 +40,7 @@ class ManagedPermissionCatalog
         'pembayaran_ralan', 'pemeriksaan_lab_pa', 'penjualan_obat', 'pengadaan_obat', 'pengajuan_barang_medis', 'pengajuan_barang_nonmedis', 'pengajuan_cuti', 'pengeluaran_stok_apotek', 'pengumuman_epasien',
         'penggunaan_bhp_ok', 'penilaian_awal_medis_ralan', 'perbaikan_inventaris', 'periksa_lab', 'periksa_radiologi',
         'peristiwa_k3rs', 'perkiraan_biaya_ranap', 'permintaan_stok_obat_pasien', 'persetujuan_penolakan_tindakan', 'presensi_harian', 'registrasi',
-        'rekap_kunjungan', 'resep_luar', 'resep_obat', 'retur_ke_suplier', 'retur_obat_ranap', 'rujukan_keluar', 'satu_sehat_kirim_condition', 'satu_sehat_kirim_encounter',
+        'rekap_kunjungan', 'rekap_obat_pasien', 'resep_luar', 'resep_obat', 'retur_ke_suplier', 'retur_obat_ranap', 'rujukan_keluar', 'satu_sehat_kirim_condition', 'satu_sehat_kirim_encounter',
         'satu_sehat_mapping_lokasi', 'satu_sehat_referensi_dokter', 'satu_sehat_referensi_pasien',
         'permintaan_ranap', 'sirkulasi_cssd', 'sisa_stok', 'skp_penilaian', 'stok_opname_obat', 'surat_keterangan_sehat', 'surat_masuk',
         'tarif_ralan', 'telaah_resep', 'tindakan_ranap', 'utd_pendonor', 'utd_penyerahan_darah', 'utd_stok_darah',

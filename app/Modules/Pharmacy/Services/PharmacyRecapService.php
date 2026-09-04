@@ -7,11 +7,11 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Layar gabungan "Rekap Penjualan & Untung Farmasi" — menaungi 9 kode
- * Khanza yang semuanya laporan: keuntungan_penjualan, keuntungan_beri_obat,
- * keuntungan_beri_obat_nonpiutang, ringkasan_penjualan_obat,
- * ringkasan_retur_pembeli_obat, ringkasan_piutang_obat,
- * ringkasan_stok_keluar_obat, ringkasan_beri_obat, ringkasan_hibah_obat.
- * Digerbangi keuntungan_penjualan (item 5 juga, PharmacyRecapController).
+ * Khanza item 5 yang semuanya laporan: keuntungan_penjualan,
+ * keuntungan_beri_obat, keuntungan_beri_obat_nonpiutang,
+ * ringkasan_penjualan_obat, ringkasan_retur_pembeli_obat,
+ * ringkasan_piutang_obat, ringkasan_stok_keluar_obat, ringkasan_beri_obat,
+ * ringkasan_hibah_obat. Digerbangi keuntungan_penjualan (PharmacyRecapController).
  *
  * beriObatKeuntungan() adalah pendekatan Wave 1 yang disengaja: resep
  * tidak menyimpan snapshot HPP per baris (beda dari retail_sale_items
@@ -21,6 +21,18 @@ use Illuminate\Support\Facades\DB;
  * penjamin kunjungan (Umum/bayar sendiri dianggap padanan "nonpiutang",
  * penjamin lain padanan "piutang" karena ditagih belakangan) — bukan
  * status piutang literal, resep tidak punya konsep piutang sendiri.
+ *
+ * Item 6 (terakhir domain D) menambah permintaanRuanganRingkasan()
+ * (rekap_permintaan_medis) ke layar yang sama. 3 kode item 6 lain
+ * (pemberian_obat_pertanggal, penjualan_obat_pertanggal,
+ * riwayat_obat_alkes_bhp) TIDAK menambah method — sudah cukup lewat
+ * StockReportService::circulation()/balanceAsOf() (item 3, sudah
+ * menerima filter tanggal/obat) dan penjualanRingkasan() di atas
+ * (sudah menerima rentang tanggal, tinggal set dari=sampai=satu hari).
+ * kegiatan_farmasi juga TIDAK menambah kode — sudah tercakup gabungan
+ * listing tiap layar transaksi farmasi yang sudah ada (resep, penjualan,
+ * permintaan ruangan/pasien, penerimaan, dst.), bukan dashboard
+ * tersendiri. Keputusan ini dikonfirmasi user, lihat memory.
  */
 class PharmacyRecapService
 {
@@ -116,6 +128,27 @@ class PharmacyRecapService
         return [
             'jumlah_penerimaan' => (int) $hasil->jumlah_penerimaan,
             'jumlah_unit' => (float) $hasil->jumlah_unit,
+        ];
+    }
+
+    /**
+     * rekap_permintaan_medis (item 6) — ringkasan permintaan stok
+     * ruangan/departemen (ward_stock_requests, item 4), dikelompokkan
+     * per status. WardStockRequestController::index() sudah menampilkan
+     * daftarnya; ini tambahan ringkasan angka, bukan tabel baru.
+     */
+    public function permintaanRuanganRingkasan(string $dari, string $sampai): array
+    {
+        $akhir = $sampai . ' 23:59:59';
+
+        $hasil = DB::table('pharmacy.ward_stock_requests')
+            ->whereBetween('created_at', [$dari, $akhir])
+            ->selectRaw("count(*) as jumlah, count(*) filter (where status = 'dikeluarkan') as jumlah_dikeluarkan")
+            ->first();
+
+        return [
+            'jumlah' => (int) $hasil->jumlah,
+            'jumlah_dikeluarkan' => (int) $hasil->jumlah_dikeluarkan,
         ];
     }
 }
