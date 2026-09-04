@@ -116,6 +116,37 @@ class AssetTest extends TestCase
     }
 
     #[Test]
+    public function aset_bisa_dikaitkan_ke_jenis_dan_produsen(): void
+    {
+        $kategori = $this->assets->createCategory(['code' => 'MEB', 'name' => 'Alat Medis']);
+        $jenis = $this->assets->createType(['code' => 'DIAG', 'name' => 'Alat Diagnostik']);
+        $produsen = $this->assets->createManufacturer(['code' => 'GE', 'name' => 'GE Healthcare']);
+
+        $aset = $this->assets->createAsset([
+            'name' => 'USG Portable', 'category_id' => $kategori->id, 'type_id' => $jenis->id, 'manufacturer_id' => $produsen->id,
+        ]);
+
+        $this->assertSame($jenis->id, $aset->type_id);
+        $this->assertSame($produsen->id, $aset->manufacturer_id);
+        $this->assertSame('Alat Diagnostik', $aset->type->name);
+        $this->assertSame('GE Healthcare', $aset->manufacturer->name);
+    }
+
+    #[Test]
+    public function jenis_dan_produsen_bisa_ditambah_lewat_http(): void
+    {
+        $this->actingAs($this->petugas)->post(route('asset.jenis.simpan'), [
+            'code' => 'DIAG', 'name' => 'Alat Diagnostik',
+        ])->assertRedirect();
+        $this->assertDatabaseHas('asset.types', ['code' => 'DIAG']);
+
+        $this->actingAs($this->petugas)->post(route('asset.produsen.simpan'), [
+            'code' => 'GE', 'name' => 'GE Healthcare',
+        ])->assertRedirect();
+        $this->assertDatabaseHas('asset.manufacturers', ['code' => 'GE']);
+    }
+
+    #[Test]
     public function layar_aset_hanya_untuk_petugas_aset(): void
     {
         $this->actingAs($this->petugas)->get(route('asset.index'))->assertOk();

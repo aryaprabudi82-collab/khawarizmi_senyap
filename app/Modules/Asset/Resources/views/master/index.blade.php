@@ -59,6 +59,22 @@
               @endforeach
             </select>
           </div>
+          <div class="col-6 col-md-2">
+            <select name="type_id" class="form-select form-select-sm">
+              <option value="">— jenis —</option>
+              @foreach ($jenis as $j)
+                <option value="{{ $j->id }}">{{ $j->name }}</option>
+              @endforeach
+            </select>
+          </div>
+          <div class="col-6 col-md-2">
+            <select name="manufacturer_id" class="form-select form-select-sm">
+              <option value="">— produsen —</option>
+              @foreach ($produsen as $p)
+                <option value="{{ $p->id }}">{{ $p->name }}</option>
+              @endforeach
+            </select>
+          </div>
           <div class="col-6 col-md-2"><input type="text" name="brand" class="form-control form-control-sm" placeholder="Merk"></div>
           <div class="col-6 col-md-2"><input type="date" name="acquisition_date" class="form-control form-control-sm"></div>
           <div class="col-6 col-md-1"><button class="btn btn-sm btn-outline-primary w-100">+</button></div>
@@ -115,6 +131,54 @@
         </form>
       </div>
     </div>
+
+    <div class="card mt-3">
+      <div class="card-header"><h3 class="card-title">Jenis</h3></div>
+      <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+          <thead><tr><th>Kode</th><th>Nama</th></tr></thead>
+          <tbody>
+            @forelse ($jenis as $j)
+              <tr><td class="font-monospace small">{{ $j->code }}</td><td>{{ $j->name }}</td></tr>
+            @empty
+              <tr><td colspan="2" class="text-center text-secondary py-3">Belum ada jenis.</td></tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+      <div class="card-body border-top">
+        <form method="POST" action="{{ route('asset.jenis.simpan') }}" class="row g-2">
+          @csrf
+          <div class="col-5"><input type="text" name="code" class="form-control form-control-sm" placeholder="Kode" required></div>
+          <div class="col-5"><input type="text" name="name" class="form-control form-control-sm" placeholder="Nama" required></div>
+          <div class="col-2"><button class="btn btn-sm btn-outline-primary w-100">+</button></div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header"><h3 class="card-title">Produsen</h3></div>
+      <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+          <thead><tr><th>Kode</th><th>Nama</th></tr></thead>
+          <tbody>
+            @forelse ($produsen as $p)
+              <tr><td class="font-monospace small">{{ $p->code }}</td><td>{{ $p->name }}</td></tr>
+            @empty
+              <tr><td colspan="2" class="text-center text-secondary py-3">Belum ada produsen.</td></tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+      <div class="card-body border-top">
+        <form method="POST" action="{{ route('asset.produsen.simpan') }}" class="row g-2">
+          @csrf
+          <div class="col-5"><input type="text" name="code" class="form-control form-control-sm" placeholder="Kode" required></div>
+          <div class="col-5"><input type="text" name="name" class="form-control form-control-sm" placeholder="Nama" required></div>
+          <div class="col-2"><button class="btn btn-sm btn-outline-primary w-100">+</button></div>
+        </form>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -140,6 +204,24 @@
               <option value="">—</option>
               @foreach ($lokasi as $l)
                 <option value="{{ $l->id }}" @selected($a->location_id === $l->id)>{{ $l->name }}</option>
+              @endforeach
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Jenis</label>
+            <select name="type_id" class="form-select">
+              <option value="">—</option>
+              @foreach ($jenis as $j)
+                <option value="{{ $j->id }}" @selected($a->type_id === $j->id)>{{ $j->name }}</option>
+              @endforeach
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Produsen</label>
+            <select name="manufacturer_id" class="form-select">
+              <option value="">—</option>
+              @foreach ($produsen as $p)
+                <option value="{{ $p->id }}" @selected($a->manufacturer_id === $p->id)>{{ $p->name }}</option>
               @endforeach
             </select>
           </div>

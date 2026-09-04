@@ -315,8 +315,8 @@
     {
         "code": "petugas-aset",
         "name": "Petugas Aset & Pemeliharaan",
-        "description": "Registri aset/inventaris dan alur permintaan perbaikan.",
-        "_catatan_scope": "Domain G Khanza 27 kapabilitas menggabungkan 4 area (aset/inventaris umum, CSSD, pemeliharaan, kesehatan lingkungan) — hanya aset/inventaris umum dan pemeliharaan yang digarap wave ini. extra_permissions dibatasi pada dua yang sudah dikerjakan.",
+        "description": "Registri aset/inventaris (kategori/lokasi/jenis/produsen) dan alur permintaan perbaikan.",
+        "_catatan_scope": "Domain G Khanza 27 kapabilitas menggabungkan 4 area (aset/inventaris umum, CSSD, pemeliharaan, kesehatan lingkungan). Catatan ini SEBELUMNYA salah menyebut CSSD dan kesling 'belum digarap' — keduanya sudah lengkap sejak awal, cuma dipegang peran terpisah (petugas-cssd, petugas-kesling), diperbaiki 2026-10 setelah diverifikasi ulang. Yang genuinely masih kurang di area aset/inventaris sendiri (ditemukan lewat audit yang sama): rantai pengadaan (pengajuan/suplier/PO/penerimaan/hibah/rekap), sirkulasi antar lokasi, dan pemeliharaan terjadwal — diperluas dengan rigor yang sama seperti domain D/E/F, 4 item sub-order. Item A (data master) ditambahkan 2026-10: inventaris_jenis dan inventaris_produsen sebelumnya tidak punya tabel master sama sekali (beda dari kategori/lokasi yang sudah ada sejak Wave 1) — ditambahkan asset.types/asset.manufacturers, dilebur ke gerbang inventaris_inventaris yang sudah ada (bukan gerbang literal terpisah, umbrella-gate, sama seperti kategori/lokasi). inventaris_merk TETAP kolom teks bebas assets.brand, tidak dapat tabel master. Item B/C/D (rantai pengadaan, sirkulasi antar lokasi, pemeliharaan terjadwal) menyusul.",
         "contexts": [],
         "extra_permissions": [
             "inventaris_inventaris",

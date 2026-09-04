@@ -5,6 +5,8 @@ namespace App\Modules\Asset\Services;
 use App\Modules\Asset\Models\Asset;
 use App\Modules\Asset\Models\AssetCategory;
 use App\Modules\Asset\Models\AssetLocation;
+use App\Modules\Asset\Models\AssetManufacturer;
+use App\Modules\Asset\Models\AssetType;
 
 class AssetService
 {
@@ -35,5 +37,15 @@ class AssetService
     public function createLocation(array $data): AssetLocation
     {
         return AssetLocation::query()->create($data + ['is_active' => true]);
+    }
+
+    public function createType(array $data): AssetType
+    {
+        return AssetType::query()->create($data + ['is_active' => true]);
+    }
+
+    public function createManufacturer(array $data): AssetManufacturer
+    {
+        return AssetManufacturer::query()->create($data + ['is_active' => true]);
     }
 }

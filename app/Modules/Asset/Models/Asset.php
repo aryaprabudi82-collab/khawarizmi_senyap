@@ -37,4 +37,14 @@ class Asset extends Model
     {
         return $this->belongsTo(AssetLocation::class, 'location_id');
     }
+
+    public function type(): BelongsTo
+    {
+        return $this->belongsTo(AssetType::class, 'type_id');
+    }
+
+    public function manufacturer(): BelongsTo
+    {
+        return $this->belongsTo(AssetManufacturer::class, 'manufacturer_id');
+    }
 }

@@ -17,6 +17,10 @@ Route::middleware(['web', 'auth'])
             Route::post('/aset/{aset}', [MasterDataController::class, 'updateAsset'])->name('aset.perbarui');
             Route::post('/kategori', [MasterDataController::class, 'storeCategory'])->name('kategori.simpan');
             Route::post('/lokasi', [MasterDataController::class, 'storeLocation'])->name('lokasi.simpan');
+            // Domain G item A — inventaris_jenis, inventaris_produsen. Lihat
+            // catatan migrasi 2026_10_08_000001.
+            Route::post('/jenis', [MasterDataController::class, 'storeType'])->name('jenis.simpan');
+            Route::post('/produsen', [MasterDataController::class, 'storeManufacturer'])->name('produsen.simpan');
         });
 
         Route::middleware('can:perbaikan_inventaris')->prefix('pemeliharaan')->name('pemeliharaan.')->group(function () {

@@ -9,7 +9,13 @@ use Illuminate\Support\Facades\Schema;
  * Konteks asset: registri aset/inventaris dan alur permintaan perbaikan.
  *
  * CSSD dan kesehatan lingkungan (limbah, mutu air, pest control) belum
- * digarap di sini — lihat catatan di config/contexts.php.
+ * digarap DI MIGRASI INI — ditambahkan belakangan lewat
+ * 2026_09_02_000001 (CSSD) dan 2026_09_03_000001 (kesling), keduanya
+ * genuinely lengkap. Catatan ini sebelumnya dibaca seolah CSSD/kesling
+ * belum digarap SAMA SEKALI — diperjelas 2026-10 setelah audit ulang
+ * domain G menemukan itu bukan gapnya; gap sungguhan ada di rantai
+ * pengadaan/sirkulasi/pemeliharaan terjadwal aset (lihat migrasi
+ * 2026_10_08 dst.).
  */
 return new class extends Migration
 {
