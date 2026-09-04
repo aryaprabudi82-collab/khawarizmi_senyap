@@ -6,6 +6,9 @@
 
 @section('actions')
   <a href="{{ route('asset.pemeliharaan.index') }}" class="btn btn-link">Pemeliharaan &rarr;</a>
+  @can('pengajuan_asetinventaris')
+    <a href="{{ route('asset.pengajuan.index') }}" class="btn btn-outline-primary">Pengajuan</a>
+  @endcan
 @endsection
 
 @section('content')

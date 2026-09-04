@@ -1,5 +1,9 @@
 <?php
 
+use App\Modules\Asset\Http\Controllers\AssetDonationController;
+use App\Modules\Asset\Http\Controllers\AssetGoodsReceiptController;
+use App\Modules\Asset\Http\Controllers\AssetPurchaseOrderController;
+use App\Modules\Asset\Http\Controllers\AssetRequisitionController;
 use App\Modules\Asset\Http\Controllers\CssdController;
 use App\Modules\Asset\Http\Controllers\EnvironmentalHealthController;
 use App\Modules\Asset\Http\Controllers\MaintenanceController;
@@ -44,6 +48,40 @@ Route::middleware(['web', 'auth'])
             Route::get('/', [EnvironmentalHealthController::class, 'index'])->name('index');
             Route::post('/pengukuran', [EnvironmentalHealthController::class, 'storeMeasurement'])->name('pengukuran.simpan');
             Route::post('/pest-control', [EnvironmentalHealthController::class, 'storePestControl'])->name('pest-control.simpan');
+        });
+
+        // Domain G item B — rantai pengadaan aset. Lihat catatan migrasi
+        // 2026_10_09_000001_create_asset_procurement_tables. Satu gerbang
+        // pengajuan_asetinventaris juga menaungi rekap_pengajuan_aset_
+        // departemen (tab rekap di layar yang sama, cuma 1 kode).
+        Route::middleware('can:pengajuan_asetinventaris')->prefix('pengajuan')->name('pengajuan.')->group(function () {
+            Route::get('/', [AssetRequisitionController::class, 'index'])->name('index');
+            Route::post('/', [AssetRequisitionController::class, 'store'])->name('simpan');
+            Route::post('/{pengajuan}/setuju', [AssetRequisitionController::class, 'approve'])->name('setuju');
+            Route::post('/{pengajuan}/tolak', [AssetRequisitionController::class, 'reject'])->name('tolak');
+        });
+
+        Route::middleware('can:pengadaan_aset_inventaris')->prefix('po')->name('po.')->group(function () {
+            Route::get('/', [AssetPurchaseOrderController::class, 'index'])->name('index');
+            Route::get('/{po}', [AssetPurchaseOrderController::class, 'show'])->name('show');
+            Route::post('/', [AssetPurchaseOrderController::class, 'store'])->name('simpan');
+            Route::post('/{po}/kirim', [AssetPurchaseOrderController::class, 'submit'])->name('kirim');
+            Route::post('/{po}/batal', [AssetPurchaseOrderController::class, 'cancel'])->name('batal');
+        });
+
+        // suplier_inventaris — kode Khanza tersendiri (beda dari domain
+        // E/F yang tidak punya padanan), gerbang literal terpisah.
+        Route::middleware('can:suplier_inventaris')->post('/suplier', [AssetPurchaseOrderController::class, 'storeSupplier'])->name('suplier.simpan');
+
+        // penerimaan_aset_inventaris — satu gerbang sama dengan pengadaan
+        // (peran yang sama menerima barang yang dipesannya, RS kecil ini
+        // tidak memisahkan petugas gudang dari pemesan).
+        Route::middleware('can:penerimaan_aset_inventaris')->post('/penerimaan/po/{po}', [AssetGoodsReceiptController::class, 'store'])->name('penerimaan.simpan');
+
+        Route::middleware('can:hibah_aset_inventaris')->prefix('hibah')->name('hibah.')->group(function () {
+            Route::get('/', [AssetDonationController::class, 'index'])->name('index');
+            Route::post('/donor', [AssetDonationController::class, 'storeDonor'])->name('donor.simpan');
+            Route::post('/', [AssetDonationController::class, 'store'])->name('simpan');
         });
 
     });
