@@ -3,6 +3,7 @@
 use App\Modules\Quality\Http\Controllers\IcraController;
 use App\Modules\Quality\Http\Controllers\IncidentController;
 use App\Modules\Quality\Http\Controllers\K3IncidentController;
+use App\Modules\Quality\Http\Controllers\K3RecapController;
 use App\Modules\Quality\Http\Controllers\PpiAuditController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,5 +37,7 @@ Route::middleware(['web', 'auth'])
             Route::post('/{insiden}/tinjau', [K3IncidentController::class, 'review'])->name('tinjau');
             Route::post('/{insiden}/tutup', [K3IncidentController::class, 'close'])->name('tutup');
         });
+
+        Route::middleware('can:jenis_cidera_k3rstahun')->get('/k3/rekap', [K3RecapController::class, 'index'])->name('k3.rekap');
 
     });

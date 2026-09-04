@@ -91,6 +91,7 @@ class PpiK3Test extends TestCase
     {
         $this->actingAs($this->adminMutu)->get(route('quality.ppi.index'))->assertOk();
         $this->actingAs($this->adminMutu)->get(route('quality.k3.index'))->assertOk();
+        $this->actingAs($this->adminMutu)->get(route('quality.k3.rekap'))->assertOk();
 
         $dokter = User::query()->create([
             'username' => 'uji-dokter-ppi', 'name' => 'Dokter Uji', 'password' => 'password', 'is_active' => true,
@@ -98,6 +99,33 @@ class PpiK3Test extends TestCase
         $dokter->roles()->attach(Role::query()->where('code', 'dokter')->firstOrFail());
 
         $this->actingAs($dokter)->get(route('quality.k3.index'))->assertForbidden();
+        $this->actingAs($dokter)->get(route('quality.k3.rekap'))->assertForbidden();
+    }
+
+    #[Test]
+    public function rekap_tahunan_k3_mengelompokkan_per_dimensi_dan_tahun(): void
+    {
+        $this->laporkan();
+        $insidenLama = $this->k3->report([
+            'occurred_at' => now()->subYear(),
+            'location' => 'Gudang Farmasi',
+            'body_part' => 'Punggung',
+            'injury_impact' => 'Nyeri otot',
+            'injury_type' => 'Terkilir',
+            'job_type' => 'Petugas Gudang',
+            'cause' => 'Mengangkat beban berat sendirian',
+            'description' => 'Petugas gudang cedera punggung saat memindahkan dus obat.',
+        ], $this->adminMutu->id);
+
+        $tahunIni = $this->k3->yearlyRecap((int) now()->year);
+        $tahunLalu = $this->k3->yearlyRecap((int) $insidenLama->occurred_at->year);
+
+        $this->assertSame(1, $tahunIni['total']);
+        $this->assertSame(1, $tahunIni['jenis_cidera']['Tertusuk jarum bekas'] ?? 0);
+        $this->assertArrayNotHasKey('Terkilir', $tahunIni['jenis_cidera']->toArray());
+
+        $this->assertSame(1, $tahunLalu['total']);
+        $this->assertSame(1, $tahunLalu['penyebab']['Mengangkat beban berat sendirian'] ?? 0);
     }
 
     private function laporkan(): K3Incident

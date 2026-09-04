@@ -6,6 +6,9 @@
 
 @section('actions')
   <a href="{{ route('quality.ppi.index') }}" class="btn btn-link">&larr; Audit PPI</a>
+  @can('jenis_cidera_k3rstahun')
+    <a href="{{ route('quality.k3.rekap') }}" class="btn btn-outline-primary">Rekap Tahunan</a>
+  @endcan
 @endsection
 
 @section('content')

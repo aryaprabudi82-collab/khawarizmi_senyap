@@ -52,4 +52,36 @@ class K3IncidentService
 
         return $incident->refresh();
     }
+
+    /**
+     * jenis_cidera_k3rstahun (dan 6 kode "X Per Tahun" saudaranya —
+     * dampak_cidera/jenis_luka/jenis_pekerjaan/lokasi_kejadian/penyebab/
+     * bagian_tubuh_k3rstahun) di Khanza masing-masing menu rekap tahunan
+     * terpisah per dimensi. Di sini digabung satu layar, dikelompokkan
+     * langsung dari kolom teks bebas yang sudah ada di k3_incidents
+     * (lihat catatan migrasi quality.k3_incidents) — bukan dari tabel
+     * referensi terkendali, jadi kategori yang tampil persis apa yang
+     * ditulis petugas saat lapor, bukan daftar baku.
+     */
+    public function yearlyRecap(int $year): array
+    {
+        $dasar = K3Incident::query()->whereYear('occurred_at', $year);
+
+        $kelompokkan = fn (string $kolom) => (clone $dasar)
+            ->selectRaw("{$kolom} as label, count(*) as jumlah")
+            ->groupBy('label')
+            ->orderByDesc('jumlah')
+            ->pluck('jumlah', 'label');
+
+        return [
+            'total' => (clone $dasar)->count(),
+            'per_status' => (clone $dasar)->selectRaw('status, count(*) as jumlah')->groupBy('status')->pluck('jumlah', 'status'),
+            'jenis_cidera' => $kelompokkan('injury_type'),
+            'dampak_cidera' => $kelompokkan('injury_impact'),
+            'bagian_tubuh' => $kelompokkan('body_part'),
+            'jenis_pekerjaan' => $kelompokkan('job_type'),
+            'lokasi_kejadian' => $kelompokkan('location'),
+            'penyebab' => $kelompokkan('cause'),
+        ];
+    }
 }
