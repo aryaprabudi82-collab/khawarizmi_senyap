@@ -50,11 +50,12 @@ class MasterDataController
             'is_psychotropic' => ['nullable', 'boolean'],
             'is_high_alert' => ['nullable', 'boolean'],
             'sell_price' => ['required', 'numeric', 'min:0'],
+            'vat_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'minimum_stock' => ['nullable', 'numeric', 'min:0'],
         ], [], [
             'code' => 'kode', 'name' => 'nama', 'category' => 'jenis', 'drug_category_id' => 'kategori',
             'drug_class_id' => 'golongan', 'manufacturer_id' => 'industri farmasi', 'unit' => 'satuan dasar',
-            'sell_price' => 'harga jual', 'minimum_stock' => 'stok minimum',
+            'sell_price' => 'harga jual', 'vat_rate' => 'tarif PPN', 'minimum_stock' => 'stok minimum',
         ]);
 
         foreach (['requires_prescription', 'is_narcotic', 'is_psychotropic', 'is_high_alert'] as $flag) {

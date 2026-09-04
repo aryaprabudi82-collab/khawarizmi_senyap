@@ -26,6 +26,11 @@ class StockBatch extends Model
         return $this->belongsTo(Drug::class);
     }
 
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(StockLocation::class);
+    }
+
     /**
      * Urutan pengambilan FEFO: yang paling dekat kedaluwarsa keluar lebih dulu.
      * Batch tanpa tanggal kedaluwarsa diletakkan paling belakang.

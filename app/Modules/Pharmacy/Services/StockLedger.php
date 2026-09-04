@@ -29,7 +29,9 @@ use Illuminate\Support\Facades\DB;
 class StockLedger
 {
     /**
-     * Menambah stok masuk. Batch dibuat bila belum ada.
+     * Menambah stok masuk. Batch dibuat bila belum ada. $kind default
+     * 'masuk' (penerimaan dari suplier); StockTransferService memakai
+     * 'mutasi-masuk' untuk sisi tujuan mutasi antar lokasi.
      */
     public function receive(
         int $drugId,
@@ -40,13 +42,16 @@ class StockLedger
         float $costPrice = 0,
         ?User $actor = null,
         ?string $note = null,
+        string $kind = 'masuk',
+        ?string $referenceType = null,
+        ?int $referenceId = null,
     ): StockBatch {
         if ($quantity <= 0) {
             throw new PharmacyException('Jumlah barang masuk harus lebih dari nol.');
         }
 
         return DB::transaction(function () use (
-            $drugId, $locationId, $batchNumber, $quantity, $expiryDate, $costPrice, $actor, $note
+            $drugId, $locationId, $batchNumber, $quantity, $expiryDate, $costPrice, $actor, $note, $kind, $referenceType, $referenceId
         ): StockBatch {
             $batch = StockBatch::query()->firstOrCreate(
                 ['drug_id' => $drugId, 'location_id' => $locationId, 'batch_number' => $batchNumber],
@@ -61,7 +66,7 @@ class StockLedger
                 [$quantity, $batch->id]
             );
 
-            $this->log($batch, 'masuk', $quantity, (float) $row->quantity_on_hand, null, null, $note, $actor);
+            $this->log($batch, $kind, $quantity, (float) $row->quantity_on_hand, $referenceType, $referenceId, $note, $actor);
 
             return $batch->refresh();
         });
@@ -155,12 +160,13 @@ class StockLedger
     }
 
     /**
-     * Mengurangi stok satu batch tertentu secara langsung, mis. saat retur
-     * ke suplier — beda dari issue() yang FEFO lintas batch, di sini batch
-     * memang harus yang persis sama dengan yang diterima (barang cacat
-     * ditelusuri sampai batch aslinya). Guard atomik sama seperti issue():
-     * kalah balapan berarti nol baris terpengaruh, ditolak alih-alih
-     * membuat saldo minus.
+     * Mengurangi stok satu batch tertentu secara langsung — dipakai retur
+     * ke suplier ($kind default 'retur-keluar') maupun sisi keluar mutasi
+     * antar lokasi ($kind 'mutasi-keluar', lihat StockTransferService).
+     * Beda dari issue() yang FEFO lintas batch: di sini batch memang harus
+     * yang persis sama (barang cacat/dipindah ditelusuri sampai batch
+     * aslinya). Guard atomik sama seperti issue(): kalah balapan berarti
+     * nol baris terpengaruh, ditolak alih-alih membuat saldo minus.
      */
     public function deductFromBatch(
         int $batchId,
@@ -169,12 +175,13 @@ class StockLedger
         ?int $referenceId = null,
         ?User $actor = null,
         ?string $note = null,
+        string $kind = 'retur-keluar',
     ): void {
         if ($quantity <= 0) {
             throw new PharmacyException('Jumlah yang dikurangi harus lebih dari nol.');
         }
 
-        DB::transaction(function () use ($batchId, $quantity, $referenceType, $referenceId, $actor, $note): void {
+        DB::transaction(function () use ($batchId, $quantity, $referenceType, $referenceId, $actor, $note, $kind): void {
             $batch = StockBatch::query()->findOrFail($batchId);
 
             $row = DB::selectOne(
@@ -193,7 +200,7 @@ class StockLedger
                 ));
             }
 
-            $this->log($batch, 'retur-keluar', -$quantity, (float) $row->quantity_on_hand, $referenceType, $referenceId, $note, $actor);
+            $this->log($batch, $kind, -$quantity, (float) $row->quantity_on_hand, $referenceType, $referenceId, $note, $actor);
         });
     }
 

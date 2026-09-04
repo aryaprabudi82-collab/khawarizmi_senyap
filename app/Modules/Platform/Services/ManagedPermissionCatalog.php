@@ -32,7 +32,7 @@ class ManagedPermissionCatalog
     private const MANAGED_CODES = [
         'audit_kepatuhan_apd', 'barcoderalan', 'barcoderanap', 'bayar_pemesanan_obat', 'bayar_piutang', 'beri_obat', 'booking_mcu_perusahaan', 'booking_operasi', 'bpjs_cek_kartu', 'bpjs_sep', 'deposit_pasien', 'diet_pasien',
         'igd', 'insiden_keselamatan_pasien', 'inventaris_inventaris', 'ipsrs_barang', 'jadwal_pegawai', 'jenis_cidera_k3rstahun', 'layanan_program_kfr', 'limbah_b3_medis',
-        'mapping_poli_bpjs', 'obat', 'operasi', 'pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi', 'pegawai_user',
+        'mapping_poli_bpjs', 'mutasi_barang', 'obat', 'operasi', 'pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi', 'pegawai_user',
         'pelanggan_lab_kesehatan_lingkungan', 'pemesanan_obat', 'penugasan_pengujian_sampel_lab_kesehatan_lingkungan',
         'permintaan_pengujian_sampel_lab_kesehatan_lingkungan', 'hasil_pengujian_sampel_lab_kesehatan_lingkungan',
         'verifikasi_pengujian_sampel_lab_kesehatan_lingkungan', 'validasi_pengujian_sampel_lab_kesehatan_lingkungan',
@@ -42,7 +42,7 @@ class ManagedPermissionCatalog
         'peristiwa_k3rs', 'perkiraan_biaya_ranap', 'persetujuan_penolakan_tindakan', 'presensi_harian', 'registrasi',
         'rekap_kunjungan', 'resep_obat', 'retur_ke_suplier', 'rujukan_keluar', 'satu_sehat_kirim_condition', 'satu_sehat_kirim_encounter',
         'satu_sehat_mapping_lokasi', 'satu_sehat_referensi_dokter', 'satu_sehat_referensi_pasien',
-        'permintaan_ranap', 'sirkulasi_cssd', 'skp_penilaian', 'surat_keterangan_sehat', 'surat_masuk',
+        'permintaan_ranap', 'sirkulasi_cssd', 'sisa_stok', 'skp_penilaian', 'stok_opname_obat', 'surat_keterangan_sehat', 'surat_masuk',
         'tarif_ralan', 'telaah_resep', 'tindakan_ranap', 'utd_pendonor', 'utd_penyerahan_darah', 'utd_stok_darah',
         'user', 'verifikasi_penerimaan_farmasi',
     ];

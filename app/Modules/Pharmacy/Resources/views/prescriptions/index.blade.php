@@ -8,6 +8,12 @@
   @can('obat')
     <a href="{{ route('pharmacy.master.index') }}" class="btn btn-outline-primary">Data Master</a>
   @endcan
+  @can('pengajuan_barang_medis')
+    <a href="{{ route('pharmacy.pengajuan.index') }}" class="btn btn-outline-primary">Pengadaan</a>
+  @endcan
+  @can('sisa_stok')
+    <a href="{{ route('pharmacy.laporan-stok.index') }}" class="btn btn-outline-primary">Laporan Stok</a>
+  @endcan
 @endsection
 
 @section('content')

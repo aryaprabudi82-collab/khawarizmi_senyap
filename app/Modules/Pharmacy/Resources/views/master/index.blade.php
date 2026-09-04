@@ -14,7 +14,7 @@
   <div class="card-header"><h3 class="card-title">Obat, Alkes &amp; BHP</h3></div>
   <div class="table-responsive">
     <table class="table table-vcenter card-table">
-      <thead><tr><th>Kode</th><th>Nama</th><th>Jenis</th><th>Kategori</th><th>Golongan</th><th>Satuan Dasar</th><th class="text-end">Harga</th><th>Status</th><th class="w-1"></th></tr></thead>
+      <thead><tr><th>Kode</th><th>Nama</th><th>Jenis</th><th>Kategori</th><th>Golongan</th><th>Satuan Dasar</th><th class="text-end">Harga</th><th class="text-end">PPN</th><th>Status</th><th class="w-1"></th></tr></thead>
       <tbody>
         @forelse ($obat as $o)
           <tr>
@@ -25,6 +25,7 @@
             <td class="text-secondary small">{{ $o->drugClass->name ?? '—' }}</td>
             <td>{{ $o->unit }}</td>
             <td class="text-end font-monospace">Rp {{ number_format((float) $o->sell_price, 0, ',', '.') }}</td>
+            <td class="text-end font-monospace text-secondary small">{{ $o->vat_rate !== null ? rtrim(rtrim(number_format((float) $o->vat_rate, 2, ',', '.'), '0'), ',') . '%' : 'bebas' }}</td>
             <td>
               @if ($o->is_active)
                 <span class="badge bg-green-lt">Aktif</span>
@@ -35,7 +36,7 @@
             <td><button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#konversi-{{ $o->id }}">Konversi</button></td>
           </tr>
         @empty
-          <tr><td colspan="9" class="text-center text-secondary py-3">Belum ada obat/alkes/BHP.</td></tr>
+          <tr><td colspan="10" class="text-center text-secondary py-3">Belum ada obat/alkes/BHP.</td></tr>
         @endforelse
       </tbody>
     </table>
@@ -81,6 +82,7 @@
       <div class="col-4 col-md-2"><input type="text" name="strength" class="form-control form-control-sm" placeholder="Kekuatan, mis. 500 mg"></div>
       <div class="col-4 col-md-2"><input type="text" name="unit" class="form-control form-control-sm" placeholder="Satuan dasar" required></div>
       <div class="col-6 col-md-2"><input type="number" step="0.01" min="0" name="sell_price" class="form-control form-control-sm" placeholder="Harga jual" required></div>
+      <div class="col-6 col-md-2"><input type="number" step="0.01" min="0" max="100" name="vat_rate" class="form-control form-control-sm" placeholder="PPN % (kosong = bebas)"></div>
       <div class="col-6 col-md-2"><input type="number" step="0.01" min="0" name="minimum_stock" class="form-control form-control-sm" placeholder="Stok minimum"></div>
       <div class="col-12 d-flex gap-3 flex-wrap">
         <label class="form-check"><input type="checkbox" name="requires_prescription" value="1" class="form-check-input" checked><span class="form-check-label small">Wajib resep</span></label>

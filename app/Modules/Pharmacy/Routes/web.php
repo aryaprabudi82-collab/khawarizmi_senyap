@@ -5,6 +5,9 @@ use App\Modules\Pharmacy\Http\Controllers\GoodsReceiptController;
 use App\Modules\Pharmacy\Http\Controllers\MasterDataController;
 use App\Modules\Pharmacy\Http\Controllers\PrescriptionController;
 use App\Modules\Pharmacy\Http\Controllers\PurchaseOrderController;
+use App\Modules\Pharmacy\Http\Controllers\StockOpnameController;
+use App\Modules\Pharmacy\Http\Controllers\StockReportController;
+use App\Modules\Pharmacy\Http\Controllers\StockTransferController;
 use App\Modules\Pharmacy\Http\Controllers\SupplierReturnController;
 use Illuminate\Support\Facades\Route;
 
@@ -56,6 +59,28 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::get('/', [SupplierReturnController::class, 'index'])->name('index');
         Route::post('/', [SupplierReturnController::class, 'store'])->name('simpan');
         Route::post('/{retur}/selesai', [SupplierReturnController::class, 'complete'])->name('selesai');
+    });
+
+    // Domain D item 3 — stok & batch ops. stok_opname_obat dan mutasi_barang
+    // transaksi baru; ppn_obat jadi kolom di layar master item 1 (bukan di
+    // sini). 12 kode laporan/sirkulasi digabung StockReportController,
+    // digerbangi sisa_stok. Lihat catatan migrasi 2026_09_28_000001.
+    Route::middleware('can:stok_opname_obat')->prefix('farmasi/opname')->name('pharmacy.opname.')->group(function () {
+        Route::get('/', [StockOpnameController::class, 'index'])->name('index');
+        Route::get('/{opname}', [StockOpnameController::class, 'show'])->name('show');
+        Route::post('/', [StockOpnameController::class, 'store'])->name('simpan');
+        Route::post('/{opname}/hitung', [StockOpnameController::class, 'recordCount'])->name('hitung');
+        Route::post('/{opname}/selesai', [StockOpnameController::class, 'complete'])->name('selesai');
+    });
+
+    Route::middleware('can:mutasi_barang')->prefix('farmasi/mutasi')->name('pharmacy.mutasi.')->group(function () {
+        Route::get('/', [StockTransferController::class, 'index'])->name('index');
+        Route::post('/', [StockTransferController::class, 'store'])->name('simpan');
+    });
+
+    Route::middleware('can:sisa_stok')->prefix('farmasi/laporan-stok')->name('pharmacy.laporan-stok.')->group(function () {
+        Route::get('/', [StockReportController::class, 'index'])->name('index');
+        Route::get('/batch/{batchId}/riwayat', [StockReportController::class, 'batchHistory'])->name('riwayat-batch');
     });
 
     Route::prefix('resep')->name('resep.')->group(function () {
