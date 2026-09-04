@@ -122,6 +122,25 @@ class EmployeeHistoryTest extends TestCase
     }
 
     #[Test]
+    public function catatan_kegiatan_ilmiah_dan_penelitian_tersimpan_dengan_keterangan(): void
+    {
+        $ilmiah = $this->history->addRecord($this->pegawai, [
+            'record_type' => EmployeeRecord::TYPE_KEGIATAN_ILMIAH, 'record_date' => '2024-07-01',
+            'title' => 'Pelatihan BTCLS', 'description' => 'Diselenggarakan oleh PPNI', 'document_number' => 'SERT/045/2024',
+        ]);
+        $penelitian = $this->history->addRecord($this->pegawai, [
+            'record_type' => EmployeeRecord::TYPE_PENELITIAN, 'record_date' => '2024-08-01',
+            'title' => 'Efektivitas Cuci Tangan pada Pencegahan Infeksi', 'description' => 'Jurnal Keperawatan Indonesia',
+        ]);
+
+        $this->assertSame('kegiatan_ilmiah', $ilmiah->fresh()->record_type);
+        $this->assertSame('Diselenggarakan oleh PPNI', $ilmiah->fresh()->description);
+        $this->assertSame('penelitian', $penelitian->fresh()->record_type);
+        $this->assertSame('Kegiatan Ilmiah & Pelatihan', EmployeeRecord::typeLabel('kegiatan_ilmiah'));
+        $this->assertSame('Penelitian', EmployeeRecord::typeLabel('penelitian'));
+    }
+
+    #[Test]
     public function skp_final_tidak_bisa_diubah_atau_difinalisasi_ulang(): void
     {
         $penilaian = $this->appraisals->record($this->pegawai, [
@@ -170,5 +189,19 @@ class EmployeeHistoryTest extends TestCase
         ])->assertRedirect();
 
         $this->assertSame('Kepala Ruangan', $this->pegawai->fresh()->position);
+    }
+
+    #[Test]
+    public function form_catatan_kepegawaian_bisa_disubmit_lewat_http_dengan_keterangan(): void
+    {
+        $this->actingAs($this->adminHr)->post(route('hr.pegawai.catatan.simpan', $this->pegawai), [
+            'record_type' => EmployeeRecord::TYPE_KEGIATAN_ILMIAH,
+            'record_date' => '2025-02-01',
+            'title' => 'Seminar Nasional Keperawatan',
+            'description' => 'Diselenggarakan oleh RSP UI',
+        ])->assertRedirect();
+
+        $catatan = $this->pegawai->records()->where('record_type', 'kegiatan_ilmiah')->firstOrFail();
+        $this->assertSame('Diselenggarakan oleh RSP UI', $catatan->description);
     }
 }

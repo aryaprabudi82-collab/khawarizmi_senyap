@@ -145,7 +145,7 @@ class EmployeeHistoryController
     private function validateRecord(Request $request): array
     {
         return $request->validate([
-            'record_type' => ['required', Rule::in([EmployeeRecord::TYPE_PENGHARGAAN, EmployeeRecord::TYPE_PERINGATAN])],
+            'record_type' => ['required', Rule::in(EmployeeRecord::TYPES)],
             'record_date' => ['required', 'date'],
             'title' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string'],

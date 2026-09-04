@@ -131,7 +131,8 @@
     </div>
 
     <div class="card">
-      <div class="card-header"><h3 class="card-title">Penghargaan &amp; Surat Peringatan</h3></div>
+      <div class="card-header"><h3 class="card-title">Catatan Kepegawaian</h3></div>
+      <div class="text-secondary small px-3 pt-2">Penghargaan, surat peringatan, kegiatan ilmiah &amp; pelatihan, dan riwayat penelitian.</div>
       <div class="table-responsive">
         <table class="table table-vcenter card-table">
           <thead><tr><th>Tanggal</th><th>Jenis</th><th>Judul</th><th>No. Dokumen</th></tr></thead>
@@ -140,11 +141,13 @@
               <tr>
                 <td class="text-nowrap">{{ $r->record_date->format('d M Y') }}</td>
                 <td>
-                  @if ($r->record_type === 'penghargaan')
-                    <span class="badge bg-green-lt">Penghargaan</span>
-                  @else
-                    <span class="badge bg-red-lt">Peringatan</span>
-                  @endif
+                  @php
+                    $rona = match ($r->record_type) {
+                      'penghargaan' => 'green', 'peringatan' => 'red',
+                      'kegiatan_ilmiah' => 'azure', 'penelitian' => 'purple', default => 'secondary',
+                    };
+                  @endphp
+                  <span class="badge bg-{{ $rona }}-lt">{{ \App\Modules\Hr\Models\EmployeeRecord::typeLabel($r->record_type) }}</span>
                 </td>
                 <td>{{ $r->title }}</td>
                 <td class="font-monospace small">{{ $r->document_number ?? '—' }}</td>
@@ -158,16 +161,18 @@
       <div class="card-body border-top">
         <form method="POST" action="{{ route('hr.pegawai.catatan.simpan', $pegawai) }}" class="row g-2">
           @csrf
-          <div class="col-4 col-md-2">
+          <div class="col-6 col-md-2">
             <select name="record_type" class="form-select form-select-sm" required>
-              <option value="penghargaan">Penghargaan</option>
-              <option value="peringatan">Peringatan</option>
+              @foreach (\App\Modules\Hr\Models\EmployeeRecord::TYPES as $tipe)
+                <option value="{{ $tipe }}">{{ \App\Modules\Hr\Models\EmployeeRecord::typeLabel($tipe) }}</option>
+              @endforeach
             </select>
           </div>
-          <div class="col-4 col-md-2"><input type="date" name="record_date" class="form-control form-control-sm" value="{{ now()->toDateString() }}" required></div>
-          <div class="col-4 col-md-4"><input type="text" name="title" class="form-control form-control-sm" placeholder="Judul" required></div>
-          <div class="col-10 col-md-3"><input type="text" name="document_number" class="form-control form-control-sm" placeholder="No. dokumen"></div>
-          <div class="col-2 col-md-1"><button class="btn btn-sm btn-outline-primary w-100">+</button></div>
+          <div class="col-6 col-md-2"><input type="date" name="record_date" class="form-control form-control-sm" value="{{ now()->toDateString() }}" required></div>
+          <div class="col-12 col-md-4"><input type="text" name="title" class="form-control form-control-sm" placeholder="Judul" required></div>
+          <div class="col-9 col-md-3"><input type="text" name="document_number" class="form-control form-control-sm" placeholder="No. dokumen/sertifikat"></div>
+          <div class="col-3 col-md-1"><button class="btn btn-sm btn-outline-primary w-100">+</button></div>
+          <div class="col-12"><input type="text" name="description" class="form-control form-control-sm" placeholder="Keterangan (opsional), mis. penyelenggara/jurnal"></div>
         </form>
       </div>
     </div>
