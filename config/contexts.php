@@ -303,6 +303,22 @@ return [
             ],
         ],
 
+        'kitchen' => [
+            'schema'      => 'kitchen',
+            'module'      => 'Kitchen',
+            'description' => 'Bahan pangan & penunjang dapur/gizi: master barang/suplier, pengajuan dari unit, dan '
+                . 'buku besar stok (masuk/keluar/opname). Domain F Khanza ("Dapur & Gizi") 25 kapabilitas genuine '
+                . '(asal_hibah dan satuan_barang yang ikut nongol di menunya adalah kode reused lintas-domain, '
+                . 'sudah diselesaikan ke context=pharmacy saat domain D dibangun), bersih tanpa mis-tagging. '
+                . 'Paket Java "dapur", context=kitchen sendiri di katalog — genuinely bounded context terpisah '
+                . 'dari inventory (paket "ipsrs"/"inventory"), meski arsitekturnya sengaja meniru persis (item '
+                . 'non-batch, StockLedger UPDATE bersyarat) karena Khanza memberi domain F struktur menu yang '
+                . 'nyaris identik dengan domain E. Wave 1 non-perishable-aware — bahan basah dengan kedaluwarsa '
+                . 'harian belum digarap.',
+            'domains'     => ['F'],
+            'publishes'   => [],
+        ],
+
         'envlab' => [
             'schema'      => 'envlab',
             'module'      => 'Envlab',

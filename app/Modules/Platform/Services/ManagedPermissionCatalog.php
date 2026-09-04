@@ -30,14 +30,14 @@ class ManagedPermissionCatalog
      * Menambah baru di sini berarti sudah ada layar untuk kode tersebut.
      */
     private const MANAGED_CODES = [
-        'audit_kepatuhan_apd', 'barcoderalan', 'barcoderanap', 'bayar_pemesanan_obat', 'bayar_piutang', 'beri_obat', 'booking_mcu_perusahaan', 'booking_operasi', 'bpjs_cek_kartu', 'bpjs_sep', 'deposit_pasien', 'diet_pasien',
+        'audit_kepatuhan_apd', 'barcoderalan', 'barcoderanap', 'bayar_pemesanan_obat', 'bayar_piutang', 'beri_obat', 'booking_mcu_perusahaan', 'booking_operasi', 'bpjs_cek_kartu', 'bpjs_sep', 'dapur_barang', 'deposit_pasien', 'diet_pasien',
         'igd', 'insiden_keselamatan_pasien', 'inventaris_inventaris', 'ipsrs_barang', 'ipsrs_pengadaan_barang', 'ipsrs_rekap_pengadaan', 'ipsrs_returbeli', 'ipsrs_riwayat_barang', 'jadwal_pegawai', 'jenis_cidera_k3rstahun', 'layanan_program_kfr', 'limbah_b3_medis',
         'hibah_non_medis', 'hibah_obat_bhp', 'keuntungan_penjualan', 'mapping_poli_bpjs', 'mutasi_barang', 'obat', 'operasi', 'pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi', 'pegawai_user',
         'pelanggan_lab_kesehatan_lingkungan', 'pemesanan_obat', 'penugasan_pengujian_sampel_lab_kesehatan_lingkungan',
         'permintaan_pengujian_sampel_lab_kesehatan_lingkungan', 'hasil_pengujian_sampel_lab_kesehatan_lingkungan',
         'verifikasi_pengujian_sampel_lab_kesehatan_lingkungan', 'validasi_pengujian_sampel_lab_kesehatan_lingkungan',
         'pembayaran_pengujian_sampel_lab_kesehatan_lingkungan', 'rekap_pelayanan_lab_kesehatan_lingkungan',
-        'pembayaran_ralan', 'pemeriksaan_lab_pa', 'penerimaan_non_medis', 'penjualan_obat', 'pengadaan_obat', 'pengajuan_barang_medis', 'pengajuan_barang_nonmedis', 'pengajuan_cuti', 'pengeluaran_stok_apotek', 'pengumuman_epasien',
+        'pembayaran_ralan', 'pemeriksaan_lab_pa', 'penerimaan_non_medis', 'penjualan_obat', 'pengadaan_obat', 'pengajuan_barang_dapur', 'pengajuan_barang_medis', 'pengajuan_barang_nonmedis', 'pengajuan_cuti', 'pengeluaran_stok_apotek', 'pengumuman_epasien',
         'penggunaan_bhp_ok', 'penilaian_awal_medis_ralan', 'perbaikan_inventaris', 'periksa_lab', 'periksa_radiologi',
         'peristiwa_k3rs', 'perkiraan_biaya_ranap', 'permintaan_stok_obat_pasien', 'persetujuan_penolakan_tindakan', 'presensi_harian', 'registrasi',
         'rekap_kunjungan', 'rekap_obat_pasien', 'resep_luar', 'resep_obat', 'retur_ke_suplier', 'retur_obat_ranap', 'rujukan_keluar', 'satu_sehat_kirim_condition', 'satu_sehat_kirim_encounter',
@@ -86,6 +86,7 @@ class ManagedPermissionCatalog
         'billing' => 'Billing Rawat Jalan',
         'finance' => 'Keuangan',
         'inventory' => 'Logistik & Barang Non-Medis',
+        'kitchen' => 'Dapur & Gizi',
         'asset' => 'Aset, CSSD & Kesehatan Lingkungan',
         'blood' => 'Unit Transfusi Darah',
         'hr' => 'Kepegawaian',

@@ -269,6 +269,17 @@
         ]
     },
     {
+        "code": "petugas-dapur",
+        "name": "Petugas Dapur & Gizi",
+        "description": "Master barang/kategori/suplier dapur, stok masuk, dan persetujuan permintaan barang dari unit.",
+        "_catatan_scope": "Domain F ('Dapur & Gizi') bersih — semua 25 kapabilitas genuine-nya memang milik context=kitchen, tidak ada mis-tagging (asal_hibah dan satuan_barang yang ikut nongol di menunya adalah kode reused lintas-domain, sudah diselesaikan ke context=pharmacy saat domain D dibangun). Context kitchen dibangun dari nol 2026-10 (beda dari domain E yang tinggal memperluas modul lama), sub-order 4 item paralel persis dengan domain E (dikonfirmasi user). Item A (data master + alur permintaan unit): dapur_barang menggerbangi layar master (barang/kategori/suplier + stok masuk/opname ad-hoc), pengajuan_barang_dapur menggerbangi alur permintaan (diajukan->disetujui->dikeluarkan) — permintaan_dapur (menu terpisah Khanza) TIDAK dapat kode baru, sudah terpenuhi listing yang sama, pola identik permintaan_non_medis. Item B/C/D (rantai pengadaan, opname sesi & riwayat, hibah & rekap gabungan) menyusul, mengikuti pola domain E item B/C/D persis.",
+        "contexts": [],
+        "extra_permissions": [
+            "dapur_barang",
+            "pengajuan_barang_dapur"
+        ]
+    },
+    {
         "code": "petugas-utd",
         "name": "Petugas Unit Transfusi Darah",
         "description": "Pendonor, siklus status unit darah (karantina/tersedia/ditahan/ditolak), dan penyerahan darah untuk transfusi.",
