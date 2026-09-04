@@ -31,7 +31,7 @@ class ManagedPermissionCatalog
      */
     private const MANAGED_CODES = [
         'audit_kepatuhan_apd', 'barcoderalan', 'barcoderanap', 'bayar_piutang', 'beri_obat', 'booking_mcu_perusahaan', 'booking_operasi', 'bpjs_cek_kartu', 'bpjs_sep', 'deposit_pasien', 'diet_pasien',
-        'igd', 'insiden_keselamatan_pasien', 'inventaris_inventaris', 'ipsrs_barang', 'layanan_program_kfr', 'limbah_b3_medis',
+        'igd', 'insiden_keselamatan_pasien', 'inventaris_inventaris', 'ipsrs_barang', 'jadwal_pegawai', 'layanan_program_kfr', 'limbah_b3_medis',
         'mapping_poli_bpjs', 'operasi', 'pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi', 'pegawai_user',
         'pelanggan_lab_kesehatan_lingkungan', 'penugasan_pengujian_sampel_lab_kesehatan_lingkungan',
         'permintaan_pengujian_sampel_lab_kesehatan_lingkungan', 'hasil_pengujian_sampel_lab_kesehatan_lingkungan',

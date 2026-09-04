@@ -182,7 +182,7 @@
           </li>
         @endcanany
 
-        @canany(['pegawai_user', 'pengajuan_cuti', 'presensi_harian', 'insiden_keselamatan_pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi', 'audit_kepatuhan_apd', 'peristiwa_k3rs'])
+        @canany(['pegawai_user', 'pengajuan_cuti', 'presensi_harian', 'skp_penilaian', 'jadwal_pegawai', 'insiden_keselamatan_pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi', 'audit_kepatuhan_apd', 'peristiwa_k3rs'])
           <li class="nav-item dropdown {{ request()->routeIs(['hr.*', 'quality.*']) ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">SDM &amp; Mutu</a>
             <div class="dropdown-menu">
@@ -194,6 +194,12 @@
               @endcan
               @can('presensi_harian')
                 <a class="dropdown-item" href="{{ route('hr.presensi.index') }}">Presensi</a>
+              @endcan
+              @can('jadwal_pegawai')
+                <a class="dropdown-item" href="{{ route('hr.jadwal.index') }}">Jadwal Pegawai</a>
+              @endcan
+              @can('skp_penilaian')
+                <a class="dropdown-item" href="{{ route('hr.skp.index') }}">Penilaian SKP</a>
               @endcan
               @canany(['insiden_keselamatan_pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi', 'audit_kepatuhan_apd', 'peristiwa_k3rs'])
                 <div class="dropdown-divider"></div>

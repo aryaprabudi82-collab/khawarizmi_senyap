@@ -23,11 +23,17 @@ class AttendanceRecord extends Model
             'attendance_date' => 'date',
             'check_in_at' => 'datetime',
             'check_out_at' => 'datetime',
+            'is_late' => 'boolean',
         ];
     }
 
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function dutySchedule(): BelongsTo
+    {
+        return $this->belongsTo(DutySchedule::class);
     }
 }

@@ -5,6 +5,7 @@ use App\Modules\Hr\Http\Controllers\EmployeeController;
 use App\Modules\Hr\Http\Controllers\EmployeeHistoryController;
 use App\Modules\Hr\Http\Controllers\LeaveController;
 use App\Modules\Hr\Http\Controllers\PerformanceAppraisalController;
+use App\Modules\Hr\Http\Controllers\ScheduleController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth'])
@@ -53,6 +54,17 @@ Route::middleware(['web', 'auth'])
             Route::get('/', [PerformanceAppraisalController::class, 'index'])->name('index');
             Route::post('/', [PerformanceAppraisalController::class, 'store'])->name('simpan');
             Route::post('/{penilaian}/finalisasi', [PerformanceAppraisalController::class, 'finalize'])->name('finalisasi');
+        });
+
+        // jam_masuk (WorkShift) digabung satu layar dengan jadwal_pegawai
+        // (DutySchedule), digerbangi jadwal_pegawai sebagai gerbang utama
+        // (aksi transaksional), jam_masuk cuma data master pendukung di
+        // layar yang sama — pola sama dengan organization::master.index.
+        Route::middleware('can:jadwal_pegawai')->prefix('jadwal')->name('jadwal.')->group(function () {
+            Route::get('/', [ScheduleController::class, 'index'])->name('index');
+            Route::post('/shift', [ScheduleController::class, 'storeShift'])->name('shift.simpan');
+            Route::post('/', [ScheduleController::class, 'storeDuty'])->name('simpan');
+            Route::post('/{jadwal}/batal', [ScheduleController::class, 'cancelDuty'])->name('batal');
         });
 
     });

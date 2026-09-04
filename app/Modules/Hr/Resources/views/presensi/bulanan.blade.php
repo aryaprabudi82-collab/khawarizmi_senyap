@@ -29,6 +29,7 @@
           <th class="text-end">Sakit</th>
           <th class="text-end">Alpha</th>
           <th class="text-end">Cuti</th>
+          <th class="text-end">Terlambat</th>
         </tr>
       </thead>
       <tbody>
@@ -40,9 +41,10 @@
             <td class="text-end">{{ $baris['sakit'] }}</td>
             <td class="text-end {{ $baris['alpha'] > 0 ? 'text-danger fw-bold' : '' }}">{{ $baris['alpha'] }}</td>
             <td class="text-end">{{ $baris['cuti'] }}</td>
+            <td class="text-end {{ $baris['terlambat'] > 0 ? 'text-warning fw-bold' : '' }}">{{ $baris['terlambat'] }}</td>
           </tr>
         @empty
-          <tr><td colspan="6" class="text-center text-secondary py-3">Tidak ada pegawai aktif.</td></tr>
+          <tr><td colspan="7" class="text-center text-secondary py-3">Tidak ada pegawai aktif.</td></tr>
         @endforelse
       </tbody>
     </table>

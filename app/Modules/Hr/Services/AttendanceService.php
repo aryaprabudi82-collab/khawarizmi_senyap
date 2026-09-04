@@ -3,6 +3,7 @@
 namespace App\Modules\Hr\Services;
 
 use App\Modules\Hr\Models\AttendanceRecord;
+use App\Modules\Hr\Models\DutySchedule;
 use App\Modules\Hr\Models\Employee;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -27,11 +28,18 @@ class AttendanceService
             ->get()
             ->groupBy('employee_id');
 
+        $terlambat = AttendanceRecord::query()
+            ->whereBetween('attendance_date', [$awal, $akhir])
+            ->where('is_late', true)
+            ->selectRaw('employee_id, count(*) as jumlah')
+            ->groupBy('employee_id')
+            ->pluck('jumlah', 'employee_id');
+
         return Employee::query()
             ->where('is_active', true)
             ->orderBy('name')
             ->get()
-            ->map(function (Employee $pegawai) use ($rekap) {
+            ->map(function (Employee $pegawai) use ($rekap, $terlambat) {
                 $perStatus = collect($rekap->get($pegawai->id, collect()))
                     ->mapWithKeys(fn ($baris) => [$baris->status => $baris->jumlah]);
 
@@ -42,13 +50,30 @@ class AttendanceService
                     'sakit' => $perStatus->get('sakit', 0),
                     'alpha' => $perStatus->get('alpha', 0),
                     'cuti' => $perStatus->get('cuti', 0),
+                    'terlambat' => $terlambat->get($pegawai->id, 0),
                 ];
             });
     }
 
+    /**
+     * Keterlambatan (is_late) dihitung terhadap jadwal_pegawai (DutySchedule)
+     * hari itu, kalau ada — jam_masuk (WorkShift) yang menentukan batasnya.
+     * Pegawai tanpa jadwal hari itu (jadwal_pegawai belum menjangkau semua
+     * pegawai/hari) tidak pernah ditandai terlambat, cuma dicatat hadir
+     * biasa — tidak ada jam pembanding untuk disalahkan.
+     */
     public function checkIn(int $employeeId, ?int $recordedBy = null): AttendanceRecord
     {
         $tanggal = CarbonImmutable::now()->toDateString();
+
+        $jadwal = DutySchedule::query()
+            ->with('workShift')
+            ->where('employee_id', $employeeId)
+            ->where('schedule_date', $tanggal)
+            ->where('status', DutySchedule::STATUS_TERJADWAL)
+            ->first();
+
+        $terlambat = $this->isLate($jadwal);
 
         $existing = AttendanceRecord::query()
             ->where('employee_id', $employeeId)->where('attendance_date', $tanggal)->first();
@@ -58,18 +83,35 @@ class AttendanceService
         }
 
         if ($existing !== null) {
-            $existing->update(['check_in_at' => now(), 'status' => AttendanceRecord::STATUS_HADIR, 'recorded_by' => $recordedBy]);
+            $existing->update([
+                'check_in_at' => now(), 'status' => AttendanceRecord::STATUS_HADIR, 'recorded_by' => $recordedBy,
+                'duty_schedule_id' => $jadwal?->id, 'is_late' => $terlambat,
+            ]);
 
             return $existing->refresh();
         }
 
         return AttendanceRecord::query()->create([
             'employee_id' => $employeeId,
+            'duty_schedule_id' => $jadwal?->id,
             'attendance_date' => $tanggal,
             'check_in_at' => now(),
             'status' => AttendanceRecord::STATUS_HADIR,
+            'is_late' => $terlambat,
             'recorded_by' => $recordedBy,
         ]);
+    }
+
+    private function isLate(?DutySchedule $jadwal): bool
+    {
+        if ($jadwal === null || $jadwal->workShift === null) {
+            return false;
+        }
+
+        $batas = CarbonImmutable::parse($jadwal->workShift->start_time)
+            ->addMinutes($jadwal->workShift->tolerance_minutes);
+
+        return CarbonImmutable::now()->format('H:i:s') > $batas->format('H:i:s');
     }
 
     public function checkOut(int $employeeId): AttendanceRecord
