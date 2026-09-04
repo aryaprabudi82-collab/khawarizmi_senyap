@@ -1,13 +1,17 @@
 <?php
 
+use App\Modules\Pharmacy\Http\Controllers\DonationReceiptController;
 use App\Modules\Pharmacy\Http\Controllers\DrugRequisitionController;
 use App\Modules\Pharmacy\Http\Controllers\ExternalPrescriptionController;
 use App\Modules\Pharmacy\Http\Controllers\GoodsReceiptController;
 use App\Modules\Pharmacy\Http\Controllers\MasterDataController;
+use App\Modules\Pharmacy\Http\Controllers\PatientDrugReturnController;
 use App\Modules\Pharmacy\Http\Controllers\PatientStockRequestController;
+use App\Modules\Pharmacy\Http\Controllers\PharmacyRecapController;
 use App\Modules\Pharmacy\Http\Controllers\PrescriptionController;
 use App\Modules\Pharmacy\Http\Controllers\ProcedureBhpUsageController;
 use App\Modules\Pharmacy\Http\Controllers\PurchaseOrderController;
+use App\Modules\Pharmacy\Http\Controllers\RetailSaleController;
 use App\Modules\Pharmacy\Http\Controllers\StockOpnameController;
 use App\Modules\Pharmacy\Http\Controllers\StockReportController;
 use App\Modules\Pharmacy\Http\Controllers\StockTransferController;
@@ -118,6 +122,32 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::get('/', [ProcedureBhpUsageController::class, 'index'])->name('index');
         Route::post('/', [ProcedureBhpUsageController::class, 'store'])->name('simpan');
     });
+
+    // Domain D item 5 — retail, retur & untung. penjualan_obat menaungi
+    // piutang_obat (dibedakan payment_status) + retur_dari_pembeli +
+    // retur_piutang_pasien (satu mekanisme retur atas retail_sales yang
+    // sama). asal_hibah menaungi ke hibah_obat_bhp. keuntungan_penjualan
+    // menaungi 2 kode keuntungan_* lain + 6 kode ringkasan_*. Lihat
+    // catatan migrasi 2026_09_30_000001.
+    Route::middleware('can:penjualan_obat')->prefix('farmasi/penjualan')->name('pharmacy.penjualan.')->group(function () {
+        Route::get('/', [RetailSaleController::class, 'index'])->name('index');
+        Route::post('/', [RetailSaleController::class, 'store'])->name('simpan');
+        Route::post('/{penjualan}/retur', [RetailSaleController::class, 'storeReturn'])->name('retur');
+    });
+
+    Route::middleware('can:retur_obat_ranap')->prefix('farmasi/retur-ranap')->name('pharmacy.retur-ranap.')->group(function () {
+        Route::get('/', [PatientDrugReturnController::class, 'index'])->name('index');
+        Route::get('/cari-kunjungan', [PatientDrugReturnController::class, 'searchRegistration'])->name('cari-kunjungan');
+        Route::post('/', [PatientDrugReturnController::class, 'store'])->name('simpan');
+    });
+
+    Route::middleware('can:hibah_obat_bhp')->prefix('farmasi/hibah')->name('pharmacy.hibah.')->group(function () {
+        Route::get('/', [DonationReceiptController::class, 'index'])->name('index');
+        Route::post('/donor', [DonationReceiptController::class, 'storeDonor'])->name('donor.simpan');
+        Route::post('/', [DonationReceiptController::class, 'store'])->name('simpan');
+    });
+
+    Route::middleware('can:keuntungan_penjualan')->get('/farmasi/rekap', [PharmacyRecapController::class, 'index'])->name('pharmacy.rekap.index');
 
     Route::prefix('resep')->name('resep.')->group(function () {
         // Antrean farmasi dan rincian resep: apoteker maupun dokter penulis.
