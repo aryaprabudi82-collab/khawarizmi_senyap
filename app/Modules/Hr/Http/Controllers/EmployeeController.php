@@ -2,6 +2,7 @@
 
 namespace App\Modules\Hr\Http\Controllers;
 
+use App\Modules\Hr\Models\DocumentType;
 use App\Modules\Hr\Models\Employee;
 use App\Modules\Hr\Models\LeaveType;
 use App\Modules\Hr\Services\EmployeeService;
@@ -23,6 +24,7 @@ class EmployeeController
         return view('hr::pegawai.index', [
             'pegawai' => Employee::query()->orderBy('name')->get(),
             'jenisCuti' => LeaveType::query()->orderBy('name')->get(),
+            'jenisBerkas' => DocumentType::query()->orderBy('name')->get(),
             'unit' => $this->organization->units(),
             'praktisi' => $this->organization->practitioners(),
         ]);
@@ -104,5 +106,20 @@ class EmployeeController
         $this->employees->updateLeaveType($jenisCuti, $data);
 
         return back()->with('sukses', "Jenis cuti {$jenisCuti->name} diperbarui.");
+    }
+
+    public function storeDocumentType(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'code' => ['required', 'string', 'max:20', Rule::unique(DocumentType::class, 'code')],
+            'name' => ['required', 'string', 'max:100'],
+            'is_required' => ['nullable', 'boolean'],
+        ], [], ['code' => 'kode', 'name' => 'nama']);
+
+        $data['is_required'] = $request->boolean('is_required');
+
+        $this->employees->createDocumentType($data + ['is_active' => true]);
+
+        return back()->with('sukses', "Jenis berkas {$data['name']} ditambahkan.");
     }
 }

@@ -171,6 +171,53 @@
         </form>
       </div>
     </div>
+
+    <div class="card">
+      <div class="card-header"><h3 class="card-title">Berkas Kepegawaian</h3></div>
+      <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+          <thead><tr><th>Jenis</th><th>No. Dokumen</th><th>Berlaku Sampai</th><th class="w-1"></th></tr></thead>
+          <tbody>
+            @forelse ($pegawai->documents as $d)
+              <tr>
+                <td>{{ $d->document_type_name }}</td>
+                <td class="font-monospace small">{{ $d->document_number ?? '—' }}</td>
+                <td>
+                  @if ($d->expiry_date)
+                    <span class="{{ $d->isExpired() ? 'text-danger fw-bold' : ($d->isExpiringSoon() ? 'text-warning fw-bold' : '') }}">
+                      {{ $d->expiry_date->format('d M Y') }}
+                    </span>
+                  @else
+                    —
+                  @endif
+                </td>
+                <td><a href="{{ route('hr.pegawai.berkas.unduh', [$pegawai, $d]) }}" class="btn btn-sm btn-outline-secondary">Unduh</a></td>
+              </tr>
+            @empty
+              <tr><td colspan="4" class="text-center text-secondary py-3">Belum ada berkas.</td></tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+      <div class="card-body border-top">
+        <form method="POST" action="{{ route('hr.pegawai.berkas.simpan', $pegawai) }}" class="row g-2" enctype="multipart/form-data">
+          @csrf
+          <div class="col-6 col-md-3">
+            <select name="document_type_id" class="form-select form-select-sm" required>
+              <option value="">— jenis berkas —</option>
+              @foreach ($jenisBerkas as $j)
+                <option value="{{ $j->id }}">{{ $j->name }}</option>
+              @endforeach
+            </select>
+          </div>
+          <div class="col-6 col-md-3"><input type="file" name="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" required></div>
+          <div class="col-6 col-md-2"><input type="text" name="document_number" class="form-control form-control-sm" placeholder="No. dokumen"></div>
+          <div class="col-6 col-md-2"><input type="date" name="expiry_date" class="form-control form-control-sm" placeholder="Berlaku sampai"></div>
+          <div class="col-12 col-md-2"><button class="btn btn-sm btn-outline-primary w-100">Unggah</button></div>
+        </form>
+        <div class="form-hint mt-2">PDF/JPG/PNG, maksimal 5 MB.</div>
+      </div>
+    </div>
   </div>
 </div>
 

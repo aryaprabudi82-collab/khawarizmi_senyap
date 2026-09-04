@@ -2,15 +2,19 @@
 
 namespace App\Modules\Hr\Http\Controllers;
 
+use App\Modules\Hr\Models\DocumentType;
 use App\Modules\Hr\Models\Employee;
+use App\Modules\Hr\Models\EmployeeDocument;
 use App\Modules\Hr\Models\EmployeeEducation;
 use App\Modules\Hr\Models\EmployeeRecord;
 use App\Modules\Hr\Services\EmployeeHistoryService;
 use App\Modules\Hr\Services\OrganizationContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EmployeeHistoryController
 {
@@ -22,8 +26,9 @@ class EmployeeHistoryController
     public function show(Employee $pegawai): View
     {
         return view('hr::pegawai.detail', [
-            'pegawai' => $pegawai->load(['positionHistory', 'salaryHistory', 'educations', 'records', 'appraisals']),
+            'pegawai' => $pegawai->load(['positionHistory', 'salaryHistory', 'educations', 'records', 'appraisals', 'documents']),
             'unit' => $this->organization->units(),
+            'jenisBerkas' => DocumentType::query()->where('is_active', true)->orderBy('name')->get(),
         ]);
     }
 
@@ -90,6 +95,37 @@ class EmployeeHistoryController
         $this->history->updateRecord($catatan, $data);
 
         return back()->with('sukses', 'Catatan kepegawaian diperbarui.');
+    }
+
+    public function storeDocument(Request $request, Employee $pegawai): RedirectResponse
+    {
+        $data = $request->validate([
+            'document_type_id' => ['required', 'integer'],
+            'file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'document_number' => ['nullable', 'string', 'max:60'],
+            'issued_date' => ['nullable', 'date'],
+            'expiry_date' => ['nullable', 'date'],
+            'note' => ['nullable', 'string', 'max:255'],
+        ], [], [
+            'document_type_id' => 'jenis berkas', 'file' => 'berkas',
+            'issued_date' => 'tanggal terbit', 'expiry_date' => 'tanggal berlaku sampai',
+        ]);
+
+        $jenis = DocumentType::query()->findOrFail($data['document_type_id']);
+        $file = $data['file'];
+        unset($data['document_type_id'], $data['file']);
+
+        $this->history->uploadDocument($pegawai, $jenis, $file, $data, $request->user());
+
+        return back()->with('sukses', 'Berkas tersimpan.');
+    }
+
+    /** Diunduh lewat rute yang diperiksa permission-nya sendiri — lihat catatan migrasi hr::employee_documents. */
+    public function downloadDocument(Employee $pegawai, EmployeeDocument $berkas): StreamedResponse
+    {
+        abort_unless($berkas->employee_id === $pegawai->id, 404);
+
+        return Storage::disk('local')->download($berkas->file_path, $berkas->original_filename);
     }
 
     private function validateEducation(Request $request): array

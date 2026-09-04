@@ -2,11 +2,15 @@
 
 namespace App\Modules\Hr\Services;
 
+use App\Modules\Hr\Models\DocumentType;
 use App\Modules\Hr\Models\Employee;
+use App\Modules\Hr\Models\EmployeeDocument;
 use App\Modules\Hr\Models\EmployeeEducation;
 use App\Modules\Hr\Models\EmployeePositionHistory;
 use App\Modules\Hr\Models\EmployeeRecord;
 use App\Modules\Hr\Models\EmployeeSalaryHistory;
+use App\Modules\Platform\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -76,5 +80,31 @@ class EmployeeHistoryService
         $record->update($data);
 
         return $record->refresh();
+    }
+
+    /**
+     * berkas_kepegawaian — disimpan di disk 'local' (storage/app/private),
+     * BUKAN disk 'public' — berkas kepegawaian sensitif, diunduh lewat rute
+     * yang diperiksa permission-nya sendiri (lihat
+     * EmployeeDocumentController::download()), bukan URL statis yang bisa
+     * ditebak. Nama file di disk sengaja diacak (bukan nama asli) supaya
+     * tidak bisa ditebak dari luar; nama asli tetap disimpan di
+     * original_filename untuk ditampilkan/diunduh dengan nama yang benar.
+     */
+    public function uploadDocument(Employee $employee, DocumentType $jenis, UploadedFile $file, array $data, ?User $actor): EmployeeDocument
+    {
+        $path = $file->store("hr/pegawai/{$employee->id}", 'local');
+
+        return $employee->documents()->create($data + [
+            'document_type_id' => $jenis->id,
+            'document_type_name' => $jenis->name,
+            'file_path' => $path,
+            'original_filename' => $file->getClientOriginalName(),
+            'mime_type' => $file->getClientMimeType(),
+            'file_size' => $file->getSize(),
+            'uploaded_by' => $actor?->id,
+            'uploaded_by_name' => $actor?->name,
+            'uploaded_at' => now(),
+        ]);
     }
 }

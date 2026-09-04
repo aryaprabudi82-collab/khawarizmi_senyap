@@ -54,4 +54,9 @@ class Employee extends Model
     {
         return $this->hasMany(PerformanceAppraisal::class)->orderByDesc('period');
     }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(EmployeeDocument::class)->orderByDesc('uploaded_at');
+    }
 }

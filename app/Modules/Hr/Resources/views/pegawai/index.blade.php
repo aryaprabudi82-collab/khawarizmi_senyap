@@ -116,6 +116,42 @@
       </div>
     </div>
   </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="card">
+      <div class="card-header"><h3 class="card-title">Jenis Berkas (master_berkas_pegawai)</h3></div>
+      <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+          <thead><tr><th>Kode</th><th>Nama</th><th>Wajib</th></tr></thead>
+          <tbody>
+            @forelse ($jenisBerkas as $j)
+              <tr>
+                <td class="font-monospace small">{{ $j->code }}</td>
+                <td>{{ $j->name }}</td>
+                <td>{{ $j->is_required ? 'Ya' : '—' }}</td>
+              </tr>
+            @empty
+              <tr><td colspan="3" class="text-center text-secondary py-3">Belum ada jenis berkas.</td></tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+      <div class="card-body border-top">
+        <form method="POST" action="{{ route('hr.jenis-berkas.simpan') }}" class="row g-2">
+          @csrf
+          <div class="col-4"><input type="text" name="code" class="form-control form-control-sm" placeholder="Kode" required></div>
+          <div class="col-5"><input type="text" name="name" class="form-control form-control-sm" placeholder="Nama, mis. KTP" required></div>
+          <div class="col-3 d-flex align-items-center">
+            <label class="form-check">
+              <input type="checkbox" class="form-check-input" name="is_required" value="1">
+              <span class="form-check-label">Wajib</span>
+            </label>
+          </div>
+          <div class="col-12"><button class="btn btn-sm btn-outline-primary w-100">Tambah</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
 @foreach ($pegawai as $p)

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Hr\Services;
 
+use App\Modules\Hr\Models\DocumentType;
 use App\Modules\Hr\Models\Employee;
 use App\Modules\Hr\Models\LeaveType;
 
@@ -42,5 +43,11 @@ class EmployeeService
         $leaveType->update($data);
 
         return $leaveType->refresh();
+    }
+
+    /** master_berkas_pegawai */
+    public function createDocumentType(array $data): DocumentType
+    {
+        return DocumentType::query()->create($data);
     }
 }

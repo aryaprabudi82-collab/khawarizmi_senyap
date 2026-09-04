@@ -19,10 +19,13 @@ Route::middleware(['web', 'auth'])
             Route::post('/pegawai/{pegawai}', [EmployeeController::class, 'update'])->name('pegawai.perbarui');
             Route::post('/jenis-cuti', [EmployeeController::class, 'storeLeaveType'])->name('jenis-cuti.simpan');
             Route::post('/jenis-cuti/{jenisCuti}', [EmployeeController::class, 'updateLeaveType'])->name('jenis-cuti.perbarui');
+            // master_berkas_pegawai — jenis berkas, umbrella pegawai_user sama
+            // seperti jenis-cuti.
+            Route::post('/jenis-berkas', [EmployeeController::class, 'storeDocumentType'])->name('jenis-berkas.simpan');
 
-            // Riwayat pegawai (jabatan, gaji, pendidikan, catatan) — lihat
-            // catatan migrasi hr untuk alasan digerbangi pegawai_user, bukan
-            // permission tersendiri per riwayat.
+            // Riwayat pegawai (jabatan, gaji, pendidikan, catatan, berkas —
+            // berkas_kepegawaian) — lihat catatan migrasi hr untuk alasan
+            // digerbangi pegawai_user, bukan permission tersendiri per riwayat.
             Route::prefix('pegawai/{pegawai}')->name('pegawai.')->group(function () {
                 Route::get('/', [EmployeeHistoryController::class, 'show'])->name('detail');
                 Route::post('/jabatan', [EmployeeHistoryController::class, 'storePosition'])->name('jabatan.simpan');
@@ -31,6 +34,8 @@ Route::middleware(['web', 'auth'])
                 Route::post('/pendidikan/{pendidikan}', [EmployeeHistoryController::class, 'updateEducation'])->name('pendidikan.perbarui');
                 Route::post('/catatan', [EmployeeHistoryController::class, 'storeRecord'])->name('catatan.simpan');
                 Route::post('/catatan/{catatan}', [EmployeeHistoryController::class, 'updateRecord'])->name('catatan.perbarui');
+                Route::post('/berkas', [EmployeeHistoryController::class, 'storeDocument'])->name('berkas.simpan');
+                Route::get('/berkas/{berkas}/unduh', [EmployeeHistoryController::class, 'downloadDocument'])->name('berkas.unduh');
             });
         });
 
