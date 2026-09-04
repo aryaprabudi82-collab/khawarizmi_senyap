@@ -21,15 +21,24 @@ class PrescriptionController
         private readonly StockLedger $stock,
     ) {}
 
-    /** Antrean farmasi: resep yang menunggu telaah dan yang siap diserahkan. */
+    /**
+     * Antrean farmasi: resep yang menunggu telaah dan yang siap diserahkan.
+     *
+     * permintaan_resep_pulang (domain D item 4) tidak jadi layar sendiri —
+     * cukup filter ?kind=pulang di layar yang sama, kolom prescriptions.kind
+     * sudah ada sejak migrasi 2026_09_15. resep_dokter (Daftar Resep Dokter)
+     * juga tidak jadi layar sendiri, sudah terpenuhi listing default di sini.
+     */
     public function index(Request $request): View
     {
         $tanggal = CarbonImmutable::parse($request->query('tanggal', now()->toDateString()))->startOfDay();
         $status = $request->query('status');
+        $kind = $request->query('kind');
 
         $daftar = Prescription::query()
             ->whereDate('prescribed_at', $tanggal->toDateString())
             ->when($status, fn ($q) => $q->where('status', $status))
+            ->when($kind, fn ($q) => $q->where('kind', $kind))
             ->orderByRaw("CASE status
                 WHEN 'menunggu-telaah' THEN 1
                 WHEN 'disetujui' THEN 2
@@ -50,6 +59,7 @@ class PrescriptionController
             'ringkasan' => $ringkasan,
             'tanggal' => $tanggal,
             'status' => $status,
+            'kind' => $kind,
         ]);
     }
 

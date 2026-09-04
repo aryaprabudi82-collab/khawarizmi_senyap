@@ -1,14 +1,18 @@
 <?php
 
 use App\Modules\Pharmacy\Http\Controllers\DrugRequisitionController;
+use App\Modules\Pharmacy\Http\Controllers\ExternalPrescriptionController;
 use App\Modules\Pharmacy\Http\Controllers\GoodsReceiptController;
 use App\Modules\Pharmacy\Http\Controllers\MasterDataController;
+use App\Modules\Pharmacy\Http\Controllers\PatientStockRequestController;
 use App\Modules\Pharmacy\Http\Controllers\PrescriptionController;
+use App\Modules\Pharmacy\Http\Controllers\ProcedureBhpUsageController;
 use App\Modules\Pharmacy\Http\Controllers\PurchaseOrderController;
 use App\Modules\Pharmacy\Http\Controllers\StockOpnameController;
 use App\Modules\Pharmacy\Http\Controllers\StockReportController;
 use App\Modules\Pharmacy\Http\Controllers\StockTransferController;
 use App\Modules\Pharmacy\Http\Controllers\SupplierReturnController;
+use App\Modules\Pharmacy\Http\Controllers\WardStockRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth'])->group(function () {
@@ -81,6 +85,38 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::middleware('can:sisa_stok')->prefix('farmasi/laporan-stok')->name('pharmacy.laporan-stok.')->group(function () {
         Route::get('/', [StockReportController::class, 'index'])->name('index');
         Route::get('/batch/{batchId}/riwayat', [StockReportController::class, 'batchHistory'])->name('riwayat-batch');
+    });
+
+    // Domain D item 4 — permintaan farmasi ruangan/pasien. resep_dokter dan
+    // permintaan_resep_pulang tidak di sini, sudah terpenuhi resep.index
+    // (lihat catatan di PrescriptionController::index()). pengambilan_utd
+    // dinaungi pengeluaran_stok_apotek, stok_obat_pasien dinaungi
+    // permintaan_stok_obat_pasien — lihat catatan migrasi 2026_09_29_000001.
+    Route::middleware('can:pengeluaran_stok_apotek')->prefix('farmasi/permintaan-ruangan')->name('pharmacy.permintaan-ruangan.')->group(function () {
+        Route::get('/', [WardStockRequestController::class, 'index'])->name('index');
+        Route::post('/', [WardStockRequestController::class, 'store'])->name('simpan');
+        Route::post('/{permintaan}/tolak', [WardStockRequestController::class, 'reject'])->name('tolak');
+        Route::post('/{permintaan}/keluarkan', [WardStockRequestController::class, 'issue'])->name('keluarkan');
+    });
+
+    Route::middleware('can:permintaan_stok_obat_pasien')->prefix('farmasi/permintaan-pasien')->name('pharmacy.permintaan-pasien.')->group(function () {
+        Route::get('/', [PatientStockRequestController::class, 'index'])->name('index');
+        Route::get('/cari-kunjungan', [PatientStockRequestController::class, 'searchRegistration'])->name('cari-kunjungan');
+        Route::post('/', [PatientStockRequestController::class, 'store'])->name('simpan');
+        Route::post('/{permintaan}/tolak', [PatientStockRequestController::class, 'reject'])->name('tolak');
+        Route::post('/{permintaan}/keluarkan', [PatientStockRequestController::class, 'issue'])->name('keluarkan');
+    });
+
+    Route::middleware('can:resep_luar')->prefix('farmasi/resep-luar')->name('pharmacy.resep-luar.')->group(function () {
+        Route::get('/', [ExternalPrescriptionController::class, 'index'])->name('index');
+        Route::post('/', [ExternalPrescriptionController::class, 'store'])->name('simpan');
+        Route::post('/{resep}/serahkan', [ExternalPrescriptionController::class, 'dispense'])->name('serahkan');
+        Route::post('/{resep}/batal', [ExternalPrescriptionController::class, 'cancel'])->name('batal');
+    });
+
+    Route::middleware('can:penggunaan_bhp_ok')->prefix('farmasi/bhp-ok')->name('pharmacy.bhp-ok.')->group(function () {
+        Route::get('/', [ProcedureBhpUsageController::class, 'index'])->name('index');
+        Route::post('/', [ProcedureBhpUsageController::class, 'store'])->name('simpan');
     });
 
     Route::prefix('resep')->name('resep.')->group(function () {

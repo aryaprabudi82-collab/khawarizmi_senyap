@@ -58,6 +58,14 @@
           @endforeach
         </select>
       </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label" for="kind">Jenis</label>
+        <select id="kind" name="kind" class="form-select">
+          <option value="">Semua jenis</option>
+          <option value="rawat-jalan" @selected($kind === 'rawat-jalan')>Rawat Jalan</option>
+          <option value="pulang" @selected($kind === 'pulang')>Resep Pulang</option>
+        </select>
+      </div>
       <div class="col-12 col-md-2">
         <button class="btn btn-outline-primary w-100">Tampilkan</button>
       </div>
