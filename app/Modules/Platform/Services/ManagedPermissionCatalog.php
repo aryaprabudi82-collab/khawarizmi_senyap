@@ -30,21 +30,21 @@ class ManagedPermissionCatalog
      * Menambah baru di sini berarti sudah ada layar untuk kode tersebut.
      */
     private const MANAGED_CODES = [
-        'audit_kepatuhan_apd', 'barcoderalan', 'barcoderanap', 'bayar_piutang', 'beri_obat', 'booking_mcu_perusahaan', 'booking_operasi', 'bpjs_cek_kartu', 'bpjs_sep', 'deposit_pasien', 'diet_pasien',
+        'audit_kepatuhan_apd', 'barcoderalan', 'barcoderanap', 'bayar_pemesanan_obat', 'bayar_piutang', 'beri_obat', 'booking_mcu_perusahaan', 'booking_operasi', 'bpjs_cek_kartu', 'bpjs_sep', 'deposit_pasien', 'diet_pasien',
         'igd', 'insiden_keselamatan_pasien', 'inventaris_inventaris', 'ipsrs_barang', 'jadwal_pegawai', 'jenis_cidera_k3rstahun', 'layanan_program_kfr', 'limbah_b3_medis',
         'mapping_poli_bpjs', 'obat', 'operasi', 'pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi', 'pegawai_user',
-        'pelanggan_lab_kesehatan_lingkungan', 'penugasan_pengujian_sampel_lab_kesehatan_lingkungan',
+        'pelanggan_lab_kesehatan_lingkungan', 'pemesanan_obat', 'penugasan_pengujian_sampel_lab_kesehatan_lingkungan',
         'permintaan_pengujian_sampel_lab_kesehatan_lingkungan', 'hasil_pengujian_sampel_lab_kesehatan_lingkungan',
         'verifikasi_pengujian_sampel_lab_kesehatan_lingkungan', 'validasi_pengujian_sampel_lab_kesehatan_lingkungan',
         'pembayaran_pengujian_sampel_lab_kesehatan_lingkungan', 'rekap_pelayanan_lab_kesehatan_lingkungan',
-        'pembayaran_ralan', 'pemeriksaan_lab_pa', 'pengajuan_barang_nonmedis', 'pengajuan_cuti', 'pengumuman_epasien',
+        'pembayaran_ralan', 'pemeriksaan_lab_pa', 'pengadaan_obat', 'pengajuan_barang_medis', 'pengajuan_barang_nonmedis', 'pengajuan_cuti', 'pengumuman_epasien',
         'penilaian_awal_medis_ralan', 'perbaikan_inventaris', 'periksa_lab', 'periksa_radiologi',
         'peristiwa_k3rs', 'perkiraan_biaya_ranap', 'persetujuan_penolakan_tindakan', 'presensi_harian', 'registrasi',
-        'rekap_kunjungan', 'resep_obat', 'rujukan_keluar', 'satu_sehat_kirim_condition', 'satu_sehat_kirim_encounter',
+        'rekap_kunjungan', 'resep_obat', 'retur_ke_suplier', 'rujukan_keluar', 'satu_sehat_kirim_condition', 'satu_sehat_kirim_encounter',
         'satu_sehat_mapping_lokasi', 'satu_sehat_referensi_dokter', 'satu_sehat_referensi_pasien',
         'permintaan_ranap', 'sirkulasi_cssd', 'skp_penilaian', 'surat_keterangan_sehat', 'surat_masuk',
         'tarif_ralan', 'telaah_resep', 'tindakan_ranap', 'utd_pendonor', 'utd_penyerahan_darah', 'utd_stok_darah',
-        'user',
+        'user', 'verifikasi_penerimaan_farmasi',
     ];
 
     /** Koreksi context Khanza yang salah-taut, lihat catatan kelas. */

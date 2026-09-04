@@ -154,6 +154,49 @@ class StockLedger
         });
     }
 
+    /**
+     * Mengurangi stok satu batch tertentu secara langsung, mis. saat retur
+     * ke suplier — beda dari issue() yang FEFO lintas batch, di sini batch
+     * memang harus yang persis sama dengan yang diterima (barang cacat
+     * ditelusuri sampai batch aslinya). Guard atomik sama seperti issue():
+     * kalah balapan berarti nol baris terpengaruh, ditolak alih-alih
+     * membuat saldo minus.
+     */
+    public function deductFromBatch(
+        int $batchId,
+        float $quantity,
+        string $referenceType,
+        ?int $referenceId = null,
+        ?User $actor = null,
+        ?string $note = null,
+    ): void {
+        if ($quantity <= 0) {
+            throw new PharmacyException('Jumlah yang dikurangi harus lebih dari nol.');
+        }
+
+        DB::transaction(function () use ($batchId, $quantity, $referenceType, $referenceId, $actor, $note): void {
+            $batch = StockBatch::query()->findOrFail($batchId);
+
+            $row = DB::selectOne(
+                'UPDATE pharmacy.stock_batches
+                    SET quantity_on_hand = quantity_on_hand - ?, updated_at = now()
+                  WHERE id = ? AND quantity_on_hand >= ?
+              RETURNING quantity_on_hand',
+                [$quantity, $batchId, $quantity]
+            );
+
+            if ($row === null) {
+                throw new PharmacyException(sprintf(
+                    'Stok batch %s tidak cukup untuk dikurangi %s.',
+                    $batch->batch_number,
+                    rtrim(rtrim(number_format($quantity, 2, ',', '.'), '0'), ','),
+                ));
+            }
+
+            $this->log($batch, 'retur-keluar', -$quantity, (float) $row->quantity_on_hand, $referenceType, $referenceId, $note, $actor);
+        });
+    }
+
     /** Mengembalikan stok, mis. saat penyerahan dibatalkan. */
     public function returnStock(
         int $batchId,
