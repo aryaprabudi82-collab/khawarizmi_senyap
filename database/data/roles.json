@@ -251,12 +251,17 @@
     {
         "code": "petugas-logistik",
         "name": "Petugas Logistik Non-Medis",
-        "description": "Master barang/kategori/suplier, stok masuk/opname, dan persetujuan permintaan barang dari unit.",
-        "_catatan_scope": "Domain E bersih — 31 kapabilitas semuanya memang milik inventory, tidak ada mis-tagging seperti domain C/M. Sengaja tetap 'contexts': [] dan bukan [\"inventory\"] karena sekitar 20 dari 31 kapabilitasnya adalah laporan (rekap_*, ringkasan_*, sirkulasi_*) yang belum ada layarnya di Wave 1 ini — extra_permissions dibatasi pada dua yang sudah dikerjakan.",
+        "description": "Master barang/kategori/suplier, stok masuk/opname, rantai pengadaan (PO/penerimaan/retur suplier), dan persetujuan permintaan barang dari unit.",
+        "_catatan_scope": "Domain E bersih — semua kapabilitasnya memang milik inventory, tidak ada mis-tagging seperti domain C/M. Sengaja tetap 'contexts': [] dan bukan [\"inventory\"] karena sebagian kapabilitasnya adalah laporan (rekap_*, ringkasan_*, sirkulasi_*) yang belum ada layarnya — extra_permissions dibatasi pada yang sudah dikerjakan. Item A (master data: ipsrs_jenis_barang, suplier_penunjang, stok_opname_logistik, hibah_non_medis, ipsrs_stok_keluar, permintaan_non_medis) ternyata sudah terpenuhi oleh MasterDataController/RequisitionController/StockLedger yang ada sejak awal — tidak butuh kode baru, tidak butuh perubahan di sini. Item B (rantai pengadaan) ditambahkan 2026-10: ipsrs_pengadaan_barang menggerbangi layar PO, surat_pemesanan_non_medis menggerbangi cetak PO, penerimaan_non_medis menggerbangi layar penerimaan barang, verifikasi_penerimaan_logistik menggerbangi verifikasi penerimaan (peran yang sama memegang keduanya karena RS kecil ini tidak memisahkan petugas gudang dari verifikatornya), ipsrs_returbeli menggerbangi retur ke suplier.",
         "contexts": [],
         "extra_permissions": [
             "ipsrs_barang",
-            "pengajuan_barang_nonmedis"
+            "pengajuan_barang_nonmedis",
+            "ipsrs_pengadaan_barang",
+            "surat_pemesanan_non_medis",
+            "penerimaan_non_medis",
+            "verifikasi_penerimaan_logistik",
+            "ipsrs_returbeli"
         ]
     },
     {
