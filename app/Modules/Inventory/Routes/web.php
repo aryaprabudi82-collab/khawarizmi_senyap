@@ -1,6 +1,8 @@
 <?php
 
+use App\Modules\Inventory\Http\Controllers\DonationController;
 use App\Modules\Inventory\Http\Controllers\GoodsReceiptController;
+use App\Modules\Inventory\Http\Controllers\InventoryRecapController;
 use App\Modules\Inventory\Http\Controllers\MasterDataController;
 use App\Modules\Inventory\Http\Controllers\PurchaseOrderController;
 use App\Modules\Inventory\Http\Controllers\RequisitionController;
@@ -79,5 +81,17 @@ Route::middleware(['web', 'auth'])
         // sirkulasi_non_medis2 — satu layar gabungan, lihat catatan
         // migrasi 2026_10_02_000001.
         Route::middleware('can:ipsrs_riwayat_barang')->get('/laporan', [StockReportController::class, 'index'])->name('laporan.index');
+
+        // Domain E item D (terakhir) — hibah barang & rekap gabungan.
+        // Lihat catatan migrasi 2026_10_03_000001.
+        Route::middleware('can:hibah_non_medis')->prefix('hibah')->name('hibah.')->group(function () {
+            Route::get('/', [DonationController::class, 'index'])->name('index');
+            Route::post('/donor', [DonationController::class, 'storeDonor'])->name('donor.simpan');
+            Route::post('/', [DonationController::class, 'store'])->name('simpan');
+        });
+
+        // ipsrs_rekap_pengadaan menaungi 13 kode ringkasan/rekap lain —
+        // satu layar gabungan, lihat catatan migrasi 2026_10_03_000001.
+        Route::middleware('can:ipsrs_rekap_pengadaan')->get('/rekap', [InventoryRecapController::class, 'index'])->name('rekap.index');
 
     });

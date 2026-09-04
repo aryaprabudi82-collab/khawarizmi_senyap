@@ -12,6 +12,12 @@
   @can('ipsrs_returbeli')
     <a href="{{ route('inventory.retur.index') }}" class="btn btn-outline-primary">Retur</a>
   @endcan
+  @can('hibah_non_medis')
+    <a href="{{ route('inventory.hibah.index') }}" class="btn btn-outline-primary">Hibah</a>
+  @endcan
+  @can('ipsrs_rekap_pengadaan')
+    <a href="{{ route('inventory.rekap.index') }}" class="btn btn-outline-primary">Rekap</a>
+  @endcan
 @endsection
 
 @section('content')
