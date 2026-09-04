@@ -4,6 +4,8 @@ use App\Modules\Inventory\Http\Controllers\GoodsReceiptController;
 use App\Modules\Inventory\Http\Controllers\MasterDataController;
 use App\Modules\Inventory\Http\Controllers\PurchaseOrderController;
 use App\Modules\Inventory\Http\Controllers\RequisitionController;
+use App\Modules\Inventory\Http\Controllers\StockOpnameController;
+use App\Modules\Inventory\Http\Controllers\StockReportController;
 use App\Modules\Inventory\Http\Controllers\SupplierReturnController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,8 +26,10 @@ Route::middleware(['web', 'auth'])
 
         // permintaan_non_medis (IPSRSPermintaan) TIDAK jadi layar sendiri —
         // sudah terpenuhi listing di sini, sama seperti resep_dokter di
-        // domain D. ipsrs_stok_keluar juga sudah terpenuhi lewat
-        // fulfill()/StockLedger::issue() di bawah.
+        // domain D. ipsrs_stok_keluar dan pengambilan_penunjang_utd juga
+        // sudah terpenuhi lewat fulfill()/StockLedger::issue() di bawah —
+        // UTD cuma unit pemohon biasa, sama pola dengan UTD di domain D
+        // item 4. Lihat catatan migrasi 2026_10_02_000001.
         Route::middleware('can:pengajuan_barang_nonmedis')->prefix('permintaan')->name('permintaan.')->group(function () {
             Route::get('/', [RequisitionController::class, 'index'])->name('index');
             Route::post('/', [RequisitionController::class, 'store'])->name('simpan');
@@ -59,5 +63,21 @@ Route::middleware(['web', 'auth'])
             Route::post('/', [SupplierReturnController::class, 'store'])->name('simpan');
             Route::post('/{retur}/selesai', [SupplierReturnController::class, 'complete'])->name('selesai');
         });
+
+        // Domain E item C — stok opname (sesi multi-barang, beda dari
+        // opname() ad-hoc di atas) & riwayat/sirkulasi barang. Lihat
+        // catatan migrasi 2026_10_02_000001.
+        Route::middleware('can:stok_opname_logistik')->prefix('opname')->name('opname.')->group(function () {
+            Route::get('/', [StockOpnameController::class, 'index'])->name('index');
+            Route::get('/{opname}', [StockOpnameController::class, 'show'])->name('show');
+            Route::post('/', [StockOpnameController::class, 'store'])->name('simpan');
+            Route::post('/{opname}/hitung', [StockOpnameController::class, 'recordCount'])->name('hitung');
+            Route::post('/{opname}/selesai', [StockOpnameController::class, 'complete'])->name('selesai');
+        });
+
+        // ipsrs_riwayat_barang menaungi sirkulasi_non_medis dan
+        // sirkulasi_non_medis2 — satu layar gabungan, lihat catatan
+        // migrasi 2026_10_02_000001.
+        Route::middleware('can:ipsrs_riwayat_barang')->get('/laporan', [StockReportController::class, 'index'])->name('laporan.index');
 
     });

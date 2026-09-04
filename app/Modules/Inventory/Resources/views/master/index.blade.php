@@ -6,6 +6,12 @@
 
 @section('actions')
   <a href="{{ route('inventory.permintaan.index') }}" class="btn btn-link">Permintaan &rarr;</a>
+  @can('stok_opname_logistik')
+    <a href="{{ route('inventory.opname.index') }}" class="btn btn-outline-primary">Stok Opname</a>
+  @endcan
+  @can('ipsrs_riwayat_barang')
+    <a href="{{ route('inventory.laporan.index') }}" class="btn btn-outline-primary">Riwayat &amp; Sirkulasi</a>
+  @endcan
 @endsection
 
 @section('content')
