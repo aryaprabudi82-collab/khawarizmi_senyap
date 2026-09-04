@@ -271,12 +271,17 @@
     {
         "code": "petugas-dapur",
         "name": "Petugas Dapur & Gizi",
-        "description": "Master barang/kategori/suplier dapur, stok masuk, dan persetujuan permintaan barang dari unit.",
-        "_catatan_scope": "Domain F ('Dapur & Gizi') bersih — semua 25 kapabilitas genuine-nya memang milik context=kitchen, tidak ada mis-tagging (asal_hibah dan satuan_barang yang ikut nongol di menunya adalah kode reused lintas-domain, sudah diselesaikan ke context=pharmacy saat domain D dibangun). Context kitchen dibangun dari nol 2026-10 (beda dari domain E yang tinggal memperluas modul lama), sub-order 4 item paralel persis dengan domain E (dikonfirmasi user). Item A (data master + alur permintaan unit): dapur_barang menggerbangi layar master (barang/kategori/suplier + stok masuk/opname ad-hoc), pengajuan_barang_dapur menggerbangi alur permintaan (diajukan->disetujui->dikeluarkan) — permintaan_dapur (menu terpisah Khanza) TIDAK dapat kode baru, sudah terpenuhi listing yang sama, pola identik permintaan_non_medis. Item B/C/D (rantai pengadaan, opname sesi & riwayat, hibah & rekap gabungan) menyusul, mengikuti pola domain E item B/C/D persis.",
+        "description": "Master barang/kategori/suplier dapur, stok masuk/opname ad-hoc, rantai pengadaan (PO/penerimaan/retur suplier), dan persetujuan permintaan barang dari unit.",
+        "_catatan_scope": "Domain F ('Dapur & Gizi') bersih — semua 25 kapabilitas genuine-nya memang milik context=kitchen, tidak ada mis-tagging (asal_hibah dan satuan_barang yang ikut nongol di menunya adalah kode reused lintas-domain, sudah diselesaikan ke context=pharmacy saat domain D dibangun). Context kitchen dibangun dari nol 2026-10 (beda dari domain E yang tinggal memperluas modul lama), sub-order 4 item paralel persis dengan domain E (dikonfirmasi user). Item A (data master + alur permintaan unit): dapur_barang menggerbangi layar master (barang/kategori/suplier + stok masuk/opname ad-hoc), pengajuan_barang_dapur menggerbangi alur permintaan (diajukan->disetujui->dikeluarkan) — permintaan_dapur (menu terpisah Khanza) TIDAK dapat kode baru, sudah terpenuhi listing yang sama, pola identik permintaan_non_medis. Item B (rantai pengadaan) ditambahkan 2026-10: dapur_pembelian menggerbangi layar PO (nama kode Khanza untuk menu 'Pengadaan Barang Dapur'), surat_pemesanan_dapur menggerbangi cetak PO, dapur_pemesanan menggerbangi layar penerimaan barang (nama kode Khanza untuk menu 'Penerimaan Barang Dapur' — quirk penamaan, bukan berarti pemesanan), verifikasi_penerimaan_dapur menggerbangi verifikasi penerimaan (peran yang sama memegang keduanya, sama seperti petugas-logistik), dapur_returbeli menggerbangi retur ke suplier. dapur_stok_keluar TIDAK dapat kode baru — sudah terpenuhi RequisitionService::fulfill() sejak item A. Item C/D (opname sesi & riwayat, hibah & rekap gabungan) menyusul, mengikuti pola domain E item C/D persis.",
         "contexts": [],
         "extra_permissions": [
             "dapur_barang",
-            "pengajuan_barang_dapur"
+            "pengajuan_barang_dapur",
+            "dapur_pembelian",
+            "surat_pemesanan_dapur",
+            "dapur_pemesanan",
+            "verifikasi_penerimaan_dapur",
+            "dapur_returbeli"
         ]
     },
     {

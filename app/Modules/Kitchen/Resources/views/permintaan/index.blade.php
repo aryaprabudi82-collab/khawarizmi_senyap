@@ -6,6 +6,9 @@
 
 @section('actions')
   <a href="{{ route('kitchen.index') }}" class="btn btn-link">&larr; Barang</a>
+  @can('dapur_pembelian')
+    <a href="{{ route('kitchen.po.index') }}" class="btn btn-outline-primary">Pengadaan</a>
+  @endcan
 @endsection
 
 @section('content')
