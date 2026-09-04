@@ -4,6 +4,12 @@
 @section('breadcrumb', 'Konteks pharmacy')
 @section('heading', 'Antrean Resep ' . $tanggal->translatedFormat('l, d F Y'))
 
+@section('actions')
+  @can('obat')
+    <a href="{{ route('pharmacy.master.index') }}" class="btn btn-outline-primary">Data Master</a>
+  @endcan
+@endsection
+
 @section('content')
 
 <div class="row row-deck row-cards mb-3">

@@ -4,6 +4,8 @@ namespace App\Modules\Pharmacy\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Drug extends Model
 {
@@ -22,6 +24,26 @@ class Drug extends Model
             'sell_price' => 'decimal:2',
             'minimum_stock' => 'decimal:2',
         ];
+    }
+
+    public function drugCategory(): BelongsTo
+    {
+        return $this->belongsTo(DrugCategory::class);
+    }
+
+    public function drugClass(): BelongsTo
+    {
+        return $this->belongsTo(DrugClass::class);
+    }
+
+    public function manufacturer(): BelongsTo
+    {
+        return $this->belongsTo(Manufacturer::class);
+    }
+
+    public function units(): HasMany
+    {
+        return $this->hasMany(DrugUnit::class);
     }
 
     public function scopeSearch(Builder $query, string $term): Builder
