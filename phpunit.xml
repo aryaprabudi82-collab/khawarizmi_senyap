@@ -21,6 +21,13 @@
         </include>
     </source>
     <php>
+        <!--
+        | Suite ini sudah lebih dari 650 pengujian dan melewati batas memori
+        | bawaan PHP (128M) saat dijalankan sekaligus — gejalanya bukan tes
+        | gagal, melainkan proses berhenti di tengah jalan dengan "allowed
+        | memory size exhausted", yang mudah disalahartikan sebagai regresi.
+        -->
+        <ini name="memory_limit" value="512M"/>
         <env name="DB_CONNECTION" value="pgsql"/>
         <env name="DB_DATABASE" value="simrs_mandiri_test"/>
         <env name="APP_ENV" value="testing"/>
