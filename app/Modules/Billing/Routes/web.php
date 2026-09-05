@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Billing\Http\Controllers\BillingRecapController;
 use App\Modules\Billing\Http\Controllers\InvoiceController;
 use App\Modules\Billing\Http\Controllers\MedicalFeeController;
 use App\Modules\Billing\Http\Controllers\ReceivableController;
@@ -35,6 +36,13 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::post('/{tagihan}/penyesuaian', [InvoiceController::class, 'addAdjustment'])->name('penyesuaian.simpan');
         Route::post('/penyesuaian/{penyesuaian}/batal', [InvoiceController::class, 'voidAdjustment'])->name('penyesuaian.batal');
     });
+
+    // Domain I item D: hampir seluruh kode laporannya ternyata pengelompokan
+    // dari dua tabel yang sudah ada. Dipisah dua layar menurut sumber datanya,
+    // karena pembacanya pun berbeda — biaya dibaca manajemen, pembayaran
+    // dibaca kasir saat tutup kas.
+    Route::middleware('can:ringkasan_tindakan')->get('/rekap-biaya', [BillingRecapController::class, 'biaya'])->name('rekap.biaya');
+    Route::middleware('can:rekap_pembayaran_ralan')->get('/rekap-pembayaran', [BillingRecapController::class, 'pembayaran'])->name('rekap.pembayaran');
 
     // rekap_jm_dokter — satu layar menaungi ~14 kode laporan jasa medis
     // (harian_* dan bulanan_* untuk enam komponen, plus rekap JM dokter),

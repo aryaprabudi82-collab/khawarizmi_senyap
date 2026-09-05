@@ -117,12 +117,62 @@ class DrugUsageReportTest extends TestCase
         $this->actingAs($this->dokter)->get(route('pharmacy.laporan-obat.index'))->assertForbidden();
     }
 
-    private function resepDiserahkan(): Prescription
+    /**
+     * Domain I item D: enam kode obat_per_* ditandai katalog context=billing,
+     * tapi datanya resep dan laporannya sudah ada di sini — dilayani penyaring
+     * di layar yang sama, bukan layar kembar di billing (dikonfirmasi user).
+     */
+    #[Test]
+    public function obat_per_dokter_dipisahkan_menurut_jenis_rawat(): void
+    {
+        $this->resepDiserahkan(careType: 'ralan');
+        $this->resepDiserahkan(careType: 'ranap');
+
+        $hariIni = now()->toDateString();
+
+        $ralan = $this->reports->byPrescriber($hariIni, $hariIni, 'ralan');
+        $ranap = $this->reports->byPrescriber($hariIni, $hariIni, 'ranap');
+        $semua = $this->reports->byPrescriber($hariIni, $hariIni);
+
+        $this->assertSame(1, (int) $ralan->first()->jumlah_resep, 'obat_per_dokter_ralan');
+        $this->assertSame(1, (int) $ranap->first()->jumlah_resep, 'obat_per_dokter_ranap');
+        $this->assertSame(2, (int) $semua->first()->jumlah_resep, 'obat_per_dokter_peresep, tanpa penyaring');
+    }
+
+    /** obat_per_kamar — rekap per unit disaring ke rawat inap. */
+    #[Test]
+    public function obat_per_unit_bisa_disaring_ke_rawat_inap(): void
+    {
+        $this->resepDiserahkan(careType: 'ralan');
+        $this->resepDiserahkan(careType: 'ranap');
+
+        $hariIni = now()->toDateString();
+
+        $this->assertSame(1, (int) $this->reports->byUnit($hariIni, $hariIni, 'ranap')->first()->jumlah_resep);
+        $this->assertSame(2, (int) $this->reports->byUnit($hariIni, $hariIni)->first()->jumlah_resep);
+    }
+
+    /** obat_per_cara_bayar — dikelompokkan per penjamin. */
+    #[Test]
+    public function obat_dikelompokkan_per_cara_bayar(): void
+    {
+        $this->resepDiserahkan(penjamin: 'UMUM');
+        $this->resepDiserahkan(penjamin: 'BPJS');
+
+        $rekap = $this->reports->byPayer(now()->toDateString(), now()->toDateString());
+
+        $this->assertCount(2, $rekap);
+        $this->assertEqualsCanonicalizing(
+            ['Umum / Bayar Sendiri', 'BPJS Kesehatan'],
+            $rekap->pluck('payer_name')->all()
+        );
+    }
+    private function resepDiserahkan(string $careType = 'ralan', string $penjamin = 'UMUM'): Prescription
     {
         $depo = StockLocation::query()->where('code', 'DEPO-RJ')->firstOrFail();
-        app(StockLedger::class)->receive($this->obat->id, $depo->id, 'BATCH-LAPORAN-1', 50, now()->addYear()->toDateString(), 1500, $this->apoteker);
+        app(StockLedger::class)->receive($this->obat->id, $depo->id, 'BATCH-LAPORAN-' . uniqid(), 50, now()->addYear()->toDateString(), 1500, $this->apoteker);
 
-        $registrasi = $this->daftarkan();
+        $registrasi = $this->daftarkan(careType: $careType, penjamin: $penjamin);
         $resep = $this->prescriptions->create($registrasi->id, $this->dokter);
 
         $this->prescriptions->addItem($resep, $this->obat->id, 2, '2x1 tablet');
@@ -132,7 +182,7 @@ class DrugUsageReportTest extends TestCase
         return $this->prescriptions->dispense($resep->refresh(), $depo->id, $this->apoteker);
     }
 
-    private function daftarkan(string $nama = 'Pasien Laporan Obat'): Registration
+    private function daftarkan(string $nama = 'Pasien Laporan Obat', string $careType = 'ralan', string $penjamin = 'UMUM'): Registration
     {
         static $urut = 0;
         $urut++;
@@ -144,7 +194,8 @@ class DrugUsageReportTest extends TestCase
         return app(RegistrationService::class)->register(
             patientId: $pasien->id,
             unitId: Unit::query()->where('code', 'POL-UMUM')->value('id'),
-            payerId: Payer::query()->where('code', 'UMUM')->value('id'),
+            payerId: Payer::query()->where('code', $penjamin)->value('id'),
+            extra: $careType === 'ranap' ? ['care_type' => 'ranap'] : [],
         );
     }
 }

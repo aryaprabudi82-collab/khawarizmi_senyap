@@ -49,9 +49,9 @@ class DrugUsageReportService
     }
 
     /** obat_per_resep — dikelompokkan per dokter peresep, lihat catatan kelas. */
-    public function byPrescriber(string $dari, string $sampai): Collection
+    public function byPrescriber(string $dari, string $sampai, ?string $careType = null): Collection
     {
-        return $this->dasarQuery($dari, $sampai)
+        return $this->dasarQuery($dari, $sampai, $careType)
             ->selectRaw("coalesce(p.prescriber_name, '—') as prescriber_name, count(distinct p.id) as jumlah_resep, sum(i.dispensed_quantity * i.unit_price) as total_biaya")
             ->groupBy('p.prescriber_name')
             ->orderByDesc('total_biaya')
@@ -75,9 +75,9 @@ class DrugUsageReportService
     }
 
     /** rekap_obat_poli — dikelompokkan per unit/poliklinik. */
-    public function byUnit(string $dari, string $sampai): Collection
+    public function byUnit(string $dari, string $sampai, ?string $careType = null): Collection
     {
-        return $this->dasarQuery($dari, $sampai)
+        return $this->dasarQuery($dari, $sampai, $careType)
             ->selectRaw('p.unit_name, count(distinct p.id) as jumlah_resep, sum(i.dispensed_quantity * i.unit_price) as total_biaya')
             ->groupBy('p.unit_name')
             ->orderByDesc('total_biaya')
@@ -94,14 +94,45 @@ class DrugUsageReportService
             ->get();
     }
 
-    private function dasarQuery(string $dari, string $sampai): Builder
+    /**
+     * Domain I item D: penyaring jenis rawat & penjamin ditambahkan supaya
+     * kode obat_per_dokter_ralan, obat_per_dokter_ranap, obat_per_kamar,
+     * dan obat_per_cara_bayar terlayani di sini — bukan dibangun ulang di
+     * billing (dikonfirmasi user). Katalog menandainya context=billing,
+     * tapi datanya resep dan laporannya sudah ada di sini; laporan kembar
+     * di dua konteks hanya akan berselisih lama-lama.
+     *
+     * Jenis rawat dan penjamin diambil dari encounter.v_registration_summary,
+     * kontrak terbitan konteks encounter — resep sendiri tidak menyimpannya.
+     */
+    /** obat_per_cara_bayar — dikelompokkan per penjamin. */
+    public function byPayer(string $dari, string $sampai): Collection
+    {
+        return $this->dasarQuery($dari, $sampai, butuhPenjamin: true)
+            ->selectRaw('r.payer_name, count(distinct p.id) as jumlah_resep, sum(i.dispensed_quantity * i.unit_price) as total_biaya')
+            ->groupBy('r.payer_name')
+            ->orderByDesc('total_biaya')
+            ->get();
+    }
+
+    private function dasarQuery(string $dari, string $sampai, ?string $careType = null, bool $butuhPenjamin = false): Builder
     {
         $akhir = $sampai . ' 23:59:59';
 
-        return DB::table('pharmacy.prescriptions as p')
+        $query = DB::table('pharmacy.prescriptions as p')
             ->join('pharmacy.prescription_items as i', 'i.prescription_id', '=', 'p.id')
             ->join('pharmacy.drugs as d', 'd.id', '=', 'i.drug_id')
             ->where('p.status', 'diserahkan')
             ->whereBetween('p.prescribed_at', [$dari, $akhir]);
+
+        if ($careType !== null || $butuhPenjamin) {
+            $query->join('encounter.v_registration_summary as r', 'r.id', '=', 'p.registration_id');
+        }
+
+        if ($careType !== null) {
+            $query->where('r.care_type', $careType);
+        }
+
+        return $query;
     }
 }

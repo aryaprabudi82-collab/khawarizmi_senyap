@@ -28,6 +28,14 @@
         <input type="text" id="unit" name="unit" class="form-control" placeholder="Kosongkan untuk semua unit" value="{{ $unitFilter }}">
       </div>
       <div class="col-12 col-md-2">
+        <label class="form-label" for="jenis_rawat">Jenis Rawat</label>
+        <select id="jenis_rawat" name="jenis_rawat" class="form-select">
+          <option value="">Semua</option>
+          <option value="ralan" @selected($jenisRawat === 'ralan')>Rawat Jalan</option>
+          <option value="ranap" @selected($jenisRawat === 'ranap')>Rawat Inap</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-2">
         <button class="btn btn-outline-primary w-100">Tampilkan</button>
       </div>
     </form>
@@ -55,7 +63,7 @@
 
   <div class="col-12 col-lg-6">
     <div class="card">
-      <div class="card-header"><h3 class="card-title">Rekap Obat Per Unit/Poli</h3></div>
+      <div class="card-header"><h3 class="card-title">Rekap Obat Per Unit/Poli{{ $jenisRawat ? " — " . ($jenisRawat === "ralan" ? "Rawat Jalan" : "Rawat Inap") : "" }}</h3></div>
       <div class="table-responsive" style="max-height:320px; overflow-y:auto;">
         <table class="table table-vcenter card-table">
           <thead><tr><th>Unit</th><th class="text-center">Resep</th><th class="text-end">Biaya</th></tr></thead>
@@ -93,13 +101,33 @@
 
   <div class="col-12 col-lg-6">
     <div class="card">
-      <div class="card-header"><h3 class="card-title">Obat Per Dokter Peresep</h3></div>
+      <div class="card-header"><h3 class="card-title">Obat Per Dokter Peresep{{ $jenisRawat ? " — " . ($jenisRawat === "ralan" ? "Rawat Jalan" : "Rawat Inap") : "" }}</h3></div>
       <div class="table-responsive" style="max-height:320px; overflow-y:auto;">
         <table class="table table-vcenter card-table">
           <thead><tr><th>Dokter</th><th class="text-center">Resep</th><th class="text-end">Biaya</th></tr></thead>
           <tbody>
             @forelse ($perDokter as $d)
               <tr><td>{{ $d->prescriber_name }}</td><td class="text-center">{{ $d->jumlah_resep }}</td><td class="text-end font-monospace">Rp {{ number_format((float) $d->total_biaya, 0, ',', '.') }}</td></tr>
+            @empty
+              <tr><td colspan="3" class="text-center text-secondary py-3">Tidak ada data pada rentang ini.</td></tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-header"><h3 class="card-title">Obat Per Cara Bayar</h3></div>
+      <div class="table-responsive" style="max-height:320px; overflow-y:auto;">
+        <table class="table table-vcenter card-table">
+          <thead><tr><th>Penjamin</th><th class="text-center">Resep</th><th class="text-end">Biaya</th></tr></thead>
+          <tbody>
+            @forelse ($perPenjamin as $p)
+              <tr><td>{{ $p->payer_name }}</td><td class="text-center">{{ $p->jumlah_resep }}</td><td class="text-end font-monospace">Rp {{ number_format((float) $p->total_biaya, 0, ',', '.') }}</td></tr>
             @empty
               <tr><td colspan="3" class="text-center text-secondary py-3">Tidak ada data pada rentang ini.</td></tr>
             @endforelse
