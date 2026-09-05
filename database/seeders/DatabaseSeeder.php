@@ -7,6 +7,7 @@ use App\Modules\Platform\Database\Seeders\RoleSeeder;
 use App\Modules\Platform\Database\Seeders\UserSeeder;
 use App\Modules\Clinical\Database\Seeders\DiagnosisCodeSeeder;
 use App\Modules\Finance\Database\Seeders\ChartOfAccountsSeeder;
+use App\Modules\Inpatient\Database\Seeders\InpatientSeeder;
 use App\Modules\Order\Database\Seeders\TestCatalogSeeder;
 use App\Modules\Pharmacy\Database\Seeders\PharmacySeeder;
 use Illuminate\Database\Seeder;
@@ -24,6 +25,7 @@ class DatabaseSeeder extends Seeder
             PharmacySeeder::class,
             TestCatalogSeeder::class,
             ChartOfAccountsSeeder::class,
+            InpatientSeeder::class,
             UserSeeder::class,
         ]);
     }
