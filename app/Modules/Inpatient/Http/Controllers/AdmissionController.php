@@ -91,6 +91,33 @@ class AdmissionController
         return back()->with('sukses', "DPJP {$admisi->patient_name} diganti.");
     }
 
+    /**
+     * Memindahkan pasien ke bed lain di tengah rawatan.
+     *
+     * Riwayat penempatannya dicatat, bukan sekadar menimpa bed_id — itu
+     * yang membuat biaya kamar per hari tetap benar kalau kelasnya berubah.
+     */
+    public function transferBed(Request $request, Admission $admisi): RedirectResponse
+    {
+        $data = $request->validate([
+            'bed_id' => ['required', 'integer'],
+            'reason' => ['nullable', 'string', 'max:255'],
+        ], [], ['bed_id' => 'bed tujuan', 'reason' => 'alasan pindah']);
+
+        $bed = Bed::query()->find($data['bed_id']);
+
+        if ($bed === null) {
+            return back()->with('galat', 'Bed tujuan tidak ditemukan.');
+        }
+
+        try {
+            $this->admissions->transferBed($admisi, $bed, $data['reason'] ?? null, $request->user()?->id);
+        } catch (InpatientException $e) {
+            return back()->with('galat', $e->getMessage());
+        }
+
+        return back()->with('sukses', "{$admisi->patient_name} dipindahkan ke bed {$bed->bed_number}.");
+    }
     public function storeDiet(Request $request, Admission $admisi): RedirectResponse
     {
         $data = $request->validate([

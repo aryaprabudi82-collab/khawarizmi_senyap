@@ -28,6 +28,10 @@ Route::middleware(['web', 'auth'])
             // dokter, tapi dicatat lewat layar bangsal yang sama).
             Route::post('/admisi/{admisi}/dpjp', [AdmissionController::class, 'reassignDpjp'])->name('admisi.dpjp.simpan');
 
+            // Pindah bed mencatat riwayat penempatan, bukan menimpa bed_id —
+            // itu yang menjaga biaya kamar per hari tetap benar saat kelas berubah.
+            Route::post('/admisi/{admisi}/pindah-bed', [AdmissionController::class, 'transferBed'])->name('admisi.pindah-bed');
+
             Route::prefix('kamar')->name('kamar.')->group(function () {
                 Route::get('/', [RoomController::class, 'index'])->name('index');
                 Route::post('/', [RoomController::class, 'store'])->name('simpan');

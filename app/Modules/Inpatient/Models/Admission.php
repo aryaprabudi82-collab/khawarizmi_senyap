@@ -46,6 +46,12 @@ class Admission extends Model
         return $this->hasMany(DpjpHistory::class)->orderByDesc('start_at');
     }
 
+    /** Riwayat penempatan bed — dasar biaya kamar per hari yang tahan pindah kelas. */
+    public function bedAssignments(): HasMany
+    {
+        return $this->hasMany(BedAssignment::class)->orderByDesc('assigned_at');
+    }
+
     public function lengthOfStayDays(): int
     {
         $sampai = $this->discharged_at ?? now();

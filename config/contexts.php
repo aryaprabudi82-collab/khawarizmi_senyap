@@ -308,8 +308,10 @@ return [
                 'v_room_charge' => 'Biaya kamar satu baris per hari menginap (domain I item A). Dipakai billing '
                     . 'untuk menagihkan kamar rawat inap — sebelumnya biaya kamar tidak pernah sampai ke tagihan. '
                     . 'Hari yang ditagih: tanggal masuk s.d. sehari sebelum pulang (minimal 1 hari), atau s.d. hari '
-                    . 'ini kalau masih dirawat. Belum tahan pindah kamar di tengah rawat — inpatient belum punya '
-                    . 'riwayat penempatan bed, jadi semua hari memakai tarif kamar terkini.',
+                    . 'ini kalau masih dirawat. Tahan terhadap pindah kamar di tengah rawat: tiap hari memakai '
+                    . 'bed yang sungguh ditempati hari itu, diambil dari bed_assignments — hari sebelum pindah '
+                    . 'tetap memakai tarif kamar lama. Kalau pindahnya di tengah hari, hari itu ditagihkan ke '
+                    . 'kamar yang ditempati sampai malam, karena tarif kamar adalah tarif per malam.',
             ],
         ],
 

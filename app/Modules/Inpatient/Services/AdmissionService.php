@@ -53,6 +53,14 @@ class AdmissionService
                 'admitted_by' => $actorId,
             ]);
 
+            // Baris penempatan bed pertama. Riwayat ini yang membuat biaya
+            // kamar per hari tetap benar kalau pasien pindah kelas nanti.
+            $admisi->bedAssignments()->create([
+                'bed_id' => $bed->id,
+                'assigned_at' => now(),
+                'changed_by' => $actorId,
+            ]);
+
             // Baris dpjp_history pertama, kalau registrasinya sudah punya
             // dokter penanggung jawab — booking tanpa memilih dokter tetap
             // sah diadmisi, DPJP-nya menyusul lewat reassignDpjp().
@@ -114,6 +122,51 @@ class AdmissionService
     }
 
     /**
+     * Memindahkan pasien ke bed lain di tengah rawatan — naik/turun kelas,
+     * butuh isolasi, atau sekadar rotasi ruang.
+     *
+     * Menutup penempatan yang masih terbuka lalu membuka yang baru, pola
+     * yang sama dengan reassignDpjp(). Ini yang membuat biaya kamar per
+     * hari tetap benar: hari-hari sebelum pindah tetap ditagih dengan tarif
+     * kamar lama, bukan ikut berubah surut mengikuti kamar baru.
+     *
+     * @throws InpatientException
+     */
+    public function transferBed(Admission $admission, Bed $bed, ?string $reason = null, ?int $actorId = null): Admission
+    {
+        if ($admission->status !== Admission::STATUS_DIRAWAT) {
+            throw new InpatientException("Admisi {$admission->admission_number} sudah tidak dirawat, bed tidak bisa dipindah.");
+        }
+
+        if ($admission->bed_id === $bed->id) {
+            throw new InpatientException("Pasien sudah menempati bed {$bed->bed_number}.");
+        }
+
+        if ($bed->status !== Bed::STATUS_TERSEDIA) {
+            throw new InpatientException("Bed {$bed->bed_number} berstatus '{$bed->status}', tidak tersedia untuk diisi.");
+        }
+
+        return DB::transaction(function () use ($admission, $bed, $reason, $actorId) {
+            // Bed lama dilepas ke status dibersihkan, sama seperti saat pulang.
+            $admission->bed->update(['status' => Bed::STATUS_DIBERSIHKAN]);
+            $bed->update(['status' => Bed::STATUS_TERISI]);
+
+            $admission->bedAssignments()->whereNull('released_at')->update(['released_at' => now()]);
+
+            $admission->bedAssignments()->create([
+                'bed_id' => $bed->id,
+                'assigned_at' => now(),
+                'reason' => $reason,
+                'changed_by' => $actorId,
+            ]);
+
+            // bed_id tetap dipakai sebagai cache bed terkini, seperti dpjp_name.
+            $admission->update(['bed_id' => $bed->id]);
+
+            return $admission->refresh();
+        });
+    }
+    /**
      * @throws InpatientException
      */
     public function discharge(Admission $admission, string $dischargeStatus, ?string $note, ?int $actorId = null): Admission
@@ -131,6 +184,8 @@ class AdmissionService
                 'status' => DietOrder::STATUS_DIHENTIKAN,
                 'end_date' => now()->toDateString(),
             ]);
+
+            $admission->bedAssignments()->whereNull('released_at')->update(['released_at' => now()]);
 
             $admission->update([
                 'status' => Admission::STATUS_PULANG,

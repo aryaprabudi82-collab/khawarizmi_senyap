@@ -65,7 +65,13 @@
                     @endcan
                   </div>
                 </td>
-                <td>{{ $a->bed->room->room_number }} / {{ $a->bed->bed_number }}<div class="text-secondary small text-uppercase">{{ $a->bed->room->room_class }}</div></td>
+                <td>
+                  {{ $a->bed->room->room_number }} / {{ $a->bed->bed_number }}
+                  <div class="text-secondary small text-uppercase">{{ $a->bed->room->room_class }}</div>
+                  @can('tindakan_ranap')
+                    <button class="btn btn-sm btn-link p-0" data-bs-toggle="modal" data-bs-target="#pindah-{{ $a->id }}">Pindah</button>
+                  @endcan
+                </td>
                 <td>{{ $a->lengthOfStayDays() }} hari</td>
                 @can('diet_pasien')
                   <td>
@@ -169,6 +175,32 @@
 
 @can('tindakan_ranap')
 @foreach ($dirawat as $a)
+  @can('tindakan_ranap')
+    <div class="modal fade" id="pindah-{{ $a->id }}" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="POST" action="{{ route('inpatient.admisi.pindah-bed', $a) }}">
+          @csrf
+          <div class="modal-header"><h5 class="modal-title">Pindah Bed &mdash; {{ $a->patient_name }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="form-hint mb-2">
+              Sekarang di {{ $a->bed->room->room_number }} / {{ $a->bed->bed_number }} ({{ $a->bed->room->room_class }}).
+              Hari-hari sebelum pindah tetap ditagih dengan tarif kamar lama.
+            </div>
+            <label class="form-label">Bed Tujuan</label>
+            <select name="bed_id" class="form-select mb-2" required>
+              <option value="">&mdash; pilih bed tersedia &mdash;</option>
+              @foreach ($bedTersedia as $b)
+                <option value="{{ $b->id }}">{{ $b->room->room_number }} / {{ $b->bed_number }} &mdash; {{ $b->room->room_class }} (Rp {{ number_format((float) $b->room->daily_rate, 0, ',', '.') }}/hari)</option>
+              @endforeach
+            </select>
+            <label class="form-label">Alasan (opsional)</label>
+            <input type="text" name="reason" class="form-control" placeholder="mis. naik kelas, butuh isolasi">
+          </div>
+          <div class="modal-footer"><button type="submit" class="btn btn-primary">Pindahkan</button></div>
+        </form>
+      </div>
+    </div>
+  @endcan
   <div class="modal fade" id="dpjp-{{ $a->id }}" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <form class="modal-content" method="POST" action="{{ route('inpatient.admisi.dpjp.simpan', $a) }}">
