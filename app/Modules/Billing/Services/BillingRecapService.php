@@ -60,9 +60,15 @@ class BillingRecapService
     }
 
     /** Biaya per unit/poliklinik. */
-    public function byUnit(string $from, string $until, ?string $careType = null): Collection
+    public function byUnit(string $from, string $until, ?string $careType = null, ?string $source = null): Collection
     {
-        return $this->chargeQuery($from, $until, $careType)
+        $query = $this->chargeQuery($from, $until, $careType);
+
+        if ($source !== null) {
+            $query->where('c.source_type', $source);
+        }
+
+        return $query
             ->groupBy('i.unit_name')
             ->selectRaw("coalesce(i.unit_name, '—') as unit_name, count(distinct i.id) as jumlah_tagihan, sum(c.amount) as total")
             ->orderByDesc('total')

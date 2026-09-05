@@ -151,6 +151,26 @@ class BillingRecapTest extends TestCase
         $this->assertSame(250_000.0, (float) $perPasien->first()->total);
     }
 
+    /**
+     * Kartu "per unit" sempat mengabaikan penyaring jenis biaya sementara
+     * kartu lain menghormatinya — pengguna yang menyaring "kamar" akan
+     * membaca angka seluruh jenis biaya di kartu itu tanpa tahu.
+     */
+    #[Test]
+    public function rekap_per_unit_menghormati_penyaring_jenis_biaya(): void
+    {
+        $tagihan = $this->tagihan();
+        $this->invoices->addAdjustment($tagihan, ManualAdjustment::KIND_TAMBAHAN, 'Ambulans', 400_000, $this->kasir);
+
+        $hariIni = now()->toDateString();
+
+        $semua = (float) $this->rekap->byUnit($hariIni, $hariIni)->first()->total;
+        $hanyaPenyesuaian = (float) $this->rekap->byUnit($hariIni, $hariIni, null, 'penyesuaian')->first()->total;
+
+        $this->assertSame(400_000.0, $hanyaPenyesuaian);
+        $this->assertGreaterThan($hanyaPenyesuaian, $semua, 'Tanpa penyaring ikut menghitung biaya registrasi');
+    }
+
     #[Test]
     public function dua_layar_rekap_digerbangi_peran_yang_berbeda(): void
     {

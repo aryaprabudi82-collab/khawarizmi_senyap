@@ -167,6 +167,64 @@ class DrugUsageReportTest extends TestCase
             $rekap->pluck('payer_name')->all()
         );
     }
+    /**
+     * Penyaring yang tampil di layar harus berlaku untuk SELURUH kartu,
+     * bukan sebagian. Sebelumnya jenis rawat hanya mengenai dua kartu
+     * sementara lima lainnya diam-diam menampilkan semua data — pengguna
+     * yang memilih "Rawat Inap" akan membaca angka rawat jalan tanpa tahu.
+     */
+    #[Test]
+    public function penyaring_jenis_rawat_berlaku_untuk_semua_kartu(): void
+    {
+        $this->resepDiserahkan(careType: 'ralan');
+        $this->resepDiserahkan(careType: 'ranap');
+
+        $hariIni = now()->toDateString();
+
+        $semua = [
+            'byPatient' => $this->reports->byPatient($hariIni, $hariIni),
+            'byDrug' => $this->reports->byDrug($hariIni, $hariIni),
+            'byPrescriber' => $this->reports->byPrescriber($hariIni, $hariIni),
+            'byUnit' => $this->reports->byUnit($hariIni, $hariIni),
+            'byPayer' => $this->reports->byPayer($hariIni, $hariIni),
+            'biayaPerTanggal' => $this->reports->biayaPerTanggal($hariIni, $hariIni),
+            'top10' => $this->reports->top10($hariIni, $hariIni),
+        ];
+
+        $ranap = [
+            'byPatient' => $this->reports->byPatient($hariIni, $hariIni, 'ranap'),
+            'byDrug' => $this->reports->byDrug($hariIni, $hariIni, 'ranap'),
+            'byPrescriber' => $this->reports->byPrescriber($hariIni, $hariIni, 'ranap'),
+            'byUnit' => $this->reports->byUnit($hariIni, $hariIni, 'ranap'),
+            'byPayer' => $this->reports->byPayer($hariIni, $hariIni, 'ranap'),
+            'biayaPerTanggal' => $this->reports->biayaPerTanggal($hariIni, $hariIni, 'ranap'),
+            'top10' => $this->reports->top10($hariIni, $hariIni, null, 'ranap'),
+        ];
+
+        // Dua resep tanpa penyaring; satu saja setelah disaring ranap.
+        $this->assertSame(2, (int) $semua['byPrescriber']->first()->jumlah_resep);
+        $this->assertSame(1, (int) $ranap['byPrescriber']->first()->jumlah_resep);
+        $this->assertSame(2, (int) $semua['byUnit']->first()->jumlah_resep);
+        $this->assertSame(1, (int) $ranap['byUnit']->first()->jumlah_resep);
+        $this->assertCount(2, $semua['byPatient']);
+        $this->assertCount(1, $ranap['byPatient'], 'byPatient tidak boleh mengabaikan penyaring');
+        $this->assertCount(2, $semua['biayaPerTanggal']);
+        $this->assertCount(1, $ranap['biayaPerTanggal'], 'biayaPerTanggal tidak boleh mengabaikan penyaring');
+        $this->assertSame(1, (int) $ranap['byPayer']->first()->jumlah_resep, 'byPayer tidak boleh mengabaikan penyaring');
+
+        // byDrug & top10 mengelompokkan per obat: dua resep obat sama jadi satu baris,
+        // jadi yang dibandingkan jumlah unitnya, bukan jumlah barisnya.
+        $this->assertGreaterThan(
+            (float) $ranap['byDrug']->first()->jumlah_unit,
+            (float) $semua['byDrug']->first()->jumlah_unit,
+            'byDrug tidak boleh mengabaikan penyaring'
+        );
+        $this->assertGreaterThan(
+            (float) $ranap['top10']->first()->jumlah_unit,
+            (float) $semua['top10']->first()->jumlah_unit,
+            'top10 tidak boleh mengabaikan penyaring'
+        );
+    }
     private function resepDiserahkan(string $careType = 'ralan', string $penjamin = 'UMUM'): Prescription
     {
         $depo = StockLocation::query()->where('code', 'DEPO-RJ')->firstOrFail();

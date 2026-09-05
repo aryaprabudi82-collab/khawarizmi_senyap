@@ -29,9 +29,9 @@ use Illuminate\Support\Facades\DB;
 class DrugUsageReportService
 {
     /** rekap_obat_pasien — dikelompokkan per pasien. */
-    public function byPatient(string $dari, string $sampai): Collection
+    public function byPatient(string $dari, string $sampai, ?string $careType = null): Collection
     {
-        return $this->dasarQuery($dari, $sampai)
+        return $this->dasarQuery($dari, $sampai, $careType)
             ->selectRaw('p.patient_mrn, p.patient_name, count(distinct p.id) as jumlah_resep, sum(i.dispensed_quantity) as jumlah_unit, sum(i.dispensed_quantity * i.unit_price) as total_biaya')
             ->groupBy('p.patient_mrn', 'p.patient_name')
             ->orderByDesc('total_biaya')
@@ -39,9 +39,9 @@ class DrugUsageReportService
     }
 
     /** pengguna_obat_resep — dikelompokkan per obat, menunjukkan berapa pasien berbeda yang menerimanya (penelusuran obat, mis. untuk narkotika/psikotropika). */
-    public function byDrug(string $dari, string $sampai): Collection
+    public function byDrug(string $dari, string $sampai, ?string $careType = null): Collection
     {
-        return $this->dasarQuery($dari, $sampai)
+        return $this->dasarQuery($dari, $sampai, $careType)
             ->selectRaw('d.name as drug_name, count(distinct p.patient_mrn) as jumlah_pasien, sum(i.dispensed_quantity) as jumlah_unit')
             ->groupBy('d.name')
             ->orderByDesc('jumlah_unit')
@@ -59,9 +59,9 @@ class DrugUsageReportService
     }
 
     /** obat10_terbanyak_poli — 10 obat terbanyak, opsional difilter satu unit. */
-    public function top10(string $dari, string $sampai, ?string $unitName = null): Collection
+    public function top10(string $dari, string $sampai, ?string $unitName = null, ?string $careType = null): Collection
     {
-        $query = $this->dasarQuery($dari, $sampai)
+        $query = $this->dasarQuery($dari, $sampai, $careType)
             ->selectRaw('d.name as drug_name, sum(i.dispensed_quantity) as jumlah_unit')
             ->groupBy('d.name')
             ->orderByDesc('jumlah_unit')
@@ -85,9 +85,9 @@ class DrugUsageReportService
     }
 
     /** ringkasan_biaya_obat_pasien_pertanggal — biaya obat per pasien per tanggal. */
-    public function biayaPerTanggal(string $dari, string $sampai): Collection
+    public function biayaPerTanggal(string $dari, string $sampai, ?string $careType = null): Collection
     {
-        return $this->dasarQuery($dari, $sampai)
+        return $this->dasarQuery($dari, $sampai, $careType)
             ->selectRaw('p.prescribed_at::date as tanggal, p.patient_mrn, p.patient_name, sum(i.dispensed_quantity * i.unit_price) as total_biaya')
             ->groupBy('tanggal', 'p.patient_mrn', 'p.patient_name')
             ->orderByDesc('tanggal')
@@ -106,9 +106,9 @@ class DrugUsageReportService
      * kontrak terbitan konteks encounter — resep sendiri tidak menyimpannya.
      */
     /** obat_per_cara_bayar — dikelompokkan per penjamin. */
-    public function byPayer(string $dari, string $sampai): Collection
+    public function byPayer(string $dari, string $sampai, ?string $careType = null): Collection
     {
-        return $this->dasarQuery($dari, $sampai, butuhPenjamin: true)
+        return $this->dasarQuery($dari, $sampai, $careType, butuhPenjamin: true)
             ->selectRaw('r.payer_name, count(distinct p.id) as jumlah_resep, sum(i.dispensed_quantity * i.unit_price) as total_biaya')
             ->groupBy('r.payer_name')
             ->orderByDesc('total_biaya')

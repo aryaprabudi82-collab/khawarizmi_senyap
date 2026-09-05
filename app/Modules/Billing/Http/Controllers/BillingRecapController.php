@@ -32,7 +32,7 @@ class BillingRecapController
             'jenisRawat' => $jenisRawat,
             'sumber' => $sumber,
             'perSumber' => $this->rekap->bySource($dari, $sampai, $jenisRawat),
-            'perUnit' => $this->rekap->byUnit($dari, $sampai, $jenisRawat),
+            'perUnit' => $this->rekap->byUnit($dari, $sampai, $jenisRawat, $sumber),
             'harian' => $sumber ? $this->rekap->dailyBySource($sumber, $dari, $sampai, $jenisRawat) : collect(),
             'perPasien' => $this->rekap->perPatient($dari, $sampai, $sumber, $jenisRawat),
             'rincian' => $this->rekap->detail($dari, $sampai, $sumber, $jenisRawat),

@@ -37,13 +37,13 @@ class DrugUsageReportController
             'sampai' => $sampai,
             'unitFilter' => $unit,
             'jenisRawat' => $jenisRawat,
-            'perPasien' => $this->reports->byPatient($dari, $sampai),
-            'perObat' => $this->reports->byDrug($dari, $sampai),
+            'perPasien' => $this->reports->byPatient($dari, $sampai, $jenisRawat),
+            'perObat' => $this->reports->byDrug($dari, $sampai, $jenisRawat),
             'perDokter' => $this->reports->byPrescriber($dari, $sampai, $jenisRawat),
-            'top10' => $this->reports->top10($dari, $sampai, $unit),
+            'top10' => $this->reports->top10($dari, $sampai, $unit, $jenisRawat),
             'perUnit' => $this->reports->byUnit($dari, $sampai, $jenisRawat),
-            'perPenjamin' => $this->reports->byPayer($dari, $sampai),
-            'biayaPerTanggal' => $this->reports->biayaPerTanggal($dari, $sampai),
+            'perPenjamin' => $this->reports->byPayer($dari, $sampai, $jenisRawat),
+            'biayaPerTanggal' => $this->reports->biayaPerTanggal($dari, $sampai, $jenisRawat),
         ]);
     }
 }
