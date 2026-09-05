@@ -345,6 +345,44 @@ class ClinicalRecordService
     }
 
     /**
+     * Porsi jasa medis yang dibekukan pada tindakan (domain I item C).
+     *
+     * Diambil dari komponen tarif yang berlaku saat tindakan dicatat lalu
+     * dikali kuantitas — sekali di sini, bukan dihitung ulang tiap laporan
+     * remunerasi dibuka. Tarif yang belum dirinci komponennya menghasilkan
+     * porsi nol semuanya, dan itu sah: CHECK di basis data hanya melarang
+     * rincian yang tidak menjumlah, bukan rincian yang kosong.
+     *
+     * @return array<string, float>
+     */
+    private function frozenShares(\App\Modules\Catalog\Models\Tariff $tarif, float $harga, float $quantity): array
+    {
+        $komponen = [
+            'share_facility', 'share_bhp', 'share_doctor',
+            'share_paramedic', 'share_kso', 'share_management',
+        ];
+
+        $porsi = [];
+
+        foreach ($komponen as $kolom) {
+            $porsi[$kolom] = round((float) $tarif->{$kolom} * $quantity, 2);
+        }
+
+        // Jaga-jaga terhadap pembulatan: selisih receh dilekatkan ke porsi
+        // terbesar supaya jumlahnya tetap persis sama dengan amount, yang
+        // memang dijaga CHECK. Tanpa ini, tarif ganjil dikali kuantitas
+        // pecahan bisa membuat tindakan gagal disimpan.
+        $total = round(array_sum($porsi), 2);
+        $amount = round($harga * $quantity, 2);
+
+        if ($total > 0 && $total !== $amount) {
+            $terbesar = array_search(max($porsi), $porsi, true);
+            $porsi[$terbesar] = round($porsi[$terbesar] + ($amount - $total), 2);
+        }
+
+        return $porsi;
+    }
+    /**
      * tindakan_ralan — tarif diambil dari catalog.tariffs milik penjamin
      * kunjungan ini dan DISALIN ke unit_price/amount, bukan dirujuk live.
      * Lihat catatan migrasi procedures.
@@ -364,19 +402,21 @@ class ClinicalRecordService
         $layanan = $this->tariffs->findServiceByCode($serviceCode)
             ?? throw new ClinicalException("Tindakan {$serviceCode} tidak ada di katalog layanan.");
 
-        $tarif = $this->tariffs->resolve(
+        $barisTarif = $this->tariffs->resolveTariff(
             serviceCode: $serviceCode,
             payerId: $kunjungan->payer_id,
             on: now(),
         );
 
-        if ($tarif === null) {
+        if ($barisTarif === null) {
             throw new ClinicalException(
                 "Tarif {$layanan->name} untuk penjamin {$kunjungan->payer_name} belum ditetapkan."
             );
         }
 
-        return Procedure::query()->create([
+        $tarif = (float) $barisTarif->amount;
+
+        return Procedure::query()->create($this->frozenShares($barisTarif, $tarif, $quantity) + [
             'registration_id' => $kunjungan->id,
             'patient_id' => $kunjungan->patient_id,
             'registration_number' => $kunjungan->registration_number,

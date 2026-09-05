@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Billing\Http\Controllers\InvoiceController;
+use App\Modules\Billing\Http\Controllers\MedicalFeeController;
 use App\Modules\Billing\Http\Controllers\ReceivableController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,12 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::post('/{tagihan}/penyesuaian', [InvoiceController::class, 'addAdjustment'])->name('penyesuaian.simpan');
         Route::post('/penyesuaian/{penyesuaian}/batal', [InvoiceController::class, 'voidAdjustment'])->name('penyesuaian.batal');
     });
+
+    // rekap_jm_dokter — satu layar menaungi ~14 kode laporan jasa medis
+    // (harian_* dan bulanan_* untuk enam komponen, plus rekap JM dokter),
+    // yang sesungguhnya potongan berbeda dari data yang sama. Pola umbrella
+    // seperti ipsrs_rekap_pengadaan (domain E) dan rekap_pengadaan_dapur (F).
+    Route::middleware('can:rekap_jm_dokter')->get('/jasa-medis', [MedicalFeeController::class, 'index'])->name('jasa-medis.index');
 
     // piutang_pasien — piutang PASIEN (pulang belum lunas, dicicil),
     // beda dari piutang PENJAMIN di konteks finance (bayar_piutang) yang

@@ -36,19 +36,7 @@ class TariffLookup
         string $careClass = '-',
         bool $returningPatient = false,
     ): ?float {
-        $date = $on->format('Y-m-d');
-
-        $tariff = Tariff::query()
-            ->join('catalog.services as s', 's.id', '=', 'catalog.tariffs.service_id')
-            ->where('s.code', $serviceCode)
-            ->where('catalog.tariffs.payer_id', $payerId)
-            ->where('catalog.tariffs.care_class', $careClass)
-            ->where('catalog.tariffs.valid_from', '<=', $date)
-            ->where(fn ($q) => $q->whereNull('catalog.tariffs.valid_until')
-                ->orWhere('catalog.tariffs.valid_until', '>=', $date))
-            ->orderByDesc('catalog.tariffs.valid_from')
-            ->select('catalog.tariffs.*')
-            ->first();
+        $tariff = $this->resolveTariff($serviceCode, $payerId, $on, $careClass);
 
         if ($tariff === null) {
             return null;
@@ -59,6 +47,33 @@ class TariffLookup
         }
 
         return (float) $tariff->amount;
+    }
+
+    /**
+     * Baris tarif utuh, bukan sekadar nominalnya — dibutuhkan sejak domain
+     * I item C untuk membekukan komponen jasa medis pada tindakan yang
+     * dilakukan. resolve() memakai method ini juga, supaya aturan pencarian
+     * tarif yang berlaku hanya ada di satu tempat.
+     */
+    public function resolveTariff(
+        string $serviceCode,
+        int $payerId,
+        DateTimeInterface $on,
+        string $careClass = '-',
+    ): ?Tariff {
+        $date = $on->format('Y-m-d');
+
+        return Tariff::query()
+            ->join('catalog.services as s', 's.id', '=', 'catalog.tariffs.service_id')
+            ->where('s.code', $serviceCode)
+            ->where('catalog.tariffs.payer_id', $payerId)
+            ->where('catalog.tariffs.care_class', $careClass)
+            ->where('catalog.tariffs.valid_from', '<=', $date)
+            ->where(fn ($q) => $q->whereNull('catalog.tariffs.valid_until')
+                ->orWhere('catalog.tariffs.valid_until', '>=', $date))
+            ->orderByDesc('catalog.tariffs.valid_from')
+            ->select('catalog.tariffs.*')
+            ->first();
     }
 
     public function findServiceByCode(string $code): ?Service

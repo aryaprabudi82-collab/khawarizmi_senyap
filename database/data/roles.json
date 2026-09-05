@@ -193,7 +193,8 @@
         "extra_permissions": [
             "bayar_piutang",
             "deposit_pasien",
-            "perkiraan_biaya_ranap"
+            "perkiraan_biaya_ranap",
+            "rekap_jm_dokter"
         ]
     },
     {
@@ -217,10 +218,11 @@
         "code": "manajemen",
         "name": "Manajemen RS",
         "description": "Dashboard rekap kunjungan, diagnosis terbanyak, dan pendapatan harian rawat jalan.",
-        "_catatan_scope": "Domain J+O Khanza berisi 207 kapabilitas laporan/grafik, sebagian besar untuk ranap, HAIs, K3, TB, kepegawaian, dan aset yang belum digarap. rekap_kunjungan dipakai sebagai gerbang tunggal ke dashboard reporting Wave 1 (kunjungan, diagnosis, pendapatan rawat jalan), sama seperti tarif_ralan menggerbangi Data Master.",
+        "_catatan_scope": "Domain J+O Khanza berisi 207 kapabilitas laporan/grafik, sebagian besar untuk ranap, HAIs, K3, TB, kepegawaian, dan aset yang belum digarap. rekap_kunjungan dipakai sebagai gerbang tunggal ke dashboard reporting Wave 1 (kunjungan, diagnosis, pendapatan rawat jalan), sama seperti tarif_ralan menggerbangi Data Master. rekap_jm_dokter (domain I item C, 2026-10) menggerbangi layar rekap jasa medis yang menaungi ~14 kode laporan Khanza sekaligus: harian_* dan bulanan_* untuk enam komponen (dokter, paramedis, jasa sarana, KSO, manajemen, BHP) plus rekap JM dokter — semuanya potongan berbeda dari data yang sama, jadi satu layar dengan penyaring, bukan 14 layar. Komponennya disimpan sebagai kolom pada catalog.tariffs (dikonfirmasi user, cermin jns_perawatan Khanza) dan DIBEKUKAN pada clinical.procedures saat tindakan dicatat (dikonfirmasi user), sehingga rekap remunerasi bulan lalu tidak berubah kalau tarif hari ini naik. Diberikan ke manajemen dan petugas-keuangan, BUKAN kasir: ini laporan remunerasi, bukan pekerjaan loket.",
         "contexts": [],
         "extra_permissions": [
-            "rekap_kunjungan"
+            "rekap_kunjungan",
+            "rekap_jm_dokter"
         ]
     },
     {
