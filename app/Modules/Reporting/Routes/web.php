@@ -2,6 +2,7 @@
 
 use App\Modules\Reporting\Http\Controllers\CensusReportController;
 use App\Modules\Reporting\Http\Controllers\DashboardController;
+use App\Modules\Reporting\Http\Controllers\MorbidityReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth', 'can:rekap_kunjungan'])
@@ -23,4 +24,15 @@ Route::middleware(['web', 'auth', 'can:sensus_harian_ralan'])
     ->name('reporting.')
     ->group(function () {
         Route::get('/sensus', [CensusReportController::class, 'index'])->name('sensus');
+    });
+
+/*
+| Domain J item B: morbiditas & surveilans penyakit. 15 kode efektif
+| dilayani satu layar berpenyaring; digerbangi penyakit_ralan.
+*/
+Route::middleware(['web', 'auth', 'can:penyakit_ralan'])
+    ->prefix('laporan')
+    ->name('reporting.')
+    ->group(function () {
+        Route::get('/morbiditas', [MorbidityReportController::class, 'index'])->name('morbiditas');
     });

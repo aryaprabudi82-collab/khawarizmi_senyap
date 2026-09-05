@@ -132,6 +132,11 @@ return [
                     . 'pharmacy.v_prescription_charge dan orders.v_order_charge.',
                 'v_operation_charge' => 'Operasi yang sudah dicatat berikut nilainya. '
                     . 'Dipakai billing untuk menyusun baris tagihan, pola sama dengan v_procedure_charge.',
+                'v_diagnosis_surveillance_group' => 'Keanggotaan kode diagnosis pada program surveilans '
+                    . '(pd3i, afp, tb-sitt, dan program berikutnya) — domain J item B. Diterbitkan TERPISAH dari '
+                    . 'v_encounter_diagnosis karena satu penyakit bisa masuk beberapa kelompok; menggabungkannya '
+                    . 'akan menggandakan baris diagnosis dan membuat hitungan morbiditas terlalu besar. Dipakai '
+                    . 'reporting sebagai penyaring keanggotaan, bukan tabel yang ikut dijumlahkan.',
             ],
         ],
 
