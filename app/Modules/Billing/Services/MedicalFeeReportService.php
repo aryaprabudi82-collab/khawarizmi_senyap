@@ -37,17 +37,45 @@ class MedicalFeeReportService
         'share_bhp' => 'BHP',
     ];
 
+    /**
+     * Tiga kode fee_* ternyata bukan jenis fee baru, melainkan potongan
+     * berbeda dari jasa dokter yang sudah dibekukan:
+     *
+     *   fee_ralan         -> careType 'ralan'
+     *   fee_visit_dokter  -> careType 'ranap'
+     *   fee_bacaan_ekg    -> serviceCode layanan EKG
+     *
+     * Jenis rawat diambil dengan menyambungkan ke encounter.v_registration_summary
+     * lewat registration_id — sesama kontrak terbitan yang memang sudah
+     * dibaca billing, bukan menyentuh tabel encounter langsung.
+     */
+    private function baseQuery(string $from, string $until, ?string $careType = null, ?string $serviceCode = null): \Illuminate\Database\Query\Builder
+    {
+        $query = DB::table(self::VIEW . ' as p')
+            ->whereBetween(DB::raw('p.performed_at::date'), [$from, $until]);
+
+        if ($careType !== null) {
+            $query->join('encounter.v_registration_summary as r', 'r.id', '=', 'p.registration_id')
+                ->where('r.care_type', $careType);
+        }
+
+        if ($serviceCode !== null) {
+            $query->where('p.service_code', $serviceCode);
+        }
+
+        return $query;
+    }
+
     /** Ringkasan seluruh komponen pada satu rentang tanggal. */
-    public function summary(string $from, string $until): Collection
+    public function summary(string $from, string $until, ?string $careType = null, ?string $serviceCode = null): Collection
     {
         $pilih = collect(self::KOMPONEN)
             ->keys()
-            ->map(fn (string $k) => "coalesce(sum({$k}), 0) as {$k}")
+            ->map(fn (string $k) => "coalesce(sum(p.{$k}), 0) as {$k}")
             ->implode(', ');
 
-        $baris = DB::table(self::VIEW)
-            ->whereBetween(DB::raw('performed_at::date'), [$from, $until])
-            ->selectRaw($pilih . ', count(*) as jumlah_tindakan, coalesce(sum(amount), 0) as total')
+        $baris = $this->baseQuery($from, $until, $careType, $serviceCode)
+            ->selectRaw($pilih . ', count(*) as jumlah_tindakan, coalesce(sum(p.amount), 0) as total')
             ->first();
 
         return collect(self::KOMPONEN)->map(fn (string $label, string $kolom) => [
@@ -63,44 +91,41 @@ class MedicalFeeReportService
      * Rekap per pelaksana untuk satu komponen — inti rekap_jm_dokter dan
      * padanannya untuk paramedis.
      */
-    public function perPractitioner(string $component, string $from, string $until): Collection
+    public function perPractitioner(string $component, string $from, string $until, ?string $careType = null, ?string $serviceCode = null): Collection
     {
         $this->assertComponent($component);
 
-        return DB::table(self::VIEW)
-            ->whereBetween(DB::raw('performed_at::date'), [$from, $until])
-            ->whereNotNull('practitioner_id')
-            ->where($component, '>', 0)
-            ->groupBy('practitioner_id', 'practitioner_name')
-            ->selectRaw('practitioner_id, practitioner_name, count(*) as jumlah_tindakan, sum(' . $component . ') as jumlah')
+        return $this->baseQuery($from, $until, $careType, $serviceCode)
+            ->whereNotNull('p.practitioner_id')
+            ->where('p.' . $component, '>', 0)
+            ->groupBy('p.practitioner_id', 'p.practitioner_name')
+            ->selectRaw('p.practitioner_id, p.practitioner_name, count(*) as jumlah_tindakan, sum(p.' . $component . ') as jumlah')
             ->orderByDesc('jumlah')
             ->get();
     }
 
     /** Rincian harian satu komponen — dasar seluruh kode harian_*. */
-    public function daily(string $component, string $from, string $until): Collection
+    public function daily(string $component, string $from, string $until, ?string $careType = null, ?string $serviceCode = null): Collection
     {
         $this->assertComponent($component);
 
-        return DB::table(self::VIEW)
-            ->whereBetween(DB::raw('performed_at::date'), [$from, $until])
-            ->where($component, '>', 0)
-            ->groupBy(DB::raw('performed_at::date'))
-            ->selectRaw('performed_at::date as tanggal, count(*) as jumlah_tindakan, sum(' . $component . ') as jumlah')
+        return $this->baseQuery($from, $until, $careType, $serviceCode)
+            ->where('p.' . $component, '>', 0)
+            ->groupBy(DB::raw('p.performed_at::date'))
+            ->selectRaw('p.performed_at::date as tanggal, count(*) as jumlah_tindakan, sum(p.' . $component . ') as jumlah')
             ->orderBy('tanggal')
             ->get();
     }
 
     /** Rincian bulanan satu komponen — dasar seluruh kode bulanan_*. */
-    public function monthly(string $component, int $year): Collection
+    public function monthly(string $component, int $year, ?string $careType = null, ?string $serviceCode = null): Collection
     {
         $this->assertComponent($component);
 
-        return DB::table(self::VIEW)
-            ->whereRaw('extract(year from performed_at) = ?', [$year])
-            ->where($component, '>', 0)
-            ->groupBy(DB::raw('extract(month from performed_at)'))
-            ->selectRaw('extract(month from performed_at) as bulan, count(*) as jumlah_tindakan, sum(' . $component . ') as jumlah')
+        return $this->baseQuery($year . '-01-01', $year . '-12-31', $careType, $serviceCode)
+            ->where('p.' . $component, '>', 0)
+            ->groupBy(DB::raw('extract(month from p.performed_at)'))
+            ->selectRaw('extract(month from p.performed_at) as bulan, count(*) as jumlah_tindakan, sum(p.' . $component . ') as jumlah')
             ->orderBy('bulan')
             ->get();
     }

@@ -29,6 +29,18 @@
       <div class="col-6 col-md-2"><label class="form-label">Dari</label><input type="date" name="dari" class="form-control" value="{{ $dari }}"></div>
       <div class="col-6 col-md-2"><label class="form-label">Sampai</label><input type="date" name="sampai" class="form-control" value="{{ $sampai }}"></div>
       <div class="col-6 col-md-2"><label class="form-label">Tahun (bulanan)</label><input type="number" name="tahun" class="form-control" value="{{ $tahun }}" min="2000" max="2100"></div>
+      <div class="col-6 col-md-2">
+        <label class="form-label">Jenis Rawat</label>
+        <select name="jenis_rawat" class="form-select">
+          <option value="">Semua</option>
+          <option value="ralan" @selected($jenisRawat === 'ralan')>Rawat Jalan</option>
+          <option value="ranap" @selected($jenisRawat === 'ranap')>Rawat Inap</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label">Kode Layanan</label>
+        <input type="text" name="kode_layanan" class="form-control" value="{{ $kodeLayanan }}" placeholder="mis. EKG">
+      </div>
       <div class="col-12 col-md-3 d-flex align-items-end"><button class="btn btn-primary">Tampilkan</button></div>
     </form>
   </div>

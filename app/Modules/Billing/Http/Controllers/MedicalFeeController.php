@@ -32,16 +32,26 @@ class MedicalFeeController
         $sampai = Carbon::parse($request->query('sampai', now()->toDateString()))->toDateString();
         $tahun = (int) $request->query('tahun', now()->year);
 
+        // Tiga kode fee_* dilayani penyaring, bukan layar tersendiri:
+        // fee_ralan (ralan), fee_visit_dokter (ranap), fee_bacaan_ekg (kode layanan).
+        $jenisRawat = in_array($request->query('jenis_rawat'), ['ralan', 'ranap'], true)
+            ? $request->query('jenis_rawat')
+            : null;
+
+        $kodeLayanan = trim((string) $request->query('kode_layanan', '')) ?: null;
+
         return view('billing::jasa-medis.index', [
             'komponen' => $komponen,
             'daftarKomponen' => MedicalFeeReportService::KOMPONEN,
             'dari' => $dari,
             'sampai' => $sampai,
             'tahun' => $tahun,
-            'ringkasan' => $this->laporan->summary($dari, $sampai),
-            'perPelaksana' => $this->laporan->perPractitioner($komponen, $dari, $sampai),
-            'harian' => $this->laporan->daily($komponen, $dari, $sampai),
-            'bulanan' => $this->laporan->monthly($komponen, $tahun),
+            'jenisRawat' => $jenisRawat,
+            'kodeLayanan' => $kodeLayanan,
+            'ringkasan' => $this->laporan->summary($dari, $sampai, $jenisRawat, $kodeLayanan),
+            'perPelaksana' => $this->laporan->perPractitioner($komponen, $dari, $sampai, $jenisRawat, $kodeLayanan),
+            'harian' => $this->laporan->daily($komponen, $dari, $sampai, $jenisRawat, $kodeLayanan),
+            'bulanan' => $this->laporan->monthly($komponen, $tahun, $jenisRawat, $kodeLayanan),
         ]);
     }
 }

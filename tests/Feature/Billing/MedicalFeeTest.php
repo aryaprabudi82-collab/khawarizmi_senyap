@@ -165,6 +165,66 @@ class MedicalFeeTest extends TestCase
         $this->assertSame(2, (int) $rekap->first()->jumlah_tindakan);
     }
 
+    /**
+     * fee_ralan dan fee_visit_dokter ternyata bukan jenis fee baru,
+     * melainkan jasa dokter yang sama disaring per jenis rawat.
+     */
+    #[Test]
+    public function fee_ralan_dan_fee_visit_dokter_dilayani_penyaring_jenis_rawat(): void
+    {
+        $this->buatTarif('UJI-FILTER', 100_000, ['share_doctor' => 60_000, 'share_facility' => 40_000]);
+
+        $this->catatTindakan('UJI-FILTER');                       // rawat jalan
+        $this->catatTindakan('UJI-FILTER', careType: 'ranap');    // rawat inap
+
+        $laporan = app(\App\Modules\Billing\Services\MedicalFeeReportService::class);
+        $hariIni = now()->toDateString();
+
+        $ralan = $laporan->perPractitioner('share_doctor', $hariIni, $hariIni, careType: 'ralan');
+        $ranap = $laporan->perPractitioner('share_doctor', $hariIni, $hariIni, careType: 'ranap');
+        $semua = $laporan->perPractitioner('share_doctor', $hariIni, $hariIni);
+
+        $this->assertSame(60_000.0, (float) $ralan->first()->jumlah, 'fee_ralan');
+        $this->assertSame(60_000.0, (float) $ranap->first()->jumlah, 'fee_visit_dokter');
+        $this->assertSame(120_000.0, (float) $semua->first()->jumlah, 'Tanpa penyaring, keduanya terhitung');
+    }
+
+    /** fee_bacaan_ekg — jasa dokter yang sama disaring per kode layanan. */
+    #[Test]
+    public function fee_bacaan_ekg_dilayani_penyaring_kode_layanan(): void
+    {
+        $this->buatTarif('EKG', 80_000, ['share_doctor' => 50_000, 'share_facility' => 30_000]);
+        $this->buatTarif('UJI-LAIN', 100_000, ['share_doctor' => 70_000, 'share_facility' => 30_000]);
+
+        $this->catatTindakan('EKG');
+        $this->catatTindakan('UJI-LAIN');
+
+        $hariIni = now()->toDateString();
+        $ekg = app(\App\Modules\Billing\Services\MedicalFeeReportService::class)
+            ->perPractitioner('share_doctor', $hariIni, $hariIni, serviceCode: 'EKG');
+
+        $this->assertSame(50_000.0, (float) $ekg->first()->jumlah);
+        $this->assertSame(1, (int) $ekg->first()->jumlah_tindakan);
+    }
+
+    #[Test]
+    public function penyaring_juga_berlaku_pada_ringkasan_harian_dan_bulanan(): void
+    {
+        $this->buatTarif('UJI-SEMUA', 100_000, ['share_doctor' => 60_000, 'share_facility' => 40_000]);
+        $this->catatTindakan('UJI-SEMUA');
+        $this->catatTindakan('UJI-SEMUA', careType: 'ranap');
+
+        $laporan = app(\App\Modules\Billing\Services\MedicalFeeReportService::class);
+        $hariIni = now()->toDateString();
+
+        $ringkasan = $laporan->summary($hariIni, $hariIni, careType: 'ralan');
+        $harian = $laporan->daily('share_doctor', $hariIni, $hariIni, careType: 'ralan');
+        $bulanan = $laporan->monthly('share_doctor', (int) now()->year, careType: 'ralan');
+
+        $this->assertSame(60_000.0, $ringkasan->firstWhere('label', 'Jasa Dokter')['jumlah']);
+        $this->assertSame(60_000.0, (float) $harian->first()->jumlah);
+        $this->assertSame(60_000.0, (float) $bulanan->first()->jumlah, 'monthly() ikut menghormati penyaring, tidak melewatinya');
+    }
     #[Test]
     public function komponen_yang_tidak_dikenal_ditolak_bukan_diteruskan_ke_sql(): void
     {
@@ -204,17 +264,17 @@ class MedicalFeeTest extends TestCase
         ] + $komponen);
     }
 
-    private function catatTindakan(string $kodeLayanan, float $quantity = 1): Procedure
+    private function catatTindakan(string $kodeLayanan, float $quantity = 1, string $careType = 'ralan'): Procedure
     {
         return $this->klinis->recordProcedure(
-            registrationId: $this->daftarkan()->id,
+            registrationId: $this->daftarkan($careType)->id,
             serviceCode: $kodeLayanan,
             quantity: $quantity,
             note: null,
         );
     }
 
-    private function daftarkan(): Registration
+    private function daftarkan(string $careType = 'ralan'): Registration
     {
         static $urut = 0;
         $urut++;
@@ -228,6 +288,7 @@ class MedicalFeeTest extends TestCase
             unitId: Unit::query()->where('code', 'POL-UMUM')->firstOrFail()->id,
             payerId: Payer::query()->where('code', 'UMUM')->value('id'),
             practitionerId: Practitioner::query()->where('is_active', true)->value('id'),
+            extra: $careType === 'ranap' ? ['care_type' => 'ranap'] : [],
         );
     }
 }
