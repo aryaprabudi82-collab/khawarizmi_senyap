@@ -9,6 +9,7 @@ use App\Modules\Blood\Services\BloodUnitService;
 use App\Modules\Blood\Services\TransfusionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
 class StockController
@@ -41,7 +42,12 @@ class StockController
             'volume_ml' => 'volume', 'collected_at' => 'waktu pengambilan', 'expiry_date' => 'tanggal kedaluwarsa',
         ]);
 
-        $unit = $this->units->collect($data);
+        try {
+            $unit = $this->units->collect($data);
+        } catch (BloodException $e) {
+            // Mis. pendonornya sedang dicekal (utd_cekal_darah).
+            return back()->withInput()->with('galat', $e->getMessage());
+        }
 
         return back()->with('sukses', "Unit darah {$unit->unit_number} tercatat, status karantina.");
     }
@@ -81,6 +87,35 @@ class StockController
         }
 
         return back()->with('sukses', "Unit darah {$unit->unit_number} ditolak.");
+    }
+
+    /** utd_pemisahan_darah — pisahkan unit whole-blood jadi beberapa unit komponen. */
+    public function separate(Request $request, BloodUnit $unit): RedirectResponse
+    {
+        // Form UI mengirim baris tetap untuk prc/plasma/platelet; baris yang
+        // volume-nya tidak diisi berarti komponen itu tidak dipisah, buang
+        // dulu sebelum divalidasi supaya tidak wajib mengisi ketiganya.
+        $terisi = collect($request->input('komponen', []))
+            ->filter(fn (array $baris) => filled($baris['volume_ml'] ?? null))
+            ->values()
+            ->all();
+
+        $validator = Validator::make(['komponen' => $terisi], [
+            'komponen' => ['required', 'array', 'min:1'],
+            'komponen.*.component' => ['required', 'in:prc,plasma,platelet'],
+            'komponen.*.volume_ml' => ['required', 'integer', 'min:1'],
+            'komponen.*.expiry_date' => ['required', 'date', 'after:today'],
+        ], [], ['komponen' => 'daftar komponen']);
+        $validator->validate();
+        $data = $validator->validated();
+
+        try {
+            $anak = $this->units->separate($unit, $data['komponen'], $request->user());
+        } catch (BloodException $e) {
+            return back()->with('galat', $e->getMessage());
+        }
+
+        return back()->with('sukses', "Unit darah {$unit->unit_number} dipisah jadi " . $anak->count() . ' unit komponen: ' . $anak->pluck('unit_number')->implode(', ') . '.');
     }
 
     public function issue(Request $request, BloodUnit $unit): RedirectResponse

@@ -67,7 +67,7 @@
             <td class="text-secondary small">{{ $u->expiry_date->format('d-m-Y') }}</td>
             <td>
               @php
-                $warna = ['karantina' => 'yellow', 'tersedia' => 'green', 'ditahan' => 'orange', 'dikeluarkan' => 'blue', 'kedaluwarsa' => 'secondary', 'ditolak' => 'red'][$u->status];
+                $warna = ['karantina' => 'yellow', 'tersedia' => 'green', 'ditahan' => 'orange', 'dikeluarkan' => 'blue', 'kedaluwarsa' => 'secondary', 'ditolak' => 'red', 'dipisahkan' => 'azure'][$u->status];
               @endphp
               <span class="badge bg-{{ $warna }}-lt">{{ $u->status }}</span>
             </td>
@@ -82,6 +82,11 @@
                 @elseif ($u->status === 'tersedia')
                   <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#tahan-{{ $u->id }}">Tahan</button>
                   <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#serahkan-{{ $u->id }}">Serahkan</button>
+                  @can('utd_pemisahan_darah')
+                    @if ($u->component === 'whole-blood')
+                      <button class="btn btn-sm btn-outline-azure" data-bs-toggle="modal" data-bs-target="#pisah-{{ $u->id }}">Pisah</button>
+                    @endif
+                  @endcan
                 @endif
               </div>
             </td>
@@ -130,6 +135,29 @@
       </form>
     </div>
   </div>
+
+  @can('utd_pemisahan_darah')
+    <div class="modal fade" id="pisah-{{ $u->id }}" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="POST" action="{{ route('blood.stok.pisah', $u) }}">
+          @csrf
+          <div class="modal-header"><h5 class="modal-title">Pisah Komponen — Unit {{ $u->unit_number }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <p class="text-secondary small">Isi volume komponen yang mau dipisah dari unit whole-blood ini. Baris dengan volume kosong diabaikan.</p>
+            @foreach (['prc' => 'PRC', 'plasma' => 'Plasma', 'platelet' => 'Platelet'] as $kode => $label)
+              <div class="row g-2 mb-2 align-items-end">
+                <input type="hidden" name="komponen[{{ $kode }}][component]" value="{{ $kode }}">
+                <div class="col-3"><span class="form-label mb-0">{{ $label }}</span></div>
+                <div class="col-5"><input type="number" name="komponen[{{ $kode }}][volume_ml]" class="form-control form-control-sm" placeholder="Volume (ml)"></div>
+                <div class="col-4"><input type="date" name="komponen[{{ $kode }}][expiry_date]" class="form-control form-control-sm"></div>
+              </div>
+            @endforeach
+          </div>
+          <div class="modal-footer"><button type="submit" class="btn btn-azure">Pisahkan</button></div>
+        </form>
+      </div>
+    </div>
+  @endcan
 @endforeach
 
 @endsection

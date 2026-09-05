@@ -15,6 +15,17 @@ class Donor extends Model
         return [
             'birth_date' => 'date',
             'is_active' => 'boolean',
+            'blocked_until' => 'date',
         ];
+    }
+
+    /** utd_cekal_darah — dicekal permanen (blocked_until kosong) atau masih dalam jangka cekal sementara. */
+    public function isBlocked(): bool
+    {
+        if ($this->block_reason === null) {
+            return false;
+        }
+
+        return $this->blocked_until === null || ! $this->blocked_until->isPast();
     }
 }

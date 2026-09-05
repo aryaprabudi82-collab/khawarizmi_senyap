@@ -43,7 +43,7 @@ class ManagedPermissionCatalog
         'rekap_kunjungan', 'rekap_obat_pasien', 'rekap_pengadaan_dapur', 'resep_luar', 'resep_obat', 'retur_ke_suplier', 'retur_obat_ranap', 'rujukan_keluar', 'satu_sehat_kirim_condition', 'satu_sehat_kirim_encounter',
         'satu_sehat_mapping_lokasi', 'satu_sehat_referensi_dokter', 'satu_sehat_referensi_pasien',
         'permintaan_ranap', 'sirkulasi_cssd', 'sisa_stok', 'skp_penilaian', 'stok_opname_logistik', 'stok_opname_obat', 'suplier_inventaris', 'surat_keterangan_sehat', 'surat_masuk', 'surat_pemesanan_dapur', 'surat_pemesanan_non_medis',
-        'tarif_ralan', 'telaah_resep', 'tindakan_ranap', 'utd_pendonor', 'utd_penyerahan_darah', 'utd_stok_darah',
+        'tarif_ralan', 'telaah_resep', 'tindakan_ranap', 'utd_cekal_darah', 'utd_pemisahan_darah', 'utd_pendonor', 'utd_penyerahan_darah', 'utd_stok_darah',
         'user', 'verifikasi_penerimaan_dapur', 'verifikasi_penerimaan_farmasi', 'verifikasi_penerimaan_logistik',
     ];
 

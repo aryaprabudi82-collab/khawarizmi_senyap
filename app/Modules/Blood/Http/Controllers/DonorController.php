@@ -51,4 +51,25 @@ class DonorController
 
         return back()->with('sukses', "Pendonor {$pendonor->name} diperbarui.");
     }
+
+    /** utd_cekal_darah — cekal pendonor, permanen (blocked_until kosong) atau sementara sampai tanggal tertentu. */
+    public function block(Request $request, Donor $pendonor): RedirectResponse
+    {
+        $data = $request->validate([
+            'block_reason' => ['required', 'string', 'max:255'],
+            'blocked_until' => ['nullable', 'date', 'after:today'],
+        ], [], ['block_reason' => 'alasan cekal', 'blocked_until' => 'cekal sampai tanggal']);
+
+        $this->donors->block($pendonor, $data['block_reason'], $data['blocked_until'] ?? null);
+
+        return back()->with('sukses', "Pendonor {$pendonor->name} dicekal.");
+    }
+
+    /** utd_cekal_darah — cabut cekal pendonor. */
+    public function unblock(Donor $pendonor): RedirectResponse
+    {
+        $this->donors->unblock($pendonor);
+
+        return back()->with('sukses', "Cekal pendonor {$pendonor->name} dicabut.");
+    }
 }

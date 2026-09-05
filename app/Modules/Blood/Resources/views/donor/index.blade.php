@@ -46,7 +46,7 @@
   <div class="card-header"><h3 class="card-title">Daftar Pendonor</h3></div>
   <div class="table-responsive">
     <table class="table table-vcenter card-table">
-      <thead><tr><th>No. Pendonor</th><th>Nama</th><th>Golongan</th><th>Status</th><th class="w-1"></th></tr></thead>
+      <thead><tr><th>No. Pendonor</th><th>Nama</th><th>Golongan</th><th>Status</th><th>Cekal</th><th class="w-1"></th></tr></thead>
       <tbody>
         @forelse ($pendonor as $p)
           <tr>
@@ -60,10 +60,33 @@
                 <span class="badge bg-red-lt">Nonaktif</span>
               @endif
             </td>
-            <td><button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#edit-{{ $p->id }}">Ubah</button></td>
+            <td>
+              @if ($p->isBlocked())
+                <span class="badge bg-red-lt" title="{{ $p->block_reason }}">
+                  Dicekal{{ $p->blocked_until ? ' s.d. ' . $p->blocked_until->format('d-m-Y') : ' (permanen)' }}
+                </span>
+              @else
+                <span class="text-secondary small">—</span>
+              @endif
+            </td>
+            <td>
+              <div class="btn-group">
+                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#edit-{{ $p->id }}">Ubah</button>
+                @can('utd_cekal_darah')
+                  @if ($p->isBlocked())
+                    <form method="POST" action="{{ route('blood.pendonor.cabut-cekal', $p) }}">
+                      @csrf
+                      <button class="btn btn-sm btn-outline-success">Cabut Cekal</button>
+                    </form>
+                  @else
+                    <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cekal-{{ $p->id }}">Cekal</button>
+                  @endif
+                @endcan
+              </div>
+            </td>
           </tr>
         @empty
-          <tr><td colspan="5" class="text-center text-secondary py-3">Belum ada pendonor.</td></tr>
+          <tr><td colspan="6" class="text-center text-secondary py-3">Belum ada pendonor.</td></tr>
         @endforelse
       </tbody>
     </table>
@@ -86,6 +109,26 @@
       </form>
     </div>
   </div>
+
+  @can('utd_cekal_darah')
+    <div class="modal fade" id="cekal-{{ $p->id }}" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="POST" action="{{ route('blood.pendonor.cekal', $p) }}">
+          @csrf
+          <div class="modal-header"><h5 class="modal-title">Cekal Pendonor {{ $p->name }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="mb-2"><label class="form-label">Alasan</label><textarea name="block_reason" class="form-control" required placeholder="mis. baru pulang dari daerah endemis malaria"></textarea></div>
+            <div class="mb-2">
+              <label class="form-label">Cekal Sampai Tanggal</label>
+              <input type="date" name="blocked_until" class="form-control">
+              <small class="text-secondary">Kosongkan untuk cekal permanen.</small>
+            </div>
+          </div>
+          <div class="modal-footer"><button type="submit" class="btn btn-danger">Cekal</button></div>
+        </form>
+      </div>
+    </div>
+  @endcan
 @endforeach
 
 @endsection

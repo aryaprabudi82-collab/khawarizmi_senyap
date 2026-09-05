@@ -15,6 +15,11 @@ Route::middleware(['web', 'auth'])
             Route::post('/{pendonor}', [DonorController::class, 'update'])->name('perbarui');
         });
 
+        Route::middleware('can:utd_cekal_darah')->prefix('pendonor/{pendonor}')->name('pendonor.')->group(function () {
+            Route::post('/cekal', [DonorController::class, 'block'])->name('cekal');
+            Route::post('/cabut-cekal', [DonorController::class, 'unblock'])->name('cabut-cekal');
+        });
+
         Route::middleware('can:utd_stok_darah')->prefix('stok')->name('stok.')->group(function () {
             Route::get('/', [StockController::class, 'index'])->name('index');
             Route::post('/', [StockController::class, 'collect'])->name('simpan');
@@ -22,6 +27,8 @@ Route::middleware(['web', 'auth'])
             Route::post('/{unit}/tahan', [StockController::class, 'hold'])->name('tahan');
             Route::post('/{unit}/tolak', [StockController::class, 'reject'])->name('tolak');
         });
+
+        Route::middleware('can:utd_pemisahan_darah')->post('/stok/{unit}/pisah', [StockController::class, 'separate'])->name('stok.pisah');
 
         Route::middleware('can:utd_penyerahan_darah')->post('/stok/{unit}/serahkan', [StockController::class, 'issue'])->name('stok.serahkan');
 

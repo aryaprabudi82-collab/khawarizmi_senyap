@@ -139,6 +139,125 @@ class BloodTest extends TestCase
     }
 
     #[Test]
+    public function pendonor_yang_dicekal_tidak_bisa_disadap_darahnya(): void
+    {
+        $pendonor = $this->daftarkanPendonor();
+        $this->donors->block($pendonor, 'Baru pulang dari daerah endemis malaria', now()->addMonths(3)->toDateString());
+
+        $this->assertTrue($pendonor->refresh()->isBlocked());
+
+        $this->expectException(BloodException::class);
+        $this->expectExceptionMessage('dicekal');
+
+        $this->units->collect([
+            'donor_id' => $pendonor->id, 'blood_type' => 'O', 'rhesus' => '+', 'component' => 'whole-blood',
+            'volume_ml' => 350, 'collected_at' => now(), 'expiry_date' => now()->addDays(35)->toDateString(),
+        ]);
+    }
+
+    #[Test]
+    public function cekal_permanen_tidak_pernah_kedaluwarsa_sedangkan_cekal_sementara_berakhir(): void
+    {
+        $permanen = $this->daftarkanPendonor();
+        $this->donors->block($permanen, 'Riwayat penyakit menular kronis');
+        $this->assertTrue($permanen->refresh()->isBlocked());
+
+        $sementara = $this->donors->register(['name' => 'Pendonor Uji 2', 'blood_type' => 'A', 'rhesus' => '+', 'sex' => 'P', 'birth_date' => '1990-01-01']);
+        $this->donors->block($sementara, 'Baru donor darah minggu lalu', now()->subDay()->toDateString());
+        $this->assertFalse($sementara->refresh()->isBlocked());
+    }
+
+    #[Test]
+    public function pengambilan_dari_pendonor_dicekal_jadi_galat_di_layar_bukan_error_500(): void
+    {
+        $pendonor = $this->daftarkanPendonor();
+        $this->donors->block($pendonor, 'Baru pulang dari daerah endemis malaria', now()->addMonths(3)->toDateString());
+
+        $this->actingAs($this->petugas)->post(route('blood.stok.simpan'), [
+            'donor_id' => $pendonor->id, 'blood_type' => 'O', 'rhesus' => '+', 'component' => 'whole-blood',
+            'volume_ml' => 350, 'collected_at' => now()->format('Y-m-d H:i:s'), 'expiry_date' => now()->addDays(35)->toDateString(),
+        ])->assertRedirect()->assertSessionHas('galat');
+
+        $this->assertDatabaseCount('blood.blood_units', 0);
+    }
+
+    #[Test]
+    public function pemisahan_bisa_disubmit_lewat_http(): void
+    {
+        $wholeBlood = $this->units->release($this->ambilUnit(), $this->petugas);
+
+        $this->actingAs($this->petugas)->post(route('blood.stok.pisah', $wholeBlood), [
+            'komponen' => [
+                'prc' => ['component' => 'prc', 'volume_ml' => 200, 'expiry_date' => now()->addDays(42)->toDateString()],
+                'plasma' => ['component' => 'plasma', 'volume_ml' => 150, 'expiry_date' => now()->addYear()->toDateString()],
+                // Baris kosong dari form UI harus diabaikan, bukan bikin galat validasi.
+                'platelet' => ['component' => 'platelet', 'volume_ml' => '', 'expiry_date' => ''],
+            ],
+        ])->assertRedirect()->assertSessionHas('sukses');
+
+        $this->assertSame(BloodUnit::STATUS_DIPISAHKAN, $wholeBlood->refresh()->status);
+        $this->assertCount(2, $wholeBlood->childUnits);
+    }
+
+    #[Test]
+    public function cekal_bisa_dicabut(): void
+    {
+        $pendonor = $this->daftarkanPendonor();
+        $this->donors->block($pendonor, 'Sedang diselidiki');
+        $this->donors->unblock($pendonor);
+
+        $this->assertFalse($pendonor->refresh()->isBlocked());
+        $this->assertNull($pendonor->block_reason);
+    }
+
+    #[Test]
+    public function unit_tersedia_bisa_dipisah_jadi_beberapa_komponen(): void
+    {
+        $wholeBlood = $this->units->release($this->ambilUnit(), $this->petugas);
+
+        $anak = $this->units->separate($wholeBlood, [
+            ['component' => 'prc', 'volume_ml' => 200, 'expiry_date' => now()->addDays(42)->toDateString()],
+            ['component' => 'plasma', 'volume_ml' => 150, 'expiry_date' => now()->addYear()->toDateString()],
+        ], $this->petugas);
+
+        $this->assertCount(2, $anak);
+        $this->assertSame(BloodUnit::STATUS_DIPISAHKAN, $wholeBlood->refresh()->status);
+
+        foreach ($anak as $unitAnak) {
+            $this->assertSame($wholeBlood->id, $unitAnak->parent_unit_id);
+            $this->assertSame($wholeBlood->donor_id, $unitAnak->donor_id);
+            $this->assertSame(BloodUnit::STATUS_TERSEDIA, $unitAnak->status);
+        }
+
+        $this->assertCount(2, $wholeBlood->childUnits);
+        $this->assertSame($wholeBlood->id, $anak->first()->parentUnit->id);
+    }
+
+    #[Test]
+    public function unit_yang_bukan_whole_blood_tidak_bisa_dipisah(): void
+    {
+        $unit = $this->units->release($this->ambilUnit(['component' => 'prc']), $this->petugas);
+
+        $this->expectException(BloodException::class);
+
+        $this->units->separate($unit, [
+            ['component' => 'plasma', 'volume_ml' => 100, 'expiry_date' => now()->addYear()->toDateString()],
+        ], $this->petugas);
+    }
+
+    #[Test]
+    public function unit_yang_masih_karantina_tidak_bisa_dipisah(): void
+    {
+        $unit = $this->ambilUnit();
+
+        $this->expectException(BloodException::class);
+
+        $this->units->separate($unit, [
+            ['component' => 'prc', 'volume_ml' => 200, 'expiry_date' => now()->addDays(42)->toDateString()],
+        ], $this->petugas);
+    }
+
+    #[Test]
     public function layar_utd_hanya_untuk_petugas_utd(): void
     {
         $this->actingAs($this->petugas)->get(route('blood.pendonor.index'))->assertOk();

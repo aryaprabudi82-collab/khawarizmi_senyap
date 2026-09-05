@@ -22,4 +22,26 @@ class DonorService
 
         return $donor->refresh();
     }
+
+    /** utd_cekal_darah — cekal pendonor. blockedUntil null berarti cekal permanen. */
+    public function block(Donor $donor, string $reason, ?string $blockedUntil = null): Donor
+    {
+        $donor->update([
+            'block_reason' => $reason,
+            'blocked_until' => $blockedUntil,
+        ]);
+
+        return $donor->refresh();
+    }
+
+    /** utd_cekal_darah — cabut cekal pendonor. */
+    public function unblock(Donor $donor): Donor
+    {
+        $donor->update([
+            'block_reason' => null,
+            'blocked_until' => null,
+        ]);
+
+        return $donor->refresh();
+    }
 }

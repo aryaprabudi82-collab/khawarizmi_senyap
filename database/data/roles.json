@@ -291,13 +291,15 @@
     {
         "code": "petugas-utd",
         "name": "Petugas Unit Transfusi Darah",
-        "description": "Pendonor, siklus status unit darah (karantina/tersedia/ditahan/ditolak), dan penyerahan darah untuk transfusi.",
-        "_catatan_scope": "Domain N bersih — 11 kapabilitas semuanya memang milik blood, tidak ada mis-tagging. pengambilan_utd2/pengambilan_penunjang_utd2 (pengambilan BHP medis/non-medis) dan utd_medis_rusak/utd_penunjang_rusak (BHP rusak) belum digarap wave ini — itu manajemen consumable UTD, bukan siklus unit darah itu sendiri.",
+        "description": "Pendonor (termasuk pencekalan), siklus status unit darah (karantina/tersedia/ditahan/ditolak/dipisahkan), pemisahan komponen, dan penyerahan darah untuk transfusi.",
+        "_catatan_scope": "Domain N bersih — 11 kapabilitas semuanya memang milik blood, tidak ada mis-tagging. utd_komponen_darah (kolom component saat collect()) dan utd_donor (event collect() itu sendiri sebagai catatan donasi) sudah terpenuhi tanpa kode terpisah. utd_cekal_darah (pencekalan pendonor, permanen/sementara) dan utd_pemisahan_darah (pisah whole-blood jadi unit komponen) ditambahkan audit 2026-10 — sebelumnya kolom/layar-nya belum ada sama sekali. Yang masih belum digarap: pengambilan_utd2/pengambilan_penunjang_utd2 (pengambilan BHP medis/non-medis) dan utd_medis_rusak/utd_penunjang_rusak (BHP rusak) — manajemen consumable UTD, bukan siklus unit darah itu sendiri.",
         "contexts": [],
         "extra_permissions": [
             "utd_pendonor",
             "utd_stok_darah",
-            "utd_penyerahan_darah"
+            "utd_penyerahan_darah",
+            "utd_cekal_darah",
+            "utd_pemisahan_darah"
         ]
     },
     {
