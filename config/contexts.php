@@ -156,6 +156,9 @@ return [
                 . 'apoteker, penyerahan, dan stok dengan batch serta kedaluwarsa.',
             'domains'     => ['D', 'A'],
             'publishes'   => [
+                'v_prescription_duration' => 'Rantai waktu resep (diresepkan/diserahkan/ditelaah/diserahkan-ke-pasien), SATU BARIS PER RESEP '
+                    . '— domain J item D, untuk lama_pelayanan_apotek. Sengaja terpisah dari v_prescription_charge yang '
+                    . 'berbentuk penagihan per baris obat dan akan mencondongkan rata-rata ke resep yang isinya paling banyak.',
                 'v_prescription_charge' => 'Obat yang sudah diserahkan berikut nilainya. Dipakai billing untuk menarik biaya obat ke tagihan kunjungan.',
             ],
         ],
@@ -308,7 +311,11 @@ return [
                 . 'kesehatan lingkungan/kesling (limbah B3, mutu air, pest control) — hanya aset/inventaris umum dan '
                 . 'pemeliharaan yang digarap wave ini; CSSD dan kesling masing-masing perlu desain tersendiri.',
             'domains'     => ['G'],
-            'publishes'   => [],
+            'publishes'   => [
+                'v_cssd_circulation' => 'Sirkulasi set CSSD berikut keempat stempel waktunya (diterima/diproses/steril/'
+                    . 'didistribusikan) — domain J item D, untuk lama_pelayanan_cssd. Rantainya sudah lengkap sejak '
+                    . 'domain G, jadi laporan ini tidak butuh pencatatan baru, cuma kontraknya.',
+            ],
         ],
 
         'inpatient' => [
@@ -333,6 +340,9 @@ return [
                     . 'bed yang sungguh ditempati hari itu, diambil dari bed_assignments — hari sebelum pindah '
                     . 'tetap memakai tarif kamar lama. Kalau pindahnya di tengah hari, hari itu ditagihkan ke '
                     . 'kamar yang ditempati sampai malam, karena tarif kamar adalah tarif per malam.',
+                'v_bed_assignment' => 'Rentang penempatan bed (assigned_at/released_at), tanpa identitas pasien '
+                    . '— domain J item D, untuk hari-rawat pada hitungan BOR. Dihitung dari penempatan yang sungguh '
+                    . 'terjadi supaya pasien yang pindah kamar tidak terlewat maupun tergandakan.',
                 'v_bed_availability' => 'Jumlah tempat tidur per kelas dan statusnya, kamar nonaktif tidak dihitung '
                     . '(domain J item C, untuk RL 1.3). Yang dilaporkan kapasitas terpasang, dan kamar yang ditutup '
                     . 'bukan kapasitas yang tersedia.',

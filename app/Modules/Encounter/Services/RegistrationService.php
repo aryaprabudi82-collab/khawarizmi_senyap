@@ -157,6 +157,95 @@ class RegistrationService
         });
     }
 
+    /**
+     * Menaikkan kunjungan ke tahap berikutnya: dipanggil -> dilayani ->
+     * selesai (domain J item D).
+     *
+     * Siklus status ini sudah ada di skema dan model sejak awal tapi tidak
+     * pernah dijalankan kode mana pun, sehingga kunjungan selamanya
+     * berstatus 'terdaftar'. Tanpa ini laporan waktu tunggu SPM tidak punya
+     * dasar apa pun untuk dihitung.
+     *
+     * Urutannya DITEGAKKAN, bukan sekadar mengisi kolom. Kalau tahap boleh
+     * dilompati, waktu tunggu jadi bisa nol atau negatif tanpa terlihat
+     * salah — persis jenis angka mustahil yang membuat satu laporan mutu
+     * tidak bisa dipercaya seluruhnya.
+     *
+     * @throws RegistrationException
+     */
+    public function advance(Registration $registration, string $toStatus): Registration
+    {
+        $urutan = [
+            Registration::STATUS_TERDAFTAR => 0,
+            Registration::STATUS_DIPANGGIL => 1,
+            Registration::STATUS_DILAYANI => 2,
+            Registration::STATUS_SELESAI => 3,
+        ];
+
+        $kolom = [
+            Registration::STATUS_DIPANGGIL => 'called_at',
+            Registration::STATUS_DILAYANI => 'served_at',
+            Registration::STATUS_SELESAI => 'finished_at',
+        ];
+
+        if (! isset($kolom[$toStatus])) {
+            throw new RegistrationException("Tahap pelayanan '{$toStatus}' tidak dikenal.");
+        }
+
+        if ($registration->isCancelled()) {
+            throw new RegistrationException('Kunjungan yang dibatalkan tidak bisa dilanjutkan.');
+        }
+
+        if ($registration->status === Registration::STATUS_TIDAK_HADIR) {
+            throw new RegistrationException('Kunjungan yang ditandai tidak hadir tidak bisa dilanjutkan.');
+        }
+
+        $sekarang = $urutan[$registration->status] ?? null;
+
+        if ($sekarang === null) {
+            throw new RegistrationException("Status kunjungan '{$registration->status}' tidak bisa dilanjutkan.");
+        }
+
+        if ($urutan[$toStatus] <= $sekarang) {
+            throw new RegistrationException("Kunjungan sudah melewati tahap '{$toStatus}'.");
+        }
+
+        if ($urutan[$toStatus] !== $sekarang + 1) {
+            throw new RegistrationException('Tahap pelayanan tidak boleh dilompati.');
+        }
+
+        $registration->update([
+            'status' => $toStatus,
+            $kolom[$toStatus] => now(),
+        ]);
+
+        return $registration->refresh();
+    }
+
+    /**
+     * Menandai pasien tidak hadir saat dipanggil.
+     *
+     * Bukan pembatalan (kunjungannya sah dan tetap dihitung sebagai
+     * kedatangan yang tercatat) dan bukan pula pelayanan — karena itu
+     * kunjungan ini tidak boleh ikut menghitung waktu tunggu.
+     *
+     * @throws RegistrationException
+     */
+    public function markNoShow(Registration $registration): Registration
+    {
+        if ($registration->isCancelled()) {
+            throw new RegistrationException('Kunjungan yang dibatalkan tidak bisa ditandai tidak hadir.');
+        }
+
+        if (in_array($registration->status, [Registration::STATUS_DILAYANI, Registration::STATUS_SELESAI], true)) {
+            throw new RegistrationException('Kunjungan yang sudah dilayani tidak bisa ditandai tidak hadir.');
+        }
+
+        $registration->update(['status' => Registration::STATUS_TIDAK_HADIR]);
+
+        return $registration->refresh();
+    }
+
     public function cancel(Registration $registration, string $reason, ?int $actorId = null): Registration
     {
         if ($registration->isCancelled()) {

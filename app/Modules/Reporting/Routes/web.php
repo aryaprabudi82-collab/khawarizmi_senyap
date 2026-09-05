@@ -3,6 +3,7 @@
 use App\Modules\Reporting\Http\Controllers\CensusReportController;
 use App\Modules\Reporting\Http\Controllers\DashboardController;
 use App\Modules\Reporting\Http\Controllers\MorbidityReportController;
+use App\Modules\Reporting\Http\Controllers\QualityIndicatorReportController;
 use App\Modules\Reporting\Http\Controllers\StatutoryReportController;
 use Illuminate\Support\Facades\Route;
 
@@ -48,4 +49,18 @@ Route::middleware(['web', 'auth', 'can:rl4a'])
     ->name('reporting.')
     ->group(function () {
         Route::get('/rl', [StatutoryReportController::class, 'index'])->name('rl');
+    });
+
+/*
+| Domain J item D: indikator mutu & lama pelayanan. 13 kode dalam satu
+| layar, digerbangi lama_pelayanan_pasien — kode paling mewakili karena
+| sembilan kode "Lama Pelayanan *" lainnya adalah potongan unit dari
+| pertanyaan yang sama, dan hitung_bor/hitung_alos dibaca berbarengan
+| dengan keduanya sebagai indikator efisiensi.
+*/
+Route::middleware(['web', 'auth', 'can:lama_pelayanan_pasien'])
+    ->prefix('laporan')
+    ->name('reporting.')
+    ->group(function () {
+        Route::get('/mutu', [QualityIndicatorReportController::class, 'index'])->name('mutu');
     });
