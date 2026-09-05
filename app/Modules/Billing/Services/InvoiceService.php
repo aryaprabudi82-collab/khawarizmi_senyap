@@ -4,6 +4,7 @@ namespace App\Modules\Billing\Services;
 
 use App\Modules\Billing\Models\ChargeLine;
 use App\Modules\Billing\Models\Invoice;
+use App\Modules\Billing\Models\ManualAdjustment;
 use App\Modules\Billing\Models\Payment;
 use App\Modules\Platform\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +32,7 @@ class InvoiceService
         private readonly OrderChargeContext $orderCharges,
         private readonly ProcedureChargeContext $procedureCharges,
         private readonly OperationChargeContext $operationCharges,
+        private readonly RoomChargeContext $roomCharges,
     ) {}
 
     /**
@@ -63,6 +65,7 @@ class InvoiceService
                 'patient_mrn' => $kunjungan->patient_mrn,
                 'patient_name' => $kunjungan->patient_name,
                 'unit_name' => $kunjungan->unit_name,
+                'care_type' => $kunjungan->care_type,
                 'payer_name' => $kunjungan->payer_name,
                 'payer_kind' => $payer->kind,
                 'payment_responsibility' => $tanggungan,
@@ -93,6 +96,8 @@ class InvoiceService
             $this->syncOrderCharges($invoice);
             $this->syncProcedureCharges($invoice);
             $this->syncOperationCharges($invoice);
+            $this->syncRoomCharges($invoice);
+            $this->syncAdjustmentCharges($invoice);
             $this->recalculateTotal($invoice);
             $this->settleIfGuaranteed($invoice);
         });
@@ -247,7 +252,7 @@ class InvoiceService
             [
                 $kunjungan->registered_at, $invoice->id, $invoice->registration_id,
                 'registrasi', $invoice->registration_id,
-                'Biaya Registrasi Rawat Jalan',
+                'Biaya Registrasi ' . ($invoice->isRanap() ? 'Rawat Inap' : 'Rawat Jalan'),
                 (float) $kunjungan->registration_fee, (float) $kunjungan->registration_fee,
             ]
         );
@@ -296,6 +301,163 @@ class InvoiceService
         }
     }
 
+    /**
+     * Tambahan biaya (tambahan_biaya) atau potongan biaya (potongan_biaya).
+     *
+     * Potongan disimpan sebagai nilai negatif — dijaga CHECK di basis data,
+     * bukan hanya oleh kode ini — supaya penjumlahan total tagihan tetap
+     * satu operasi yang sama untuk semua jenis biaya.
+     *
+     * @throws BillingException
+     */
+    public function addAdjustment(
+        Invoice $invoice,
+        string $kind,
+        string $description,
+        float $amount,
+        User $actor,
+        ?string $reason = null,
+    ): ManualAdjustment {
+        if ($invoice->isVoid()) {
+            throw new BillingException('Tagihan ini sudah dibatalkan, tidak bisa ditambah penyesuaian.');
+        }
+
+        if ($invoice->status === Invoice::STATUS_LUNAS) {
+            throw new BillingException('Tagihan ini sudah lunas — batalkan pembayarannya dulu kalau biayanya memang perlu diubah.');
+        }
+
+        if (! in_array($kind, [ManualAdjustment::KIND_TAMBAHAN, ManualAdjustment::KIND_POTONGAN], true)) {
+            throw new BillingException("Jenis penyesuaian '{$kind}' tidak dikenal.");
+        }
+
+        $nilai = abs($amount);
+
+        if ($nilai <= 0) {
+            throw new BillingException('Nilai penyesuaian harus lebih dari nol.');
+        }
+
+        if ($kind === ManualAdjustment::KIND_POTONGAN) {
+            $nilai = -$nilai;
+
+            // Potongan tidak boleh melebihi tagihan yang ada — tagihan minus
+            // berarti rumah sakit berutang ke pasien, bukan hasil yang
+            // dimaksud siapa pun saat mengetik potongan.
+            if ($invoice->total_amount + $nilai < 0) {
+                throw new BillingException(sprintf(
+                    'Potongan Rp %s melebihi total tagihan Rp %s.',
+                    number_format(abs($nilai), 0, ',', '.'),
+                    number_format((float) $invoice->total_amount, 0, ',', '.')
+                ));
+            }
+        }
+
+        return DB::transaction(function () use ($invoice, $kind, $description, $nilai, $actor, $reason): ManualAdjustment {
+            $penyesuaian = ManualAdjustment::query()->create([
+                'invoice_id' => $invoice->id,
+                'kind' => $kind,
+                'description' => $description,
+                'amount' => $nilai,
+                'reason' => $reason,
+                'created_by' => $actor->id,
+            ]);
+
+            $this->syncCharges($invoice);
+
+            return $penyesuaian->refresh();
+        });
+    }
+
+    /** Membatalkan penyesuaian: baris tagihannya ikut dicabut, bukan sekadar ditandai. */
+    public function voidAdjustment(ManualAdjustment $penyesuaian, string $reason, User $actor): ManualAdjustment
+    {
+        if ($penyesuaian->isVoid()) {
+            throw new BillingException('Penyesuaian ini sudah dibatalkan.');
+        }
+
+        $invoice = $penyesuaian->invoice;
+
+        if ($invoice->status === Invoice::STATUS_LUNAS) {
+            throw new BillingException('Tagihan ini sudah lunas — batalkan pembayarannya dulu.');
+        }
+
+        return DB::transaction(function () use ($penyesuaian, $invoice, $reason, $actor): ManualAdjustment {
+            $penyesuaian->update([
+                'voided_at' => now(),
+                'voided_by' => $actor->id,
+                'void_reason' => $reason,
+            ]);
+
+            $this->syncCharges($invoice);
+
+            return $penyesuaian->refresh();
+        });
+    }
+    /**
+     * Biaya kamar rawat inap, satu baris per hari menginap.
+     *
+     * Kunci idempotensinya jatuh pas tanpa perlakuan khusus: charged_at
+     * berbeda tiap hari, jadi (charged_at, 'kamar', admission_id) sudah
+     * unik per hari per admisi. Sinkronisasi ulang di hari berikutnya
+     * hanya menambah hari yang baru lewat, tidak menggandakan hari lama.
+     */
+    private function syncRoomCharges(Invoice $invoice): void
+    {
+        foreach ($this->roomCharges->forRegistration($invoice->registration_id) as $baris) {
+            DB::statement(
+                'INSERT INTO billing.charge_lines
+                    (charged_at, invoice_id, registration_id, source_type, source_id,
+                     description, quantity, unit_price, amount)
+                 VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
+                 ON CONFLICT (charged_at, source_type, source_id) DO NOTHING',
+                [
+                    $baris->charge_date, $invoice->id, $invoice->registration_id,
+                    'kamar', $baris->admission_id,
+                    'Kamar ' . $baris->room_number . ' (' . $baris->room_class . ') bed ' . $baris->bed_number
+                        . ' — ' . \Illuminate\Support\Carbon::parse($baris->charge_date)->format('d-m-Y'),
+                    (float) $baris->unit_price, (float) $baris->amount,
+                ]
+            );
+        }
+    }
+
+    /** Tambahan & potongan biaya yang diketik kasir (tambahan_biaya, potongan_biaya). */
+    private function syncAdjustmentCharges(Invoice $invoice): void
+    {
+        $berlaku = ManualAdjustment::query()->berlaku()->where('invoice_id', $invoice->id)->get();
+
+        foreach ($berlaku as $penyesuaian) {
+            DB::statement(
+                'INSERT INTO billing.charge_lines
+                    (charged_at, invoice_id, registration_id, source_type, source_id,
+                     description, quantity, unit_price, amount)
+                 VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
+                 ON CONFLICT (charged_at, source_type, source_id) DO NOTHING',
+                [
+                    $penyesuaian->created_at, $invoice->id, $invoice->registration_id,
+                    'penyesuaian', $penyesuaian->id,
+                    ($penyesuaian->kind === ManualAdjustment::KIND_POTONGAN ? 'Potongan: ' : 'Tambahan: ')
+                        . $penyesuaian->description,
+                    (float) $penyesuaian->amount, (float) $penyesuaian->amount,
+                ]
+            );
+        }
+
+        // Penyesuaian yang dibatalkan harus hilang dari rincian, bukan
+        // sekadar berhenti ditambahkan — baris tagihannya sudah terlanjur
+        // ada dari sinkronisasi sebelumnya.
+        $dibatalkan = ManualAdjustment::query()
+            ->whereNotNull('voided_at')
+            ->where('invoice_id', $invoice->id)
+            ->pluck('id');
+
+        if ($dibatalkan->isNotEmpty()) {
+            DB::table('billing.charge_lines')
+                ->where('invoice_id', $invoice->id)
+                ->where('source_type', 'penyesuaian')
+                ->whereIn('source_id', $dibatalkan)
+                ->delete();
+        }
+    }
     private function syncProcedureCharges(Invoice $invoice): void
     {
         foreach ($this->procedureCharges->forRegistration($invoice->registration_id) as $baris) {

@@ -40,6 +40,17 @@ class Invoice extends Model
         return $this->hasMany(Payment::class)->orderByDesc('paid_at');
     }
 
+    public function manualAdjustments(): HasMany
+    {
+        return $this->hasMany(ManualAdjustment::class);
+    }
+
+    /** Rawat inap dipisahkan Khanza sebagai kode kasir tersendiri (pembayaran_ranap). */
+    public function isRanap(): bool
+    {
+        return $this->care_type === 'ranap';
+    }
+
     public function outstanding(): float
     {
         return round((float) $this->total_amount - (float) $this->paid_amount, 2);

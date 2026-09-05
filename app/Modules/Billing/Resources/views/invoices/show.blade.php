@@ -148,6 +148,83 @@
       </div>
     </div>
 
+    @if ($tagihan->status === 'terbuka')
+      <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title">Tambahan &amp; potongan biaya</h3></div>
+        <div class="card-body">
+          <form method="POST" action="{{ route('tagihan.penyesuaian.simpan', $tagihan) }}" class="row g-2">
+            @csrf
+            <div class="col-6 col-md-3">
+              <label class="form-label">Jenis</label>
+              <select name="kind" class="form-select" required>
+                <option value="tambahan">Tambahan biaya</option>
+                <option value="potongan">Potongan biaya</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-4"><label class="form-label">Keterangan</label><input type="text" name="description" class="form-control" maxlength="100" placeholder="mis. Ambulans" required></div>
+            <div class="col-6 col-md-3">
+              <label class="form-label">Nilai (Rp)</label>
+              <input type="number" name="amount" class="form-control" min="1" step="1" required>
+              <small class="text-secondary">Isi angka positif; potongan disimpan sebagai pengurang.</small>
+            </div>
+            <div class="col-12"><label class="form-label">Alasan</label><input type="text" name="reason" class="form-control" maxlength="1000"></div>
+            <div class="col-12"><button class="btn btn-primary">Simpan Penyesuaian</button></div>
+          </form>
+        </div>
+      </div>
+    @endif
+
+    @if ($tagihan->manualAdjustments->isNotEmpty())
+      <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title">Riwayat penyesuaian</h3></div>
+        <div class="table-responsive">
+          <table class="table table-vcenter card-table">
+            <thead><tr><th>Jenis</th><th>Keterangan</th><th class="text-end">Nilai</th><th>Status</th><th class="w-1"></th></tr></thead>
+            <tbody>
+              @foreach ($tagihan->manualAdjustments as $penyesuaian)
+                <tr>
+                  <td>
+                    <span class="badge bg-{{ $penyesuaian->kind === 'potongan' ? 'orange' : 'blue' }}-lt">{{ $penyesuaian->kind }}</span>
+                  </td>
+                  <td>
+                    {{ $penyesuaian->description }}
+                    @if ($penyesuaian->reason)
+                      <div class="text-secondary small">{{ $penyesuaian->reason }}</div>
+                    @endif
+                  </td>
+                  <td class="text-end">Rp {{ number_format((float) $penyesuaian->amount, 0, ',', '.') }}</td>
+                  <td>
+                    @if ($penyesuaian->isVoid())
+                      <span class="badge bg-secondary-lt" title="{{ $penyesuaian->void_reason }}">dibatalkan</span>
+                    @else
+                      <span class="badge bg-green-lt">berlaku</span>
+                    @endif
+                  </td>
+                  <td>
+                    @if (! $penyesuaian->isVoid() && $tagihan->status === 'terbuka')
+                      <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#batal-penyesuaian-{{ $penyesuaian->id }}">Batalkan</button>
+                    @endif
+                  </td>
+                </tr>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      @foreach ($tagihan->manualAdjustments->where('voided_at', null) as $penyesuaian)
+        <div class="modal fade" id="batal-penyesuaian-{{ $penyesuaian->id }}" tabindex="-1">
+          <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content" method="POST" action="{{ route('tagihan.penyesuaian.batal', $penyesuaian) }}">
+              @csrf
+              <div class="modal-header"><h5 class="modal-title">Batalkan: {{ $penyesuaian->description }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+              <div class="modal-body"><label class="form-label">Alasan pembatalan</label><textarea name="alasan" class="form-control" minlength="5" required></textarea></div>
+              <div class="modal-footer"><button type="submit" class="btn btn-danger">Batalkan</button></div>
+            </form>
+          </div>
+        </div>
+      @endforeach
+    @endif
     @if ($tagihan->payments->isNotEmpty())
       <div class="card">
         <div class="card-header"><h3 class="card-title">Riwayat pembayaran</h3></div>

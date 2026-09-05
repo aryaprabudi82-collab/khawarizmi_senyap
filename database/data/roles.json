@@ -144,11 +144,14 @@
     {
         "code": "kasir",
         "name": "Kasir",
-        "description": "Menerima pembayaran tagihan rawat jalan.",
-        "_catatan_scope": "Sengaja tanpa 'contexts': domain I Khanza (Billing/Tagihan) sebagian besar berisi laporan keuangan (harian_*, bulanan_*, rekap_*, fee_*, piutang_*) yang bukan urusan kasir loket. Hanya kapabilitas transaksi pembayaran yang diberikan.",
+        "description": "Tagihan dan pembayaran pasien di kasir rawat jalan maupun rawat inap, termasuk tambahan & potongan biaya dan pembatalan pembayaran.",
+        "_catatan_scope": "Domain I (\"Billing/Tagihan\") 59 kode efektif, sub-order 5 item (dikonfirmasi user). Item A (2026-10): pembayaran_ranap, tambahan_biaya, potongan_biaya. pembayaran_ralan dan pembayaran_ranap TIDAK dipasang sebagai middleware rute — satu layar tagihan melayani kedua jenis rawat, sedangkan middleware can: hanya menerima satu kode, jadi memasangnya akan mengunci salah satu kasir dari layarnya sendiri. Otorisasinya per tagihan di InvoiceController::assertAccess() berdasarkan kolom care_type, pola sama dengan OrderController::assertAccess() untuk lab/radiologi/PA. Peran kasir bawaan memegang keduanya; rumah sakit yang memisahkan loket ralan dan ranap tinggal membuat peran custom dengan salah satu saja. tambahan_biaya & potongan_biaya jadi satu aksi (billing.manual_adjustments, dibedakan kolom kind, potongan disimpan negatif) — bukan dua layar, karena keduanya penyesuaian manual pada tagihan yang sama; Khanza sendiri tidak punya tabel untuk potongan_biaya (tabel `potongan` miliknya adalah potongan gaji pegawai, bukan tagihan pasien). tagihan_masuk TIDAK dapat kode baru — kelas Khanza-nya DlgLhtBiaya (\"lihat biaya\"), sudah terpenuhi layar detail tagihan yang ada. Biaya kamar rawat inap kini masuk tagihan lewat inpatient.v_room_charge, satu baris per hari menginap (dikonfirmasi user) — sebelumnya InvoiceService punya lima sumber biaya dan tidak satu pun kamar, itulah celah sesungguhnya di balik pembayaran_ranap. Item B-E (piutang, jasa medis, rekap/laporan, integrasi akuntansi) belum digarap; kode akuntansi (pembayaran_akun_bayar 1-5, pendapatan_per_akun, closing) akan dibangun di context finance, bukan billing (dikonfirmasi user) meski katalog menandainya billing.",
         "contexts": [],
         "extra_permissions": [
-            "pembayaran_ralan"
+            "pembayaran_ralan",
+            "pembayaran_ranap",
+            "tambahan_biaya",
+            "potongan_biaya"
         ]
     },
     {

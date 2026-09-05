@@ -37,13 +37,13 @@ class ManagedPermissionCatalog
         'permintaan_pengujian_sampel_lab_kesehatan_lingkungan', 'hasil_pengujian_sampel_lab_kesehatan_lingkungan',
         'verifikasi_pengujian_sampel_lab_kesehatan_lingkungan', 'validasi_pengujian_sampel_lab_kesehatan_lingkungan',
         'pembayaran_pengujian_sampel_lab_kesehatan_lingkungan', 'rekap_pelayanan_lab_kesehatan_lingkungan',
-        'parkir_in', 'parkir_jenis', 'pembayaran_ralan', 'pemeliharaan_inventaris', 'pemeriksaan_lab_pa', 'penerimaan_aset_inventaris', 'penerimaan_non_medis', 'penjualan_obat', 'pengadaan_aset_inventaris', 'pengadaan_obat', 'pengajuan_asetinventaris', 'pengajuan_barang_dapur', 'pengajuan_barang_medis', 'pengajuan_barang_nonmedis', 'pengajuan_cuti', 'pengeluaran_stok_apotek', 'pengumuman_epasien',
+        'parkir_in', 'parkir_jenis', 'pembayaran_ralan', 'pembayaran_ranap', 'potongan_biaya', 'pemeliharaan_inventaris', 'pemeriksaan_lab_pa', 'penerimaan_aset_inventaris', 'penerimaan_non_medis', 'penjualan_obat', 'pengadaan_aset_inventaris', 'pengadaan_obat', 'pengajuan_asetinventaris', 'pengajuan_barang_dapur', 'pengajuan_barang_medis', 'pengajuan_barang_nonmedis', 'pengajuan_cuti', 'pengeluaran_stok_apotek', 'pengumuman_epasien',
         'penggunaan_bhp_ok', 'penilaian_awal_medis_ralan', 'perbaikan_inventaris', 'periksa_lab', 'periksa_radiologi',
         'peristiwa_k3rs', 'perkiraan_biaya_ranap', 'permintaan_stok_obat_pasien', 'persetujuan_penolakan_tindakan', 'presensi_harian', 'registrasi',
         'rekap_kunjungan', 'rekap_obat_pasien', 'rekap_pengadaan_dapur', 'resep_luar', 'resep_obat', 'retur_ke_suplier', 'retur_obat_ranap', 'rujukan_keluar', 'satu_sehat_kirim_condition', 'satu_sehat_kirim_encounter',
         'satu_sehat_mapping_lokasi', 'satu_sehat_referensi_dokter', 'satu_sehat_referensi_pasien',
         'permintaan_ranap', 'sirkulasi_cssd', 'sisa_stok', 'skp_penilaian', 'stok_opname_logistik', 'stok_opname_obat', 'suplier_inventaris', 'surat_keterangan_sehat', 'surat_masuk', 'surat_pemesanan_dapur', 'surat_pemesanan_non_medis',
-        'tarif_ralan', 'telaah_resep', 'tindakan_ranap', 'utd_cekal_darah', 'utd_pemisahan_darah', 'utd_pendonor', 'utd_penyerahan_darah', 'utd_stok_darah',
+        'tambahan_biaya', 'tarif_ralan', 'telaah_resep', 'tindakan_ranap', 'utd_cekal_darah', 'utd_pemisahan_darah', 'utd_pendonor', 'utd_penyerahan_darah', 'utd_stok_darah',
         'user', 'verifikasi_penerimaan_dapur', 'verifikasi_penerimaan_farmasi', 'verifikasi_penerimaan_logistik',
     ];
 

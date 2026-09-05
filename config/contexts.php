@@ -300,6 +300,11 @@ return [
             'publishes'   => [
                 'v_room_class_rate' => 'Tarif kamar rata-rata per kelas (kamar nonaktif tidak dihitung). '
                     . 'Dipakai finance untuk perkiraan_biaya_ranap tanpa menyentuh inpatient.rooms langsung.',
+                'v_room_charge' => 'Biaya kamar satu baris per hari menginap (domain I item A). Dipakai billing '
+                    . 'untuk menagihkan kamar rawat inap — sebelumnya biaya kamar tidak pernah sampai ke tagihan. '
+                    . 'Hari yang ditagih: tanggal masuk s.d. sehari sebelum pulang (minimal 1 hari), atau s.d. hari '
+                    . 'ini kalau masih dirawat. Belum tahan pindah kamar di tengah rawat — inpatient belum punya '
+                    . 'riwayat penempatan bed, jadi semua hari memakai tarif kamar terkini.',
             ],
         ],
 
