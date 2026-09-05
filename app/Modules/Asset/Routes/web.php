@@ -2,6 +2,7 @@
 
 use App\Modules\Asset\Http\Controllers\AssetDonationController;
 use App\Modules\Asset\Http\Controllers\AssetGoodsReceiptController;
+use App\Modules\Asset\Http\Controllers\AssetMaintenanceScheduleController;
 use App\Modules\Asset\Http\Controllers\AssetPurchaseOrderController;
 use App\Modules\Asset\Http\Controllers\AssetRequisitionController;
 use App\Modules\Asset\Http\Controllers\AssetTransferController;
@@ -90,6 +91,16 @@ Route::middleware(['web', 'auth'])
         Route::middleware('can:inventaris_sirkulasi')->prefix('sirkulasi')->name('sirkulasi.')->group(function () {
             Route::get('/', [AssetTransferController::class, 'index'])->name('index');
             Route::post('/', [AssetTransferController::class, 'store'])->name('simpan');
+        });
+
+        // Domain G item D (terakhir) — pemeliharaan_inventaris (+
+        // pemeliharaan_gedung lewat location_id, umbrella-gate). Lihat
+        // catatan migrasi 2026_10_11_000001.
+        Route::middleware('can:pemeliharaan_inventaris')->prefix('jadwal')->name('jadwal.')->group(function () {
+            Route::get('/', [AssetMaintenanceScheduleController::class, 'index'])->name('index');
+            Route::post('/', [AssetMaintenanceScheduleController::class, 'store'])->name('simpan');
+            Route::post('/{jadwal}/laksanakan', [AssetMaintenanceScheduleController::class, 'recordCompletion'])->name('laksanakan');
+            Route::post('/{jadwal}/nonaktifkan', [AssetMaintenanceScheduleController::class, 'deactivate'])->name('nonaktifkan');
         });
 
     });
