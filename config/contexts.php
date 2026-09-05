@@ -92,6 +92,10 @@ return [
                 'v_registration_summary' => 'Kunjungan aktif berikut pasien, unit, dokter, dan penjaminnya. '
                     . 'Dipakai clinical, order, pharmacy, billing, dan inpatient (mencari registrasi ranap '
                     . 'yang belum dapat kamar) sebagai konteks kunjungan.',
+                'v_registration_cancellation' => 'Kunjungan yang DIBATALKAN, kontrak terpisah khusus laporan '
+                    . '(domain J item A, kode pembatalan_periksa_dokter). Sengaja tidak digabung ke '
+                    . 'v_registration_summary: kontrak itu membuang kunjungan batal supaya billing dan klinis '
+                    . 'tidak pernah menindaklanjutinya, dan invarian itu tidak boleh dilonggarkan demi laporan.',
             ],
         ],
 
@@ -176,6 +180,10 @@ return [
             'publishes'   => [
                 'v_order_charge' => 'Pemeriksaan lab/radiologi/PA yang sudah selesai berikut nilainya. '
                     . 'Dipakai billing untuk menarik biaya penunjang ke tagihan kunjungan.',
+                'v_order_summary' => 'Satu baris per PERMINTAAN penunjang berikut kategori dan statusnya '
+                    . '(domain J item A). Dipakai reporting untuk menghitung kunjungan permintaan lab/radiologi '
+                    . '— termasuk yang belum selesai maupun dibatalkan, yang justru tidak muncul di '
+                    . 'v_order_charge dan akan membuat angkanya terlalu kecil tanpa terlihat salah.',
             ],
         ],
 
@@ -312,6 +320,9 @@ return [
                     . 'bed yang sungguh ditempati hari itu, diambil dari bed_assignments — hari sebelum pindah '
                     . 'tetap memakai tarif kamar lama. Kalau pindahnya di tengah hari, hari itu ditagihkan ke '
                     . 'kamar yang ditempati sampai malam, karena tarif kamar adalah tarif per malam.',
+                'v_admission_summary' => 'Daftar admisi berikut ruang, kelas, DPJP, dan status pulangnya '
+                    . '(domain J item A). Dipakai reporting untuk sensus ranap, daftar pasien dirawat, dan '
+                    . 'asal poli/dokter — pertanyaan yang tidak terjawab oleh dua kontrak biaya di atas.',
             ],
         ],
 
