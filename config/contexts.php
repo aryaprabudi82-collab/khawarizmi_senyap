@@ -151,6 +151,11 @@ return [
             'publishes'   => [
                 'v_settled_invoice' => 'Tagihan yang sudah lunas atau ditanggung penjamin. '
                     . 'Dipakai finance untuk memposting jurnal pendapatan dan membuka piutang.',
+                'v_payment_detail' => 'Pembayaran yang sah (yang dibatalkan dan tagihan void tidak muncul) '
+                    . 'berikut cara bayarnya. Dipakai finance untuk memetakan uang masuk ke akun (domain I item E, '
+                    . 'padanan tabel akun_bayar Khanza).',
+                'v_charge_detail' => 'Baris biaya berikut jenis sumbernya (registrasi/kamar/tindakan/obat/...). '
+                    . 'Dipakai finance untuk memetakan pendapatan ke akun dan menutup periode.',
             ],
         ],
 

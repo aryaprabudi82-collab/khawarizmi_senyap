@@ -189,14 +189,16 @@
         "code": "petugas-keuangan",
         "name": "Petugas Keuangan",
         "description": "Mencatat penerimaan piutang dari penjamin, deposit pasien, dan perkiraan biaya ranap.",
-        "_catatan_scope": "Sengaja tanpa 'contexts': domain K Khanza (Keuangan/Akuntansi) sebagian besar berisi laporan (harian_*, bulanan_*, saldo_akun_perbulan, dst.) yang bukan cakupan Wave 1 ini. deposit_pasien dan perkiraan_biaya_ranap tercatat context=encounter di katalog (domain A Khanza mencampur registrasi dengan menu keuangan) tapi berpaket Java \"keuangan\" — dikecualikan dari petugas-daftar/dokter/perawat (lihat catatan masing-masing) dan diberikan di sini.",
+        "_catatan_scope": "Sengaja tanpa 'contexts': domain K Khanza (Keuangan/Akuntansi) sebagian besar berisi laporan (harian_*, bulanan_*, saldo_akun_perbulan, dst.) yang bukan cakupan Wave 1 ini. deposit_pasien dan perkiraan_biaya_ranap tercatat context=encounter di katalog (domain A Khanza mencampur registrasi dengan menu keuangan) tapi berpaket Java \"keuangan\" — dikecualikan dari petugas-daftar/dokter/perawat (lihat catatan masing-masing) dan diberikan di sini. Domain I item E (2026-10): pendapatan_per_akun menggerbangi layar pemetaan akun & laporan per akun, pendapatan_per_akun_closing menggerbangi penutupan periode SECARA TERPISAH karena menutup buku konsekuensinya berbeda dari sekadar melihat laporan. Ketujuh kode item E (termasuk pembayaran_akun_bayar 1-5) dibangun di context finance, BUKAN billing meski katalog menandainya begitu (dikonfirmasi user) — isinya memetakan uang ke bagan akun, dan chart_of_accounts/jurnal memang tinggal di sini. finance.account_mappings adalah padanan tabel akun_bayar Khanza (nama_bayar->kd_rek), diperluas ke jenis biaya juga. Yang dibangun MEKANISMENYA: bagan akun terpasang baru 4 akun contoh seeder, jadi TIDAK ada pemetaan bawaan yang diisi diam-diam — uang yang belum dipetakan tampil sebagai \"belum dipetakan\", bukan dibuang atau ditebak. Penutupan periode MEMBEKUKAN angkanya di period_closing_lines; membuka kembali selalu butuh alasan dan tercatat siapa.",
         "contexts": [],
         "extra_permissions": [
             "bayar_piutang",
             "deposit_pasien",
             "perkiraan_biaya_ranap",
             "rekap_jm_dokter",
-            "ringkasan_tindakan"
+            "ringkasan_tindakan",
+            "pendapatan_per_akun",
+            "pendapatan_per_akun_closing"
         ]
     },
     {
@@ -225,7 +227,8 @@
         "extra_permissions": [
             "rekap_kunjungan",
             "rekap_jm_dokter",
-            "ringkasan_tindakan"
+            "ringkasan_tindakan",
+            "pendapatan_per_akun"
         ]
     },
     {

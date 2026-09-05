@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Finance\Http\Controllers\AccountingController;
 use App\Modules\Finance\Http\Controllers\CostEstimateController;
 use App\Modules\Finance\Http\Controllers\DepositController;
 use App\Modules\Finance\Http\Controllers\ReceivableController;
@@ -28,4 +29,22 @@ Route::middleware(['web', 'auth', 'can:perkiraan_biaya_ranap'])->group(function 
         Route::post('/', [CostEstimateController::class, 'store'])->name('simpan');
         Route::get('/{estimasi}/cetak', [CostEstimateController::class, 'print'])->name('cetak');
     });
+});
+
+/*
+| Domain I item E: akuntansi. Tujuh kodenya ditandai katalog context=billing,
+| tapi dibangun di sini (dikonfirmasi user) karena isinya memetakan uang ke
+| bagan akun — dan chart_of_accounts serta jurnal memang tinggal di finance.
+|
+| Penutupan periode digerbangi terpisah: menutup buku konsekuensinya berbeda
+| dari sekadar melihat laporannya.
+*/
+Route::middleware(['web', 'auth', 'can:pendapatan_per_akun'])->prefix('akuntansi')->name('akuntansi.')->group(function () {
+    Route::get('/', [AccountingController::class, 'index'])->name('index');
+    Route::post('/pemetaan', [AccountingController::class, 'storeMapping'])->name('pemetaan');
+});
+
+Route::middleware(['web', 'auth', 'can:pendapatan_per_akun_closing'])->prefix('akuntansi')->name('akuntansi.')->group(function () {
+    Route::post('/tutup', [AccountingController::class, 'close'])->name('tutup');
+    Route::post('/penutupan/{penutupan}/buka', [AccountingController::class, 'reopen'])->name('buka');
 });
