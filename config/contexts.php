@@ -92,6 +92,8 @@ return [
                 'v_registration_summary' => 'Kunjungan aktif berikut pasien, unit, dokter, dan penjaminnya. '
                     . 'Dipakai clinical, order, pharmacy, billing, dan inpatient (mencari registrasi ranap '
                     . 'yang belum dapat kamar) sebagai konteks kunjungan.',
+                'v_triage_summary' => 'Triase IGD berikut kunjungan sahnya (domain J item C, untuk RL 3.2 Rawat Darurat). '
+                    . 'Menyaring lewat kontrak kunjungan yang sah, jadi kunjungan batal tidak ikut.',
                 'v_registration_cancellation' => 'Kunjungan yang DIBATALKAN, kontrak terpisah khusus laporan '
                     . '(domain J item A, kode pembatalan_periksa_dokter). Sengaja tidak digabung ke '
                     . 'v_registration_summary: kontrak itu membuang kunjungan batal supaya billing dan klinis '
@@ -132,6 +134,12 @@ return [
                     . 'pharmacy.v_prescription_charge dan orders.v_order_charge.',
                 'v_operation_charge' => 'Operasi yang sudah dicatat berikut nilainya. '
                     . 'Dipakai billing untuk menyusun baris tagihan, pola sama dengan v_procedure_charge.',
+                'v_operation_summary' => 'Kegiatan pembedahan berikut jenis anestesi, kamar operasi, dan operatornya '
+                    . '(domain J item C, untuk RL 3.6). Terpisah dari v_operation_charge yang berbentuk penagihan '
+                    . 'dan tidak membawa rincian kegiatan ini.',
+                'v_diagnosis_code' => 'Kamus ICD-10 berikut bab, sifat penularan, dan kelompok DTD-nya '
+                    . '— daftar kodenya, bukan diagnosis pasien. Dipakai reporting untuk menyatakan apakah DTD '
+                    . 'sudah diimpor sebelum RL 4A/4B dikirim.',
                 'v_diagnosis_surveillance_group' => 'Keanggotaan kode diagnosis pada program surveilans '
                     . '(pd3i, afp, tb-sitt, dan program berikutnya) — domain J item B. Diterbitkan TERPISAH dari '
                     . 'v_encounter_diagnosis karena satu penyakit bisa masuk beberapa kelompok; menggabungkannya '
@@ -325,6 +333,9 @@ return [
                     . 'bed yang sungguh ditempati hari itu, diambil dari bed_assignments — hari sebelum pindah '
                     . 'tetap memakai tarif kamar lama. Kalau pindahnya di tengah hari, hari itu ditagihkan ke '
                     . 'kamar yang ditempati sampai malam, karena tarif kamar adalah tarif per malam.',
+                'v_bed_availability' => 'Jumlah tempat tidur per kelas dan statusnya, kamar nonaktif tidak dihitung '
+                    . '(domain J item C, untuk RL 1.3). Yang dilaporkan kapasitas terpasang, dan kamar yang ditutup '
+                    . 'bukan kapasitas yang tersedia.',
                 'v_admission_summary' => 'Daftar admisi berikut ruang, kelas, DPJP, dan status pulangnya '
                     . '(domain J item A). Dipakai reporting untuk sensus ranap, daftar pasien dirawat, dan '
                     . 'asal poli/dokter — pertanyaan yang tidak terjawab oleh dua kontrak biaya di atas.',
