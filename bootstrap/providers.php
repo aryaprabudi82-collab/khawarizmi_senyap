@@ -26,4 +26,5 @@ return [
     App\Modules\Inpatient\Providers\InpatientServiceProvider::class,
     App\Modules\Envlab\Providers\EnvlabServiceProvider::class,
     App\Modules\Kitchen\Providers\KitchenServiceProvider::class,
+    App\Modules\Parking\Providers\ParkingServiceProvider::class,
 ];

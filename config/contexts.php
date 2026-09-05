@@ -319,6 +319,22 @@ return [
             'publishes'   => [],
         ],
 
+        'parking' => [
+            'schema'      => 'parking',
+            'module'      => 'Parking',
+            'description' => 'Parkir kendaraan pengunjung/pegawai: jenis & tarif parkir, stok kartu barcode, dan '
+                . 'sesi parkir masuk-keluar dengan perhitungan durasi & biaya. Domain H Khanza ("Parkir") hanya 3 '
+                . 'kode dan tidak punya menu untuk sisi keluar — tapi tabel `parkir` Khanza sendiri sudah punya '
+                . 'tgl_keluar/jam_keluar/lama_parkir/ttl_biaya, jadi mencatat keluar & menghitung biaya memang '
+                . 'selalu dimaksudkan, bukan tambahan di luar Khanza. Yang didelegasikan Khanza ke vendor luar '
+                . 'adalah rekap keluarnya (duta_parkir_rekap_keluar, domain L context=integration) — SIMRS Mandiri '
+                . 'tidak terikat vendor itu, jadi sisi keluar dilayani sendiri di sini. parkir_barcode dilebur ke '
+                . 'layar master (gerbang parkir_jenis), bukan ke layar transaksi: di Khanza tabelnya cuma pemetaan '
+                . 'kode_barcode->nomer_kartu tanpa timestamp, jadi itu stok kartu fisik yang didaftarkan admin, '
+                . 'bukan pekerjaan petugas gerbang.',
+            'domains'     => ['H'],
+            'publishes'   => [],
+        ],
         'envlab' => [
             'schema'      => 'envlab',
             'module'      => 'Envlab',

@@ -377,5 +377,16 @@
             "validasi_pengujian_sampel_lab_kesehatan_lingkungan",
             "rekap_pelayanan_lab_kesehatan_lingkungan"
         ]
+    },
+    {
+        "code": "petugas-parkir",
+        "name": "Petugas Parkir",
+        "description": "Jenis & tarif parkir, stok kartu barcode, serta pencatatan kendaraan masuk dan keluar berikut perhitungan durasi & biayanya.",
+        "_catatan_scope": "Domain H (\"Parkir\") cuma 3 kode dan semuanya genuine milik context=parking, tidak ada mis-tagging. parkir_jenis menggerbangi layar master; parkir_barcode DILEBUR ke sana (umbrella-gate) karena di skema Khanza tabel parkir_barcode cuma pemetaan kode_barcode->nomer_kartu tanpa timestamp maupun kendaraan — itu pendaftaran stok kartu fisik oleh admin, bukan pekerjaan petugas gerbang, jadi aktor & layarnya sama dengan jenis/tarif. parkir_in menggerbangi layar gerbang, DAN sisi keluarnya: Khanza tidak punya kode menu untuk keluar, tapi tabel `parkir`-nya sendiri sudah menyimpan tgl_keluar/jam_keluar/lama_parkir/ttl_biaya pada baris yang sama — satu sesi, bukan dua entitas. Yang Khanza delegasikan ke luar hanyalah rekap keluar via vendor Duta Parking (duta_parkir_rekap_keluar, domain L, context=integration); SIMRS Mandiri tidak terikat vendor itu, jadi sisi keluar dan perhitungan biaya dilayani sendiri di konteks ini (dikonfirmasi user). Belum digarap: integrasi palang/gate otomatis dan langganan parkir bulanan pegawai — keduanya tidak punya kode di domain H.",
+        "contexts": [],
+        "extra_permissions": [
+            "parkir_jenis",
+            "parkir_in"
+        ]
     }
 ]
