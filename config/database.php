@@ -115,6 +115,17 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => $contextSearchPath(),
+            /*
+            | Wajib disamakan dengan app.timezone. Laravel mengirim datetime
+            | sebagai string polos tanpa offset, jadi kalau session timezone
+            | PostgreSQL beda dari timezone aplikasi, setiap kolom timestamptz
+            | tersimpan bergeser sebesar selisihnya — dan tiap durasi yang
+            | dihitung sebagai now() dikurangi nilai tersimpan ikut salah.
+            | Ketahuan 2026-10 lewat smoke test parkir: server PostgreSQL di
+            | mesin pengembangan default-nya Asia/Bangkok sementara aplikasi
+            | UTC, jadi parkir 140 menit tertagih sebagai 561 menit.
+            */
+            'timezone' => env('DB_TIMEZONE', 'UTC'),
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
