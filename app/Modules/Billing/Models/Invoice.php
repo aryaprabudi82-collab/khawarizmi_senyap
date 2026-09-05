@@ -4,6 +4,7 @@ namespace App\Modules\Billing\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Invoice extends Model
 {
@@ -43,6 +44,12 @@ class Invoice extends Model
     public function manualAdjustments(): HasMany
     {
         return $this->hasMany(ManualAdjustment::class);
+    }
+
+    /** Piutang pasien yang masih berlaku atas tagihan ini, kalau ada. */
+    public function patientReceivable(): HasOne
+    {
+        return $this->hasOne(PatientReceivable::class)->whereNull('cancelled_at');
     }
 
     /** Rawat inap dipisahkan Khanza sebagai kode kasir tersendiri (pembayaran_ranap). */

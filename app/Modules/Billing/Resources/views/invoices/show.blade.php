@@ -174,6 +174,73 @@
       </div>
     @endif
 
+    @can('piutang_pasien')
+      @if ($tagihan->status === 'terbuka' && $tagihan->isPatientPayable() && $tagihan->outstanding() > 0 && ! $tagihan->patientReceivable)
+        <div class="card mb-3">
+          <div class="card-header"><h3 class="card-title">Jadikan sisa tagihan sebagai piutang pasien</h3></div>
+          <div class="card-body">
+            <p class="text-secondary small">
+              Dipakai saat pasien pulang tanpa melunasi. Sisa Rp {{ number_format($tagihan->outstanding(), 0, ',', '.') }}
+              akan dicatat sebagai utang dengan jatuh tempo; uang muka yang dibayar sekarang langsung mengurangi sisanya.
+            </p>
+            <form method="POST" action="{{ route('piutang-pasien.simpan', $tagihan) }}" class="row g-2">
+              @csrf
+              <div class="col-6 col-md-3"><label class="form-label">Jatuh Tempo</label><input type="date" name="due_date" class="form-control" required></div>
+              <div class="col-6 col-md-3"><label class="form-label">Uang Muka (Rp)</label><input type="number" name="down_payment" class="form-control" min="0" step="1" value="0"></div>
+              <div class="col-6 col-md-3">
+                <label class="form-label">Metode Uang Muka</label>
+                <select name="down_payment_method" class="form-select">
+                  <option value="tunai">Tunai</option>
+                  <option value="debit">Debit</option>
+                  <option value="kredit">Kredit</option>
+                  <option value="qris">QRIS</option>
+                  <option value="transfer">Transfer</option>
+                </select>
+              </div>
+              <div class="col-12"><label class="form-label">Catatan</label><input type="text" name="note" class="form-control" maxlength="1000"></div>
+              <div class="col-12"><button class="btn btn-primary">Catat Piutang</button></div>
+            </form>
+          </div>
+        </div>
+      @endif
+
+      @if ($tagihan->patientReceivable)
+        @php($piutang = $tagihan->patientReceivable)
+        <div class="card mb-3">
+          <div class="card-header"><h3 class="card-title">Piutang pasien</h3></div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-6 col-md-3"><div class="text-secondary small">Pokok</div><div>Rp {{ number_format((float) $piutang->principal_amount, 0, ',', '.') }}</div></div>
+              <div class="col-6 col-md-3"><div class="text-secondary small">Sisa</div><div>Rp {{ number_format($piutang->outstanding(), 0, ',', '.') }}</div></div>
+              <div class="col-6 col-md-3">
+                <div class="text-secondary small">Jatuh Tempo</div>
+                <div>
+                  {{ $piutang->due_date->format('d-m-Y') }}
+                  @if ($piutang->isOverdue())
+                    <span class="badge bg-red-lt">terlambat</span>
+                  @endif
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="text-secondary small">Status</div>
+                <div>
+                  @if ($piutang->isCancelled())
+                    <span class="badge bg-secondary-lt">dibatalkan</span>
+                  @elseif ($piutang->isSettled())
+                    <span class="badge bg-green-lt">lunas</span>
+                  @else
+                    <span class="badge bg-yellow-lt">belum lunas</span>
+                  @endif
+                </div>
+              </div>
+            </div>
+            @if ($piutang->note)
+              <div class="text-secondary small mt-2">{{ $piutang->note }}</div>
+            @endif
+          </div>
+        </div>
+      @endif
+    @endcan
     @if ($tagihan->manualAdjustments->isNotEmpty())
       <div class="card mb-3">
         <div class="card-header"><h3 class="card-title">Riwayat penyesuaian</h3></div>

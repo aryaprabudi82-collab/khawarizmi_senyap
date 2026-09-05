@@ -5,6 +5,7 @@ namespace App\Modules\Billing\Services;
 use App\Modules\Billing\Models\ChargeLine;
 use App\Modules\Billing\Models\Invoice;
 use App\Modules\Billing\Models\ManualAdjustment;
+use App\Modules\Billing\Models\PatientReceivable;
 use App\Modules\Billing\Models\Payment;
 use App\Modules\Platform\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -301,6 +302,91 @@ class InvoiceService
         }
     }
 
+    /**
+     * piutang_pasien — menjadikan sisa tagihan sebagai utang pasien
+     * dengan jatuh tempo, mis. pasien pulang tanpa melunasi.
+     *
+     * Uang muka dicatat lewat pay() biasa, bukan kolom tersendiri, supaya
+     * uang muka dan cicilan berikutnya menempuh jalur yang persis sama —
+     * dan sisa utangnya selalu sisa tagihan, bukan angka kedua yang bisa
+     * berselisih.
+     *
+     * @throws BillingException
+     */
+    public function createReceivable(
+        Invoice $invoice,
+        \DateTimeInterface|string $dueDate,
+        User $actor,
+        float $downPayment = 0,
+        string $downPaymentMethod = 'tunai',
+        ?string $note = null,
+    ): PatientReceivable {
+        if ($invoice->isVoid()) {
+            throw new BillingException('Tagihan ini sudah dibatalkan.');
+        }
+
+        if (! $invoice->isPatientPayable()) {
+            throw new BillingException(
+                'Tagihan ini ditanggung penjamin (' . $invoice->payer_name . ') — piutangnya ditagihkan lewat klaim, bukan dijadikan utang pasien.'
+            );
+        }
+
+        if (PatientReceivable::query()->berlaku()->where('invoice_id', $invoice->id)->exists()) {
+            throw new BillingException('Tagihan ini sudah punya piutang yang masih berlaku.');
+        }
+
+        $jatuhTempo = \Illuminate\Support\Carbon::parse($dueDate)->startOfDay();
+
+        if ($jatuhTempo->isPast() && ! $jatuhTempo->isToday()) {
+            throw new BillingException('Tanggal jatuh tempo tidak boleh sudah lewat.');
+        }
+
+        return DB::transaction(function () use ($invoice, $jatuhTempo, $actor, $downPayment, $downPaymentMethod, $note): PatientReceivable {
+            if ($downPayment > 0) {
+                $this->pay($invoice, $downPayment, $downPaymentMethod, $actor, 'Uang muka piutang pasien');
+                $invoice->refresh();
+            }
+
+            $sisa = $invoice->outstanding();
+
+            if ($sisa <= 0) {
+                throw new BillingException('Tagihan ini sudah lunas, tidak ada sisa yang bisa dijadikan piutang.');
+            }
+
+            return PatientReceivable::query()->create([
+                'invoice_id' => $invoice->id,
+                'registration_id' => $invoice->registration_id,
+                'patient_id' => $invoice->patient_id,
+                'patient_name' => $invoice->patient_name,
+                'care_type' => $invoice->care_type,
+                'principal_amount' => $sisa,
+                'due_date' => $jatuhTempo->toDateString(),
+                'note' => $note,
+                'created_by' => $actor->id,
+            ]);
+        });
+    }
+
+    /**
+     * Membatalkan piutang yang salah dibuat. Pembayaran yang sudah masuk
+     * TIDAK ikut dibatalkan — uang yang sudah diterima tetap uang yang
+     * sudah diterima; membatalkannya adalah tindakan tersendiri lewat
+     * voidPayment() yang punya jejaknya sendiri.
+     */
+    public function cancelReceivable(PatientReceivable $piutang, string $reason, User $actor): PatientReceivable
+    {
+        if ($piutang->isCancelled()) {
+            throw new BillingException('Piutang ini sudah dibatalkan.');
+        }
+
+        $piutang->update([
+            'cancelled_at' => now(),
+            'cancelled_by' => $actor->id,
+            'cancel_reason' => $reason,
+        ]);
+
+        return $piutang->refresh();
+    }
     /**
      * Tambahan biaya (tambahan_biaya) atau potongan biaya (potongan_biaya).
      *

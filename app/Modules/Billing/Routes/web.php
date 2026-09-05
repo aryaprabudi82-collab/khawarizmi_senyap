@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Billing\Http\Controllers\InvoiceController;
+use App\Modules\Billing\Http\Controllers\ReceivableController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,5 +33,15 @@ Route::middleware(['web', 'auth'])->group(function () {
         // dibedakan kolom kind pada billing.manual_adjustments.
         Route::post('/{tagihan}/penyesuaian', [InvoiceController::class, 'addAdjustment'])->name('penyesuaian.simpan');
         Route::post('/penyesuaian/{penyesuaian}/batal', [InvoiceController::class, 'voidAdjustment'])->name('penyesuaian.batal');
+    });
+
+    // piutang_pasien — piutang PASIEN (pulang belum lunas, dicicil),
+    // beda dari piutang PENJAMIN di konteks finance (bayar_piutang) yang
+    // ditagih lewat klaim. piutang_ralan/piutang_ranap tidak jadi gerbang
+    // tersendiri, dibedakan care_type seperti pembayaran_ralan/ranap.
+    Route::middleware('can:piutang_pasien')->prefix('piutang-pasien')->name('piutang-pasien.')->group(function () {
+        Route::get('/', [ReceivableController::class, 'index'])->name('index');
+        Route::post('/tagihan/{tagihan}', [ReceivableController::class, 'store'])->name('simpan');
+        Route::post('/{piutang}/batal', [ReceivableController::class, 'cancel'])->name('batal');
     });
 });
