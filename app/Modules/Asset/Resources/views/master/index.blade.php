@@ -9,6 +9,9 @@
   @can('pengajuan_asetinventaris')
     <a href="{{ route('asset.pengajuan.index') }}" class="btn btn-outline-primary">Pengajuan</a>
   @endcan
+  @can('inventaris_sirkulasi')
+    <a href="{{ route('asset.sirkulasi.index') }}" class="btn btn-outline-primary">Sirkulasi</a>
+  @endcan
 @endsection
 
 @section('content')

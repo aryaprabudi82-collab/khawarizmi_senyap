@@ -4,6 +4,7 @@ use App\Modules\Asset\Http\Controllers\AssetDonationController;
 use App\Modules\Asset\Http\Controllers\AssetGoodsReceiptController;
 use App\Modules\Asset\Http\Controllers\AssetPurchaseOrderController;
 use App\Modules\Asset\Http\Controllers\AssetRequisitionController;
+use App\Modules\Asset\Http\Controllers\AssetTransferController;
 use App\Modules\Asset\Http\Controllers\CssdController;
 use App\Modules\Asset\Http\Controllers\EnvironmentalHealthController;
 use App\Modules\Asset\Http\Controllers\MaintenanceController;
@@ -82,6 +83,13 @@ Route::middleware(['web', 'auth'])
             Route::get('/', [AssetDonationController::class, 'index'])->name('index');
             Route::post('/donor', [AssetDonationController::class, 'storeDonor'])->name('donor.simpan');
             Route::post('/', [AssetDonationController::class, 'store'])->name('simpan');
+        });
+
+        // Domain G item C — inventaris_sirkulasi, riwayat perpindahan
+        // satu aset antar lokasi. Lihat catatan migrasi 2026_10_10_000001.
+        Route::middleware('can:inventaris_sirkulasi')->prefix('sirkulasi')->name('sirkulasi.')->group(function () {
+            Route::get('/', [AssetTransferController::class, 'index'])->name('index');
+            Route::post('/', [AssetTransferController::class, 'store'])->name('simpan');
         });
 
     });

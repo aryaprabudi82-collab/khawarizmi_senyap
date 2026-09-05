@@ -4,6 +4,7 @@ namespace App\Modules\Asset\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Asset extends Model
 {
@@ -46,5 +47,10 @@ class Asset extends Model
     public function manufacturer(): BelongsTo
     {
         return $this->belongsTo(AssetManufacturer::class, 'manufacturer_id');
+    }
+
+    public function transfers(): HasMany
+    {
+        return $this->hasMany(AssetTransfer::class);
     }
 }
