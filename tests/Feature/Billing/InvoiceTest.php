@@ -355,6 +355,54 @@ class InvoiceTest extends TestCase
         $this->assertSame('50000.00', $tagihan->refresh()->total_amount);
     }
 
+    /**
+     * Kunjungan yang tagihannya pernah dibatalkan harus tetap bisa
+     * ditagih ulang.
+     *
+     * Sebelum diperbaiki, ini jalan buntu: openInvoice() mengembalikan
+     * tagihan void itu terus-menerus, dan penggantinya ditolak indeks unik
+     * tanpa syarat pada registration_id — kunjungan pasiennya jadi mustahil
+     * ditagih hanya karena satu kesalahan input.
+     */
+    #[Test]
+    public function kunjungan_bisa_ditagih_ulang_setelah_tagihannya_dibatalkan(): void
+    {
+        $registrasi = $this->daftarkan('Umum');
+
+        $pertama = $this->invoices->openInvoice($registrasi->id);
+        $this->invoices->voidInvoice($pertama, 'Salah penjamin saat membuka tagihan', $this->kasir);
+
+        $kedua = $this->invoices->openInvoice($registrasi->id);
+
+        $this->assertNotSame($pertama->id, $kedua->id, 'Harus tagihan baru, bukan yang void dikembalikan');
+        $this->assertSame(Invoice::STATUS_TERBUKA, $kedua->status);
+        $this->assertSame($registrasi->id, $kedua->registration_id);
+
+        // Yang void tetap tersimpan sebagai jejak, tidak dihapus.
+        $this->assertSame(Invoice::STATUS_VOID, $pertama->refresh()->status);
+        $this->assertSame(2, Invoice::query()->where('registration_id', $registrasi->id)->count());
+
+        // Yang paling menentukan: tagihan pengganti harus benar-benar BISA
+        // ditagihkan. Sekadar terbentuk tapi kosong berarti pasiennya tetap
+        // tidak bisa ditagih — jalan buntu yang sama dengan bentuk berbeda.
+        $this->assertGreaterThan(0, $kedua->chargeLines()->count(), 'Biaya harus ikut pindah ke tagihan baru');
+        $this->assertGreaterThan(0, (float) $kedua->total_amount);
+        $this->assertSame(0, $pertama->chargeLines()->count(), 'Baris turunan dilepas dari tagihan yang dibatalkan');
+    }
+
+    #[Test]
+    public function satu_kunjungan_tetap_hanya_boleh_punya_satu_tagihan_aktif(): void
+    {
+        $registrasi = $this->daftarkan('Umum');
+        $pertama = $this->invoices->openInvoice($registrasi->id);
+
+        // Memanggil ulang tanpa membatalkan harus mengembalikan yang sama,
+        // bukan membuat tagihan kedua.
+        $lagi = $this->invoices->openInvoice($registrasi->id);
+
+        $this->assertSame($pertama->id, $lagi->id);
+        $this->assertSame(1, Invoice::query()->where('registration_id', $registrasi->id)->count());
+    }
     // ------------------------------------------------------------------ bantu
 
     private function daftarkan(string $kodePenjaminSingkat): Registration

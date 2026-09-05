@@ -47,7 +47,14 @@ class InvoiceService
         $kunjungan = $this->registrations->find($registrationId)
             ?? throw new BillingException('Kunjungan tidak ditemukan atau sudah dibatalkan.');
 
-        $invoice = Invoice::query()->where('registration_id', $registrationId)->first();
+        // Tagihan yang sudah dibatalkan sengaja DILEWATI: kunjungan yang
+        // tagihannya pernah salah lalu di-void harus tetap bisa ditagih
+        // ulang. Indeks uniknya pun parsial (lihat migrasi
+        // 2026_10_19_000002), jadi penggantinya sah dibuat.
+        $invoice = Invoice::query()
+            ->where('registration_id', $registrationId)
+            ->where('status', '!=', Invoice::STATUS_VOID)
+            ->first();
 
         if ($invoice === null) {
             $payer = $this->payers->find($kunjungan->payer_id)
@@ -227,13 +234,33 @@ class InvoiceService
             );
         }
 
-        $invoice->update([
-            'status' => Invoice::STATUS_VOID,
-            'void_reason' => $reason,
-            'voided_at' => now(),
-        ]);
+        return DB::transaction(function () use ($invoice, $reason): Invoice {
+            $invoice->update([
+                'status' => Invoice::STATUS_VOID,
+                'void_reason' => $reason,
+                'voided_at' => now(),
+            ]);
 
-        return $invoice->refresh();
+            /*
+             * Baris biayanya dilepas, bukan ikut disimpan.
+             *
+             * charge_lines adalah data TURUNAN: ia disintesis ulang dari
+             * konteks sumbernya (registrasi, resep, order penunjang,
+             * tindakan, operasi, kamar) setiap kali syncCharges() jalan.
+             * Kalau baris lama dibiarkan menempel pada tagihan yang sudah
+             * void, kunci idempotensinya (charged_at, source_type,
+             * source_id) tetap terpakai — sehingga tagihan pengganti untuk
+             * kunjungan yang sama akan lahir KOSONG dan pasiennya tetap
+             * tidak bisa ditagih. Itu membuat pembatalan jadi jalan buntu
+             * yang berbeda, bukan perbaikan.
+             *
+             * Yang menjadi jejak pembatalan adalah kepala tagihannya:
+             * nomor, total yang sempat tercatat, alasan, waktu, dan siapa.
+             */
+            DB::table('billing.charge_lines')->where('invoice_id', $invoice->id)->delete();
+
+            return $invoice->refresh();
+        });
     }
 
     private function syncRegistrationFee(Invoice $invoice): void
