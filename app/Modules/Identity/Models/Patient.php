@@ -14,7 +14,8 @@ class Patient extends Model
 
     protected $fillable = [
         'medical_record_number', 'nik', 'name', 'sex', 'birth_place', 'birth_date',
-        'mother_name', 'blood_type', 'religion', 'marital_status', 'education', 'occupation',
+        'mother_name', 'blood_type', 'religion', 'ethnicity', 'language', 'marital_status', 'education', 'occupation', 'employer',
+        'inpatient_classification',
         'address', 'rt_rw', 'village_code', 'village_name', 'district_name',
         'city_name', 'province_name', 'postal_code', 'phone', 'email',
         'guardian_name', 'guardian_relation', 'guardian_phone', 'guardian_address',

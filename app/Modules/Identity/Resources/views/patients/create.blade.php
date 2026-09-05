@@ -106,6 +106,35 @@
               <input type="text" id="occupation" name="occupation" class="form-control"
                      value="{{ old('occupation') }}">
             </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="employer">Instansi/Perusahaan</label>
+              <input type="text" id="employer" name="employer" class="form-control"
+                     value="{{ old('employer') }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="ethnicity">Suku/Bangsa</label>
+              <input type="text" id="ethnicity" name="ethnicity" class="form-control"
+                     value="{{ old('ethnicity') }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="language">Bahasa</label>
+              <input type="text" id="language" name="language" class="form-control"
+                     value="{{ old('language') }}" placeholder="mis. Indonesia">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="inpatient_classification">Klasifikasi Pasien Ranap</label>
+              <select id="inpatient_classification" name="inpatient_classification" class="form-select">
+                <option value="">—</option>
+                @foreach (['Umum','Prioritas','Isolasi','VIP'] as $klas)
+                  <option value="{{ $klas }}" @selected(old('inpatient_classification') === $klas)>{{ $klas }}</option>
+                @endforeach
+              </select>
+              <div class="form-hint">Dipakai saat pasien dirawat inap, boleh dikosongkan untuk rawat jalan.</div>
+            </div>
           </div>
         </div>
       </div>
