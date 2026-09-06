@@ -3,6 +3,7 @@
 use App\Modules\Finance\Http\Controllers\AccountingController;
 use App\Modules\Finance\Http\Controllers\CashController;
 use App\Modules\Finance\Http\Controllers\PayableController;
+use App\Modules\Finance\Http\Controllers\OtherReceivableController;
 use App\Modules\Finance\Http\Controllers\CostEstimateController;
 use App\Modules\Finance\Http\Controllers\DepositController;
 use App\Modules\Finance\Http\Controllers\ReceivableController;
@@ -95,4 +96,25 @@ Route::middleware(['web', 'auth', 'can:validasi_tagihan_hutang_obat'])->prefix('
     Route::post('/{hutang}/validasi', [PayableController::class, 'validateInvoice'])->name('validasi');
     Route::post('/{hutang}/tolak', [PayableController::class, 'reject'])->name('tolak');
     Route::post('/{hutang}/bayar', [PayableController::class, 'pay'])->name('bayar');
+});
+
+/*
+| Domain K item C: piutang non-pasien dan beban hutang lain. ~15 kode
+| digerbangi piutang_jasa_perusahaan.
+|
+| Satu layar memuat dua arah yang berlawanan, tapi mekanismenya terpisah:
+| piutang di finance.other_receivables, beban hutang lain di buku hutang
+| yang sama dengan hutang vendor (source_context 'lain'). Khanza menaruh
+| keduanya di satu menu; meleburnya jadi satu tabel akan membuat setiap
+| laporan harus menyaring arah lebih dulu, dan cepat atau lambat ada yang
+| lupa lalu menjumlahkan hutang bersama piutang.
+*/
+Route::middleware(['web', 'auth', 'can:piutang_jasa_perusahaan'])->prefix('piutang-lain')->name('piutang-lain.')->group(function () {
+    Route::get('/', [OtherReceivableController::class, 'index'])->name('index');
+    Route::post('/', [OtherReceivableController::class, 'store'])->name('simpan');
+    Route::post('/kategori', [OtherReceivableController::class, 'storeCategory'])->name('kategori');
+    Route::post('/{piutang}/bayar', [OtherReceivableController::class, 'collect'])->name('bayar');
+    Route::post('/{piutang}/hapuskan', [OtherReceivableController::class, 'writeOff'])->name('hapuskan');
+    Route::post('/hutang', [OtherReceivableController::class, 'storeOtherDebt'])->name('simpan-hutang');
+    Route::post('/hutang/{hutang}/bayar', [OtherReceivableController::class, 'payOtherDebt'])->name('bayar-hutang');
 });

@@ -202,7 +202,8 @@
             "pendapatan_per_akun_closing",
             "pengeluaran",
             "hutang_obat",
-            "validasi_tagihan_hutang_obat"
+            "validasi_tagihan_hutang_obat",
+            "piutang_jasa_perusahaan"
         ]
     },
     {

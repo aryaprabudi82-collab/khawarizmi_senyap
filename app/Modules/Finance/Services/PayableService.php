@@ -69,8 +69,16 @@ class PayableService
             );
         }
 
+        // Beban hutang lain tidak melewati alur titip-lalu-validasi:
+        // tidak ada vendor yang menitipkan apa pun, yang mencatat sudah
+        // keuangan sendiri. Memaksanya menunggu validasi berarti meminta
+        // orang memvalidasi catatannya sendiri — ritual yang tidak
+        // memeriksa apa pun tapi membuat hutang tidak terhitung sampai
+        // seseorang menekan tombol.
+        $langsungSah = $data['source_context'] === 'lain';
+
         return Payable::query()->create([
-            'payable_number' => $this->numbers->allocate('HTG'),
+            'payable_number' => $this->numbers->allocate($langsungSah ? 'HTL' : 'HTG'),
             'source_context' => $data['source_context'],
             'goods_receipt_id' => $data['goods_receipt_id'] ?? null,
             'receipt_number' => $data['receipt_number'] ?? null,
@@ -80,7 +88,9 @@ class PayableService
             'invoice_date' => $data['invoice_date'],
             'due_date' => $data['due_date'],
             'amount' => $nilai,
-            'status' => Payable::DITITIPKAN,
+            'status' => $langsungSah ? Payable::TERVALIDASI : Payable::DITITIPKAN,
+            'validated_at' => $langsungSah ? now() : null,
+            'validated_by' => $langsungSah ? $actorId : null,
             'account_id' => $data['account_id'] ?? null,
             'recorded_by' => $actorId,
         ]);

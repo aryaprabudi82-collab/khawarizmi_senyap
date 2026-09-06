@@ -29,6 +29,11 @@ class Payable extends Model
         'non-medis' => 'Barang Non-Medis',
         'dapur' => 'Barang Dapur',
         'aset' => 'Aset & Inventaris',
+        // Beban hutang lain (domain K item C): pinjaman/kewajiban di luar
+        // pengadaan barang. Arahnya sama — uang yang akan keluar — jadi
+        // ikut buku hutang yang sama alih-alih menyalin seluruh hitungan
+        // umur dan pelunasannya ke tabel kedua.
+        'lain' => 'Beban Hutang Lain',
     ];
 
     protected function casts(): array
