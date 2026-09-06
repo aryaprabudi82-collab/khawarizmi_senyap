@@ -207,6 +207,12 @@ return [
                     . '(domain J item A). Dipakai reporting untuk menghitung kunjungan permintaan lab/radiologi '
                     . '— termasuk yang belum selesai maupun dibatalkan, yang justru tidak muncul di '
                     . 'v_order_charge dan akan membuat angkanya terlalu kecil tanpa terlihat salah.',
+                'v_order_result' => 'Satu baris per BUTIR pemeriksaan berikut hasilnya, rentang rujukannya, '
+                    . 'jenis spesimen, dan modalitasnya (domain L item H). Dipakai integration menyusun '
+                    . 'ServiceRequest, Specimen, Observation, dan DiagnosticReport SATUSEHAT — keempatnya '
+                    . 'berbicara tentang satu butir pemeriksaan, bukan tentang lembar permintaannya. '
+                    . 'specimen_type kosong berarti pemeriksaan itu memang tidak mengambil bahan dari '
+                    . 'pasien (radiologi), bukan berarti datanya belum diisi.',
             ],
         ],
 

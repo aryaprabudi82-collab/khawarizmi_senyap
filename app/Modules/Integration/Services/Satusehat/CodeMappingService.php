@@ -37,6 +37,10 @@ class CodeMappingService
         'vaksin' => 'kfa',
         'lab' => 'loinc',
         'radiologi' => 'loinc',
+        // Patologi anatomi tidak dititipkan ke 'lab': jenis pemeriksaannya
+        // sendiri di LOINC, hasilnya naratif, dan lembar hasilnya pun jenis
+        // lain (Pathology study, bukan Laboratory report).
+        'pa' => 'loinc',
         'tindakan-ralan' => 'snomed',
         'tindakan-ranap' => 'snomed',
         'tindakan-radiologi' => 'snomed',
