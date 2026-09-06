@@ -203,7 +203,9 @@
             "pengeluaran",
             "hutang_obat",
             "validasi_tagihan_hutang_obat",
-            "piutang_jasa_perusahaan"
+            "piutang_jasa_perusahaan",
+            "penagihan_piutang_pasien",
+            "validasi_penagihan_piutang"
         ]
     },
     {

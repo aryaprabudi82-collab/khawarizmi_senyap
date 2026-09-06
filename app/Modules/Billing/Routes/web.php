@@ -4,6 +4,7 @@ use App\Modules\Billing\Http\Controllers\BillingRecapController;
 use App\Modules\Billing\Http\Controllers\InvoiceController;
 use App\Modules\Billing\Http\Controllers\MedicalFeeController;
 use App\Modules\Billing\Http\Controllers\ReceivableController;
+use App\Modules\Billing\Http\Controllers\ReceivableCollectionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -60,3 +61,27 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::post('/{piutang}/batal', [ReceivableController::class, 'cancel'])->name('batal');
     });
 });
+
+/*
+| Domain K item D: penagihan & laporan piutang pasien. ~10 kode.
+|
+| CELAH YANG DITUTUP: piutang pasien bisa dibuka sejak domain I item B
+| tapi riwayat penagihannya tidak pernah tercatat. Pembayarannya TIDAK
+| dibuatkan mekanisme baru — sisa piutang diturunkan dari sisa tagihannya,
+| dan pembayaran atas tagihan sudah punya tempatnya di billing.payments.
+|
+| Verifikasi catatan penagihan digerbangi TERPISAH lewat
+| validasi_penagihan_piutang: catatan "sudah ditagih, pasien menolak"
+| adalah dasar penghapusan piutang, jadi tidak boleh diverifikasi oleh
+| penagihnya sendiri — ditegakkan di service, bukan hanya di gerbang.
+*/
+Route::middleware(['web', 'auth', 'can:penagihan_piutang_pasien'])
+    ->prefix('penagihan-piutang')->name('penagihan-piutang.')->group(function () {
+        Route::get('/', [ReceivableCollectionController::class, 'index'])->name('index');
+        Route::post('/{piutang}', [ReceivableCollectionController::class, 'store'])->name('simpan');
+    });
+
+Route::middleware(['web', 'auth', 'can:validasi_penagihan_piutang'])
+    ->prefix('penagihan-piutang')->name('penagihan-piutang.')->group(function () {
+        Route::post('/{penagihan}/verifikasi', [ReceivableCollectionController::class, 'validateContact'])->name('verifikasi');
+    });
