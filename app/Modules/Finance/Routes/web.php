@@ -2,6 +2,7 @@
 
 use App\Modules\Finance\Http\Controllers\AccountingController;
 use App\Modules\Finance\Http\Controllers\CashController;
+use App\Modules\Finance\Http\Controllers\PayableController;
 use App\Modules\Finance\Http\Controllers\CostEstimateController;
 use App\Modules\Finance\Http\Controllers\DepositController;
 use App\Modules\Finance\Http\Controllers\ReceivableController;
@@ -65,4 +66,33 @@ Route::middleware(['web', 'auth', 'can:pengeluaran'])->prefix('kas')->name('kas.
     Route::post('/', [CashController::class, 'store'])->name('simpan');
     Route::post('/kategori', [CashController::class, 'storeCategory'])->name('kategori');
     Route::post('/{transaksi}/batal', [CashController::class, 'cancel'])->name('batal');
+});
+
+/*
+| Domain K item B: hutang vendor. ~20 kode Khanza (titip_faktur_*,
+| validasi_tagihan_*, hutang_*, ringkasan_hutang_vendor_*, bayar_pesan_*,
+| tagihan_hutang_obat, akun_bayar_hutang) dilayani satu buku hutang untuk
+| empat rantai pengadaan sekaligus.
+|
+| Menitipkan faktur digerbangi hutang_obat; MEMVALIDASI dan MEMBAYAR
+| digerbangi terpisah lewat validasi_tagihan_hutang_obat — yang menitipkan
+| faktur dan yang mengakui hutangnya sebaiknya bukan orang yang sama,
+| prinsip pemisahan tugas yang sama seperti verifikasi penerimaan barang.
+|
+| bayar_pemesanan_obat SENGAJA TIDAK dipakai di sini meski namanya cocok:
+| kode itu sudah dipegang apoteker untuk mencatat pembayaran penerimaan
+| obat di konteks pharmacy, dan memakainya ulang akan diam-diam memberi
+| apoteker kewenangan atas seluruh buku hutang rumah sakit lintas empat
+| rantai pengadaan — perluasan wewenang yang tidak akan terlihat di mana
+| pun kecuali di sini.
+*/
+Route::middleware(['web', 'auth', 'can:hutang_obat'])->prefix('hutang')->name('hutang.')->group(function () {
+    Route::get('/', [PayableController::class, 'index'])->name('index');
+    Route::post('/', [PayableController::class, 'store'])->name('simpan');
+});
+
+Route::middleware(['web', 'auth', 'can:validasi_tagihan_hutang_obat'])->prefix('hutang')->name('hutang.')->group(function () {
+    Route::post('/{hutang}/validasi', [PayableController::class, 'validateInvoice'])->name('validasi');
+    Route::post('/{hutang}/tolak', [PayableController::class, 'reject'])->name('tolak');
+    Route::post('/{hutang}/bayar', [PayableController::class, 'pay'])->name('bayar');
 });

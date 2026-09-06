@@ -200,7 +200,9 @@
             "ringkasan_tindakan",
             "pendapatan_per_akun",
             "pendapatan_per_akun_closing",
-            "pengeluaran"
+            "pengeluaran",
+            "hutang_obat",
+            "validasi_tagihan_hutang_obat"
         ]
     },
     {

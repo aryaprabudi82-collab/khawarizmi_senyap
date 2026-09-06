@@ -159,6 +159,10 @@ return [
                 . 'apoteker, penyerahan, dan stok dengan batch serta kedaluwarsa.',
             'domains'     => ['D', 'A'],
             'publishes'   => [
+'v_goods_receipt' => 'Penerimaan barang berikut nilai terimanya (quantity diterima x harga baris PO) '
+                    . '— domain K item B, dipakai finance menyusun hutang vendor lintas empat rantai pengadaan. '
+                    . 'Nomor faktur dan status bayar sengaja TIDAK ikut: hutang dan pelunasannya milik finance, '
+                    . 'dan memaparkannya dari sini melahirkan dua sumber kebenaran yang bisa berbeda.',
                 'v_prescription_duration' => 'Rantai waktu resep (diresepkan/diserahkan/ditelaah/diserahkan-ke-pasien), SATU BARIS PER RESEP '
                     . '— domain J item D, untuk lama_pelayanan_apotek. Sengaja terpisah dari v_prescription_charge yang '
                     . 'berbentuk penagihan per baris obat dan akan mencondongkan rata-rata ke resep yang isinya paling banyak.',
@@ -279,7 +283,12 @@ return [
                 . 'arsitekturnya diturunkan langsung dari pharmacy.StockLedger (UPDATE bersyarat, ledger append-only), '
                 . 'tanpa kerumitan batch/kedaluwarsa yang tidak relevan untuk barang non-medis.',
             'domains'     => ['E'],
-            'publishes'   => [],
+            'publishes'   => [
+'v_goods_receipt' => 'Penerimaan barang berikut nilai terimanya (quantity diterima x harga baris PO) '
+                    . '— domain K item B, dipakai finance menyusun hutang vendor lintas empat rantai pengadaan. '
+                    . 'Nomor faktur dan status bayar sengaja TIDAK ikut: hutang dan pelunasannya milik finance, '
+                    . 'dan memaparkannya dari sini melahirkan dua sumber kebenaran yang bisa berbeda.',
+            ],
         ],
 
         'blood' => [
@@ -315,6 +324,10 @@ return [
                 . 'pemeliharaan yang digarap wave ini; CSSD dan kesling masing-masing perlu desain tersendiri.',
             'domains'     => ['G'],
             'publishes'   => [
+'v_goods_receipt' => 'Penerimaan barang berikut nilai terimanya (quantity diterima x harga baris PO) '
+                    . '— domain K item B, dipakai finance menyusun hutang vendor lintas empat rantai pengadaan. '
+                    . 'Nomor faktur dan status bayar sengaja TIDAK ikut: hutang dan pelunasannya milik finance, '
+                    . 'dan memaparkannya dari sini melahirkan dua sumber kebenaran yang bisa berbeda.',
                 'v_cssd_circulation' => 'Sirkulasi set CSSD berikut keempat stempel waktunya (diterima/diproses/steril/'
                     . 'didistribusikan) — domain J item D, untuk lama_pelayanan_cssd. Rantainya sudah lengkap sejak '
                     . 'domain G, jadi laporan ini tidak butuh pencatatan baru, cuma kontraknya.',
@@ -371,7 +384,12 @@ return [
                 . 'nyaris identik dengan domain E. Wave 1 non-perishable-aware — bahan basah dengan kedaluwarsa '
                 . 'harian belum digarap.',
             'domains'     => ['F'],
-            'publishes'   => [],
+            'publishes'   => [
+'v_goods_receipt' => 'Penerimaan barang berikut nilai terimanya (quantity diterima x harga baris PO) '
+                    . '— domain K item B, dipakai finance menyusun hutang vendor lintas empat rantai pengadaan. '
+                    . 'Nomor faktur dan status bayar sengaja TIDAK ikut: hutang dan pelunasannya milik finance, '
+                    . 'dan memaparkannya dari sini melahirkan dua sumber kebenaran yang bisa berbeda.',
+            ],
         ],
 
         'parking' => [
