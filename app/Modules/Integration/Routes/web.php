@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Integration\Http\Controllers\BpjsController;
+use App\Modules\Integration\Http\Controllers\IntegrationSettingController;
 use App\Modules\Integration\Http\Controllers\SatusehatController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,6 +16,23 @@ Route::middleware(['web', 'auth'])
             Route::post('/sep/{registrasi}', [BpjsController::class, 'storeSep'])->name('sep.simpan')->middleware('can:bpjs_sep');
             Route::post('/sep/{sep}/batal', [BpjsController::class, 'cancelSep'])->name('sep.batal')->middleware('can:bpjs_sep');
             Route::post('/pemetaan-poli', [BpjsController::class, 'mapPoli'])->name('pemetaan-poli')->middleware('can:mapping_poli_bpjs');
+        });
+
+        /*
+        | Pengaturan kredensial integrasi — "rumah" sistem luar.
+        |
+        | Digerbangi TERSENDIRI lewat aplikasi (Set Aplikasi, domain U),
+        | yang sudah dipegang peran admin-sistem — bukan ikut
+        | gerbang pemakaian seperti bpjs_cek_kartu: yang memakai
+        | integrasi setiap hari (petugas loket, rekam medis) tidak
+        | seharusnya bisa mengubah kredensial rumah sakit, dan yang
+        | memasang kredensial belum tentu perlu mengakses data pasien.
+        */
+        Route::middleware('can:aplikasi')->prefix('pengaturan')->name('pengaturan.')->group(function () {
+            Route::get('/', [IntegrationSettingController::class, 'index'])->name('index');
+            Route::post('/{system}', [IntegrationSettingController::class, 'update'])->name('simpan');
+            Route::post('/{system}/uji', [IntegrationSettingController::class, 'check'])->name('uji');
+            Route::post('/{system}/{field}/hapus', [IntegrationSettingController::class, 'forget'])->name('hapus');
         });
 
         Route::prefix('satusehat')->name('satusehat.')->group(function () {

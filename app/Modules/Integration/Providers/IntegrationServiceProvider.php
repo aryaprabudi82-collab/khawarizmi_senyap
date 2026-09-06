@@ -17,6 +17,7 @@ use App\Modules\Integration\Services\Bpjs\FakeClaimClient;
 use App\Modules\Integration\Services\Bpjs\FakeQueueClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsReferralClient;
+use App\Modules\Integration\Services\CredentialStore;
 use App\Modules\Integration\Services\Satusehat\FakeSatusehatClient;
 use App\Modules\Integration\Services\Satusehat\SatusehatClient;
 use App\Modules\Integration\Services\Satusehat\SatusehatFhirClient;
@@ -32,27 +33,37 @@ class IntegrationServiceProvider extends ModuleServiceProvider
     public function register(): void
     {
         /*
-         * Tidak ada sandbox BPJS/SATUSEHAT yang bisa dipanggil dari lingkungan
-         * pengembangan ini — kredensialnya (consumer id/secret VClaim, client
-         * id/secret SATUSEHAT) hanya diterbitkan untuk faskes yang sudah
-         * terdaftar. Kalau kredensial belum diisi di .env, adapter otomatis
-         * jatuh ke implementasi palsu yang deterministik, supaya alur
-         * aplikasi (form, validasi, ledger idempoten) tetap bisa dikerjakan
-         * dan diuji tanpa tergantung API pihak luar tersedia.
+         * PEMILIHAN ADAPTER ASLI ATAU PALSU DIPUTUSKAN DI SINI, dan sejak
+         * "rumah integrasi" dipasang, dasarnya adalah CredentialStore —
+         * bukan lagi config/.env langsung.
          *
-         * Begitu kredensial nyata terisi, tidak ada kode lain yang perlu
-         * berubah — binding ini yang menentukan implementasi mana yang aktif.
+         * Bedanya penting: CredentialStore membaca basis data lebih dulu,
+         * jadi kredensial yang diisi lewat layar langsung berlaku tanpa
+         * penerapan ulang aplikasi dan tanpa akses shell ke server. Nilai
+         * di .env tetap dibaca sebagai cadangan, supaya pemasangan yang
+         * terlanjur memakainya tidak mendadak berhenti bekerja.
+         *
+         * Sistem dianggap siap hanya kalau SELURUH kolom wajibnya terisi.
+         * Sistem yang setengah terisi tetap memakai adapter palsu: ia akan
+         * gagal pada panggilan pertama dengan pesan yang tidak masuk akal,
+         * dan itu jauh lebih membingungkan daripada sistem yang jelas
+         * belum disetel.
+         *
+         * Adapter palsu deterministik memastikan seluruh alur aplikasi —
+         * formulir, validasi, ledger idempoten, penanganan galat — tetap
+         * bisa dikerjakan dan diuji tanpa tergantung API pihak luar.
          */
+        $this->app->singleton(CredentialStore::class);
         $this->app->singleton(BpjsClient::class, function () {
-            if (blank(config('services.bpjs.cons_id'))) {
+            if (! $this->kredensial()->isReady('bpjs')) {
                 return new FakeBpjsClient();
             }
 
             return new BpjsVclaimClient(
-                baseUrl: (string) config('services.bpjs.base_url'),
-                consId: (string) config('services.bpjs.cons_id'),
-                secretKey: (string) config('services.bpjs.secret_key'),
-                userKey: (string) config('services.bpjs.user_key'),
+                baseUrl: (string) $this->kredensial()->get('bpjs', 'base_url'),
+                consId: (string) $this->kredensial()->get('bpjs', 'cons_id'),
+                secretKey: (string) $this->kredensial()->get('bpjs', 'secret_key'),
+                userKey: (string) $this->kredensial()->get('bpjs', 'user_key'),
             );
         });
 
@@ -64,29 +75,29 @@ class IntegrationServiceProvider extends ModuleServiceProvider
          * kosong, asli begitu terisi, tanpa kode lain berubah.
          */
         $this->app->singleton(BpjsReferralClient::class, function () {
-            if (blank(config('services.bpjs.cons_id'))) {
+            if (! $this->kredensial()->isReady('bpjs')) {
                 return new FakeBpjsReferralClient();
             }
 
             return new BpjsVclaimReferralClient(
-                baseUrl: (string) config('services.bpjs.base_url'),
-                consId: (string) config('services.bpjs.cons_id'),
-                secretKey: (string) config('services.bpjs.secret_key'),
-                userKey: (string) config('services.bpjs.user_key'),
+                baseUrl: (string) $this->kredensial()->get('bpjs', 'base_url'),
+                consId: (string) $this->kredensial()->get('bpjs', 'cons_id'),
+                secretKey: (string) $this->kredensial()->get('bpjs', 'secret_key'),
+                userKey: (string) $this->kredensial()->get('bpjs', 'user_key'),
             );
         });
 
         $this->app->singleton(AplicaresClient::class, function () {
-            if (blank(config('services.bpjs.cons_id'))) {
+            if (! $this->kredensial()->isReady('bpjs')) {
                 return new FakeAplicaresClient();
             }
 
             return new BpjsAplicaresClient(
-                baseUrl: (string) config('services.bpjs.base_url'),
-                consId: (string) config('services.bpjs.cons_id'),
-                secretKey: (string) config('services.bpjs.secret_key'),
-                userKey: (string) config('services.bpjs.user_key'),
-                ppkCode: (string) config('services.bpjs.ppk_code'),
+                baseUrl: (string) $this->kredensial()->get('bpjs', 'base_url'),
+                consId: (string) $this->kredensial()->get('bpjs', 'cons_id'),
+                secretKey: (string) $this->kredensial()->get('bpjs', 'secret_key'),
+                userKey: (string) $this->kredensial()->get('bpjs', 'user_key'),
+                ppkCode: (string) $this->kredensial()->get('bpjs', 'ppk_code'),
             );
         });
 
@@ -96,44 +107,56 @@ class IntegrationServiceProvider extends ModuleServiceProvider
          * supaya tidak pernah tertukar dengan kode asli.
          */
         $this->app->singleton(ClaimClient::class, function () {
-            if (blank(config('services.bpjs.cons_id'))) {
+            if (! $this->kredensial()->isReady('bpjs')) {
                 return new FakeClaimClient();
             }
 
             return new BpjsClaimClient(
-                baseUrl: (string) config('services.bpjs.base_url'),
-                consId: (string) config('services.bpjs.cons_id'),
-                secretKey: (string) config('services.bpjs.secret_key'),
-                userKey: (string) config('services.bpjs.user_key'),
-                ppkCode: (string) config('services.bpjs.ppk_code'),
+                baseUrl: (string) $this->kredensial()->get('bpjs', 'base_url'),
+                consId: (string) $this->kredensial()->get('bpjs', 'cons_id'),
+                secretKey: (string) $this->kredensial()->get('bpjs', 'secret_key'),
+                userKey: (string) $this->kredensial()->get('bpjs', 'user_key'),
+                ppkCode: (string) $this->kredensial()->get('bpjs', 'ppk_code'),
             );
         });
 
         $this->app->singleton(QueueClient::class, function () {
-            if (blank(config('services.bpjs.cons_id'))) {
+            if (! $this->kredensial()->isReady('bpjs')) {
                 return new FakeQueueClient();
             }
 
             return new BpjsQueueClient(
-                baseUrl: (string) config('services.bpjs.base_url'),
-                consId: (string) config('services.bpjs.cons_id'),
-                secretKey: (string) config('services.bpjs.secret_key'),
-                userKey: (string) config('services.bpjs.user_key'),
+                baseUrl: (string) $this->kredensial()->get('bpjs', 'base_url'),
+                consId: (string) $this->kredensial()->get('bpjs', 'cons_id'),
+                secretKey: (string) $this->kredensial()->get('bpjs', 'secret_key'),
+                userKey: (string) $this->kredensial()->get('bpjs', 'user_key'),
             );
         });
 
         $this->app->singleton(SatusehatClient::class, function () {
-            if (blank(config('services.satusehat.client_id'))) {
+            if (! $this->kredensial()->isReady('satusehat')) {
                 return new FakeSatusehatClient();
             }
 
             return new SatusehatFhirClient(
-                baseUrl: (string) config('services.satusehat.base_url'),
-                authUrl: (string) config('services.satusehat.auth_url'),
-                clientId: (string) config('services.satusehat.client_id'),
-                clientSecret: (string) config('services.satusehat.client_secret'),
-                organizationId: (string) config('services.satusehat.organization_id'),
+                baseUrl: (string) $this->kredensial()->get('satusehat', 'base_url'),
+                authUrl: (string) $this->kredensial()->get('satusehat', 'auth_url'),
+                clientId: (string) $this->kredensial()->get('satusehat', 'client_id'),
+                clientSecret: (string) $this->kredensial()->get('satusehat', 'client_secret'),
+                organizationId: (string) $this->kredensial()->get('satusehat', 'organization_id'),
             );
         });
+    }
+
+    /**
+     * Penyimpan kredensial, diambil saat closure dijalankan — bukan saat
+     * didaftarkan. Kalau diambil saat pendaftaran, nilainya terkunci pada
+     * keadaan boot dan kredensial yang baru diisi tidak akan berlaku
+     * sampai proses di-restart, persis masalah yang rumah ini dibangun
+     * untuk menghilangkannya.
+     */
+    private function kredensial(): CredentialStore
+    {
+        return $this->app->make(CredentialStore::class);
     }
 }
