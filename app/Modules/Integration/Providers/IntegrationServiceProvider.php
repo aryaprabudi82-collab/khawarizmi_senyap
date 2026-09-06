@@ -4,7 +4,10 @@ namespace App\Modules\Integration\Providers;
 
 use App\Modules\Integration\Services\Bpjs\BpjsClient;
 use App\Modules\Integration\Services\Bpjs\BpjsVclaimClient;
+use App\Modules\Integration\Services\Bpjs\BpjsReferralClient;
+use App\Modules\Integration\Services\Bpjs\BpjsVclaimReferralClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsClient;
+use App\Modules\Integration\Services\Bpjs\FakeBpjsReferralClient;
 use App\Modules\Integration\Services\Satusehat\FakeSatusehatClient;
 use App\Modules\Integration\Services\Satusehat\SatusehatClient;
 use App\Modules\Integration\Services\Satusehat\SatusehatFhirClient;
@@ -37,6 +40,26 @@ class IntegrationServiceProvider extends ModuleServiceProvider
             }
 
             return new BpjsVclaimClient(
+                baseUrl: (string) config('services.bpjs.base_url'),
+                consId: (string) config('services.bpjs.cons_id'),
+                secretKey: (string) config('services.bpjs.secret_key'),
+                userKey: (string) config('services.bpjs.user_key'),
+            );
+        });
+
+        /*
+         * Adapter rujukan dipisah dari BpjsClient (domain L item A):
+         * antarmuka yang membesar terus akhirnya diimplementasikan
+         * setengah-setengah dengan method yang melempar "belum didukung".
+         * Binding-nya mengikuti pola yang sama — palsu selama kredensial
+         * kosong, asli begitu terisi, tanpa kode lain berubah.
+         */
+        $this->app->singleton(BpjsReferralClient::class, function () {
+            if (blank(config('services.bpjs.cons_id'))) {
+                return new FakeBpjsReferralClient();
+            }
+
+            return new BpjsVclaimReferralClient(
                 baseUrl: (string) config('services.bpjs.base_url'),
                 consId: (string) config('services.bpjs.cons_id'),
                 secretKey: (string) config('services.bpjs.secret_key'),
