@@ -5,6 +5,7 @@ use App\Modules\Finance\Http\Controllers\CashController;
 use App\Modules\Finance\Http\Controllers\PayableController;
 use App\Modules\Finance\Http\Controllers\OtherReceivableController;
 use App\Modules\Finance\Http\Controllers\LedgerController;
+use App\Modules\Finance\Http\Controllers\ExpenseRequestController;
 use App\Modules\Finance\Http\Controllers\CostEstimateController;
 use App\Modules\Finance\Http\Controllers\DepositController;
 use App\Modules\Finance\Http\Controllers\ReceivableController;
@@ -141,4 +142,31 @@ Route::middleware(['web', 'auth', 'can:akun_rekening'])->prefix('buku')->name('b
 
 Route::middleware(['web', 'auth', 'can:posting_jurnal'])->prefix('buku')->name('buku.')->group(function () {
     Route::post('/jurnal', [LedgerController::class, 'postJournal'])->name('jurnal');
+});
+
+/*
+| Domain K item F: pengajuan & persetujuan biaya. 4 kode, TIGA gerbang
+| berbeda karena memang tiga orang berbeda.
+|
+| pengajuan_biaya                      -> mengajukan & melihat
+| persetujuan_pengajuan_biaya          -> menyetujui / menolak
+| validasi_persetujuan_pengajuan_biaya -> memvalidasi & mencairkan
+|
+| Pemisahannya ditegakkan DUA KALI: di gerbang peran dan di dalam service.
+| Di rumah sakit kecil satu orang lazim memegang beberapa peran sekaligus,
+| dan pemisahan yang cuma ada di gerbang akan runtuh persis di situ.
+*/
+Route::middleware(['web', 'auth', 'can:pengajuan_biaya'])->prefix('pengajuan-biaya')->name('pengajuan-biaya.')->group(function () {
+    Route::get('/', [ExpenseRequestController::class, 'index'])->name('index');
+    Route::post('/', [ExpenseRequestController::class, 'store'])->name('simpan');
+});
+
+Route::middleware(['web', 'auth', 'can:persetujuan_pengajuan_biaya'])->prefix('pengajuan-biaya')->name('pengajuan-biaya.')->group(function () {
+    Route::post('/{pengajuan}/setuju', [ExpenseRequestController::class, 'approve'])->name('setuju');
+    Route::post('/{pengajuan}/tolak', [ExpenseRequestController::class, 'reject'])->name('tolak');
+});
+
+Route::middleware(['web', 'auth', 'can:validasi_persetujuan_pengajuan_biaya'])->prefix('pengajuan-biaya')->name('pengajuan-biaya.')->group(function () {
+    Route::post('/{pengajuan}/validasi', [ExpenseRequestController::class, 'validateApproval'])->name('validasi');
+    Route::post('/{pengajuan}/cairkan', [ExpenseRequestController::class, 'disburse'])->name('cairkan');
 });

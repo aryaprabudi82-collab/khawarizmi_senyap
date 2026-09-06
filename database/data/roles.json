@@ -207,7 +207,10 @@
             "penagihan_piutang_pasien",
             "validasi_penagihan_piutang",
             "akun_rekening",
-            "posting_jurnal"
+            "posting_jurnal",
+            "pengajuan_biaya",
+            "persetujuan_pengajuan_biaya",
+            "validasi_persetujuan_pengajuan_biaya"
         ]
     },
     {
