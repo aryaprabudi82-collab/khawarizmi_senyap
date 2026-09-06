@@ -76,20 +76,9 @@ class CostEstimateService
         ]));
     }
 
+    /** Didelegasikan ke NumberAllocator sejak domain K item A — logikanya tidak berubah. */
     private function allocateNumber(string $prefix): string
     {
-        $key = $prefix . now()->format('Ymd');
-
-        $row = DB::selectOne(
-            'INSERT INTO finance.number_sequences (prefix, last_number, updated_at)
-             VALUES (?, 1, now())
-             ON CONFLICT (prefix) DO UPDATE
-                SET last_number = finance.number_sequences.last_number + 1,
-                    updated_at  = now()
-             RETURNING last_number',
-            [$key]
-        );
-
-        return $key . '-' . str_pad((string) $row->last_number, 5, '0', STR_PAD_LEFT);
+        return app(NumberAllocator::class)->allocate($prefix);
     }
 }

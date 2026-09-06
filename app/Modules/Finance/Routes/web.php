@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Finance\Http\Controllers\AccountingController;
+use App\Modules\Finance\Http\Controllers\CashController;
 use App\Modules\Finance\Http\Controllers\CostEstimateController;
 use App\Modules\Finance\Http\Controllers\DepositController;
 use App\Modules\Finance\Http\Controllers\ReceivableController;
@@ -47,4 +48,21 @@ Route::middleware(['web', 'auth', 'can:pendapatan_per_akun'])->prefix('akuntansi
 Route::middleware(['web', 'auth', 'can:pendapatan_per_akun_closing'])->prefix('akuntansi')->name('akuntansi.')->group(function () {
     Route::post('/tutup', [AccountingController::class, 'close'])->name('tutup');
     Route::post('/penutupan/{penutupan}/buka', [AccountingController::class, 'reopen'])->name('buka');
+});
+
+/*
+| Domain K item A: kas harian. Delapan kode Khanza (pemasukan_lain,
+| kategori_pemasukan_lain, pengeluaran, kategori_pengeluaran_harian,
+| pengeluaran_pengeluaran, omset_penerimaan, cashflow, keuangan) dilayani
+| satu layar, digerbangi pengeluaran — kode paling representatif karena
+| pengeluaran harian yang paling sering disentuh petugas keuangan.
+|
+| Pemasukan dan pengeluaran sengaja satu mekanisme, dibedakan arah pada
+| kategorinya; lihat catatan migrasi untuk alasannya.
+*/
+Route::middleware(['web', 'auth', 'can:pengeluaran'])->prefix('kas')->name('kas.')->group(function () {
+    Route::get('/', [CashController::class, 'index'])->name('index');
+    Route::post('/', [CashController::class, 'store'])->name('simpan');
+    Route::post('/kategori', [CashController::class, 'storeCategory'])->name('kategori');
+    Route::post('/{transaksi}/batal', [CashController::class, 'cancel'])->name('batal');
 });

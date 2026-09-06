@@ -199,7 +199,8 @@
             "rekap_jm_dokter",
             "ringkasan_tindakan",
             "pendapatan_per_akun",
-            "pendapatan_per_akun_closing"
+            "pendapatan_per_akun_closing",
+            "pengeluaran"
         ]
     },
     {
