@@ -4,6 +4,7 @@ use App\Modules\Finance\Http\Controllers\AccountingController;
 use App\Modules\Finance\Http\Controllers\CashController;
 use App\Modules\Finance\Http\Controllers\PayableController;
 use App\Modules\Finance\Http\Controllers\OtherReceivableController;
+use App\Modules\Finance\Http\Controllers\LedgerController;
 use App\Modules\Finance\Http\Controllers\CostEstimateController;
 use App\Modules\Finance\Http\Controllers\DepositController;
 use App\Modules\Finance\Http\Controllers\ReceivableController;
@@ -117,4 +118,27 @@ Route::middleware(['web', 'auth', 'can:piutang_jasa_perusahaan'])->prefix('piuta
     Route::post('/{piutang}/hapuskan', [OtherReceivableController::class, 'writeOff'])->name('hapuskan');
     Route::post('/hutang', [OtherReceivableController::class, 'storeOtherDebt'])->name('simpan-hutang');
     Route::post('/hutang/{hutang}/bayar', [OtherReceivableController::class, 'payOtherDebt'])->name('bayar-hutang');
+});
+
+/*
+| Domain K item E: bagan akun, jurnal manual & buku besar. ~10 kode
+| digerbangi akun_rekening.
+|
+| Layar inilah yang membuat seluruh pemetaan akun di item A/B/C bisa
+| diisi sama sekali — sebelum ini hanya ada empat akun bawaan dari seeder
+| dan tidak ada cara menambahnya, sehingga setiap peringatan "belum
+| dipetakan ke bagan akun" tidak mungkin diselesaikan siapa pun.
+|
+| Posting jurnal digerbangi TERPISAH lewat posting_jurnal: membaca buku
+| besar dan menulis ke dalamnya adalah dua kewenangan yang berbeda.
+*/
+Route::middleware(['web', 'auth', 'can:akun_rekening'])->prefix('buku')->name('buku.')->group(function () {
+    Route::get('/', [LedgerController::class, 'index'])->name('index');
+    Route::post('/akun', [LedgerController::class, 'storeAccount'])->name('akun.simpan');
+    Route::post('/akun/{akun}/nonaktif', [LedgerController::class, 'deactivateAccount'])->name('akun.nonaktif');
+    Route::post('/saldo-awal', [LedgerController::class, 'storeOpeningBalance'])->name('saldo-awal');
+});
+
+Route::middleware(['web', 'auth', 'can:posting_jurnal'])->prefix('buku')->name('buku.')->group(function () {
+    Route::post('/jurnal', [LedgerController::class, 'postJournal'])->name('jurnal');
 });
