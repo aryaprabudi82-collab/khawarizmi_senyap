@@ -233,7 +233,8 @@
             "sensus_harian_ralan",
             "penyakit_ralan",
             "rl4a",
-            "lama_pelayanan_pasien"
+            "lama_pelayanan_pasien",
+            "rekap_lab_pertahun"
         ]
     },
     {
@@ -254,7 +255,7 @@
         "code": "admin-mutu",
         "name": "Admin Mutu & Keselamatan Pasien",
         "description": "Pelaporan dan tindak lanjut insiden keselamatan pasien (IKP), kajian risiko pra-konstruksi (PCRA/ICRA), audit PPI, dan insiden K3.",
-        "_catatan_scope": "insiden_keselamatan(_pasien) tercatat domain M/'clinical' di Khanza padahal manajemen risiko RS-wide (siapa saja bisa melaporkan, termasuk insiden tanpa pasien tertentu), bukan rekam medis, dan belum pernah dibangun di modul Clinical — dipetakan ke sini. pcra_icra_pengkajian_risiko_prakonstruksi dipakai sebagai gerbang tunggal ICRA; domain R punya 10 kapabilitas granular (masing-masing daftar referensi ICRA jadi menu sendiri di Khanza) yang di sini digabung jadi satu form terstruktur, bukan 10 layar referensi terpisah. audit_kepatuhan_apd dan peristiwa_k3rs sebelumnya tercatat domain C ('SDM/Kepegawaian') — dipindah ke sini bersama 32 kapabilitas PPI/K3 lain saat konteks hr dibangun; keduanya dipakai sebagai gerbang tunggal masing-masing fitur (17 kode audit PPI dan 8 dimensi insiden K3, semuanya menu sendiri-sendiri di Khanza). 7 kode 'X Per Tahun' K3 (jenis_cidera_k3rstahun dkk.) sudah cukup lewat kolom teks bebas yang sudah ada di quality.k3_incidents (lihat catatan migrasinya) — digabung satu layar rekap tahunan, digerbangi jenis_cidera_k3rstahun saja sebagai wakil (pola sama dengan peristiwa_k3rs menaungi 7 dimensi insidennya). PPI/K3 sengaja masuk peran yang sama dengan IKP — di RS, ketiganya lazim berada di bawah Komite/Tim Mutu dan Keselamatan Pasien (PMKP) yang sama, beda dari CSSD/aset/kesling di konteks asset yang masing-masing profesi tersendiri.",
+        "_catatan_scope": "insiden_keselamatan(_pasien) tercatat domain M/'clinical' di Khanza padahal manajemen risiko RS-wide (siapa saja bisa melaporkan, termasuk insiden tanpa pasien tertentu), bukan rekam medis, dan belum pernah dibangun di modul Clinical — dipetakan ke sini. pcra_icra_pengkajian_risiko_prakonstruksi dipakai sebagai gerbang tunggal ICRA; domain R punya 10 kapabilitas granular (masing-masing daftar referensi ICRA jadi menu sendiri di Khanza) yang di sini digabung jadi satu form terstruktur, bukan 10 layar referensi terpisah. audit_kepatuhan_apd dan peristiwa_k3rs sebelumnya tercatat domain C ('SDM/Kepegawaian') — dipindah ke sini bersama 32 kapabilitas PPI/K3 lain saat konteks hr dibangun; keduanya dipakai sebagai gerbang tunggal masing-masing fitur (17 kode audit PPI dan 8 dimensi insiden K3, semuanya menu sendiri-sendiri di Khanza). 7 kode 'X Per Tahun' K3 (jenis_cidera_k3rstahun dkk.) sudah cukup lewat kolom teks bebas yang sudah ada di quality.k3_incidents (lihat catatan migrasinya) — digabung satu layar rekap tahunan, digerbangi jenis_cidera_k3rstahun saja sebagai wakil (pola sama dengan peristiwa_k3rs menaungi 7 dimensi insidennya). Domain J item E (2026-10): harian_HAIs menggerbangi layar surveilans HAIs yang menaungi keempat kode HAIs (harian_HAIs, harian_HAIs2, bulanan_HAIs, hais_perbangsal). Layar itu SEKALIGUS tempat mencatat, bukan cuma melaporkan: keempat kode tidak bisa berdiri karena konteks ini baru memegang AUDIT KEPATUHAN bundle pencegahan (ppi_audits punya bundle-vap/iadp/isk/ido sejak domain C), bukan KEJADIAN infeksinya — kepatuhan bundle 100% dan angka infeksi nol adalah dua pernyataan berbeda. Dua tabel baru: infection_events (kejadiannya) dan device_days (PENYEBUTNYA, yakni hari-alat dan hari-rawat per bangsal per hari). Yang kedua yang menentukan kebenaran angkanya: HAIs SELALU dilaporkan sebagai insiden per 1000 hari-alat (Permenkes 27/2017), tidak pernah sebagai jumlah kejadian, karena jumlah kejadian membuat bangsal yang merawat lebih banyak pasien selalu terlihat lebih buruk daripada bangsal kecil — padahal bisa jadi justru lebih aman per pasiennya. Dikunci pengujian dengan kasus yang membuktikannya terbalik: bangsal 3 kejadian atas 1500 hari-alat (rate 2,0) lebih aman daripada bangsal 1 kejadian atas 100 hari-alat (rate 10,0). Penyebut nol berarti BELUM DICATAT, jadi rate-nya dilaporkan kosong — bukan disamakan dengan jumlah kejadian, bukan pula nol; bangsal dan hari yang penyebutnya bolong dilaporkan terpisah supaya ketahuan. Penyebut bersifat idempoten per bangsal per tanggal (menghitung ulang MENGGANTI, bukan menambah) karena penyebut ganda menggelembung dan membuat angka HAIs terlihat lebih kecil — arah kesalahan yang menguntungkan pelapor. PPI/K3 sengaja masuk peran yang sama dengan IKP — di RS, ketiganya lazim berada di bawah Komite/Tim Mutu dan Keselamatan Pasien (PMKP) yang sama, beda dari CSSD/aset/kesling di konteks asset yang masing-masing profesi tersendiri.",
         "contexts": [],
         "extra_permissions": [
             "insiden_keselamatan",
@@ -263,7 +264,8 @@
             "audit_kepatuhan_apd",
             "peristiwa_k3rs",
             "jenis_cidera_k3rstahun",
-            "penyakit_ralan"
+            "penyakit_ralan",
+            "harian_HAIs"
         ]
     },
     {

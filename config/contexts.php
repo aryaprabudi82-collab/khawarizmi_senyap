@@ -134,6 +134,9 @@ return [
                     . 'pharmacy.v_prescription_charge dan orders.v_order_charge.',
                 'v_operation_charge' => 'Operasi yang sudah dicatat berikut nilainya. '
                     . 'Dipakai billing untuk menyusun baris tagihan, pola sama dengan v_procedure_charge.',
+                'v_screening_summary' => 'Skrining awal rawat jalan, hanya kolom yang dibutuhkan laporan '
+                    . '(gejala infeksius & risiko gizi) — domain J item E. Hasil skrining nyeri dan risiko jatuh sengaja '
+                    . 'tidak dipaparkan: itu data klinis, bukan bahan laporan tahunan.',
                 'v_operation_summary' => 'Kegiatan pembedahan berikut jenis anestesi, kamar operasi, dan operatornya '
                     . '(domain J item C, untuk RL 3.6). Terpisah dari v_operation_charge yang berbentuk penagihan '
                     . 'dan tidak membawa rincian kegiatan ini.',
@@ -340,6 +343,9 @@ return [
                     . 'bed yang sungguh ditempati hari itu, diambil dari bed_assignments — hari sebelum pindah '
                     . 'tetap memakai tarif kamar lama. Kalau pindahnya di tengah hari, hari itu ditagihkan ke '
                     . 'kamar yang ditempati sampai malam, karena tarif kamar adalah tarif per malam.',
+                'v_diet_order' => 'Permintaan diet berikut HARI-DIET-nya (selisih mulai-selesai) — domain J item E. '
+                    . 'Hari-diet, bukan jumlah permintaan: satu permintaan lima hari adalah lima hari pemberian, dan '
+                    . 'menghitungnya sebagai satu membuat angka gizi jauh lebih kecil daripada kenyataannya.',
                 'v_bed_assignment' => 'Rentang penempatan bed (assigned_at/released_at), tanpa identitas pasien '
                     . '— domain J item D, untuk hari-rawat pada hitungan BOR. Dihitung dari penempatan yang sungguh '
                     . 'terjadi supaya pasien yang pindah kamar tidak terlewat maupun tergandakan.',

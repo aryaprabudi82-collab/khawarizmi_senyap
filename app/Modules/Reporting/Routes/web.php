@@ -3,6 +3,7 @@
 use App\Modules\Reporting\Http\Controllers\CensusReportController;
 use App\Modules\Reporting\Http\Controllers\DashboardController;
 use App\Modules\Reporting\Http\Controllers\MorbidityReportController;
+use App\Modules\Reporting\Http\Controllers\AncillaryReportController;
 use App\Modules\Reporting\Http\Controllers\QualityIndicatorReportController;
 use App\Modules\Reporting\Http\Controllers\StatutoryReportController;
 use Illuminate\Support\Facades\Route;
@@ -63,4 +64,17 @@ Route::middleware(['web', 'auth', 'can:lama_pelayanan_pasien'])
     ->name('reporting.')
     ->group(function () {
         Route::get('/mutu', [QualityIndicatorReportController::class, 'index'])->name('mutu');
+    });
+
+/*
+| Domain J item E: penunjang, gizi, skrining & sasaran usia. Digerbangi
+| rekap_lab_pertahun. Kode HAIs TIDAK di sini — punya layarnya sendiri di
+| konteks quality karena bukan cuma laporan, melainkan juga tempat
+| mencatat kejadian infeksi yang selama ini belum pernah ada.
+*/
+Route::middleware(['web', 'auth', 'can:rekap_lab_pertahun'])
+    ->prefix('laporan')
+    ->name('reporting.')
+    ->group(function () {
+        Route::get('/penunjang', [AncillaryReportController::class, 'index'])->name('penunjang');
     });
