@@ -7,9 +7,16 @@ use Illuminate\Support\Facades\DB;
 use stdClass;
 
 /**
- * Satu-satunya tempat konteks integration menyentuh data milik konteks
- * clinical. Dibaca lewat clinical.v_encounter_diagnosis — kontrak yang
- * diterbitkan konteks clinical.
+ * Pembaca data konteks clinical untuk keperluan integration, lewat
+ * clinical.v_encounter_diagnosis — kontrak yang diterbitkan konteks
+ * clinical, bukan tabelnya.
+ *
+ * Kelas ini menampung pencarian diagnosis PER KUNJUNGAN, yang dipakai
+ * hampir seluruh alur kirim. Satu pengecualian yang disengaja: pencarian
+ * calon PRB di PrbService merentang tiga konteks sekaligus (diagnosis
+ * clinical, kunjungan encounter, dan SEP milik integration sendiri),
+ * sehingga tidak bisa jadi milik pembaca satu konteks — tapi tetap membaca
+ * view terbitan yang sama, bukan tabel clinical.
  */
 class DiagnosisContext
 {
