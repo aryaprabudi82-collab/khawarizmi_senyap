@@ -210,7 +210,9 @@
             "posting_jurnal",
             "pengajuan_biaya",
             "persetujuan_pengajuan_biaya",
-            "validasi_persetujuan_pengajuan_biaya"
+            "validasi_persetujuan_pengajuan_biaya",
+            "pembayaran_briva",
+            "set_tarif_online"
         ]
     },
     {

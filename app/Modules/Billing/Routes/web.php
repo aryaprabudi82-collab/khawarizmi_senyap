@@ -5,6 +5,7 @@ use App\Modules\Billing\Http\Controllers\InvoiceController;
 use App\Modules\Billing\Http\Controllers\MedicalFeeController;
 use App\Modules\Billing\Http\Controllers\ReceivableController;
 use App\Modules\Billing\Http\Controllers\ReceivableCollectionController;
+use App\Modules\Billing\Http\Controllers\PaymentChannelController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -85,3 +86,25 @@ Route::middleware(['web', 'auth', 'can:validasi_penagihan_piutang'])
     ->prefix('penagihan-piutang')->name('penagihan-piutang.')->group(function () {
         Route::post('/{penagihan}/verifikasi', [ReceivableCollectionController::class, 'validateContact'])->name('verifikasi');
     });
+
+/*
+| Domain K item G: kanal pembayaran bank. 7 kode Khanza
+| (pembayaran_bank_jabar/jateng/mandiri/papua, pembayaran_briva,
+| pembayaran_pihak_ke3_bankmandiri, set_tarif_online) dilayani SATU
+| mekanisme kanal — bank jadi baris master, bukan lima layar terpisah.
+|
+| Mencocokkan pembayaran digerbangi pembayaran_briva; MENGELOLA KANALNYA
+| digerbangi terpisah lewat set_tarif_online, karena menentukan rekening
+| mana yang sah menerima uang rumah sakit adalah kewenangan yang berbeda
+| dari mencocokkan setoran harian.
+*/
+Route::middleware(['web', 'auth', 'can:pembayaran_briva'])->prefix('kanal-pembayaran')->name('kanal.')->group(function () {
+    Route::get('/', [PaymentChannelController::class, 'index'])->name('index');
+    Route::post('/{kanal}/terima', [PaymentChannelController::class, 'receive'])->name('terima');
+    Route::post('/pembayaran/{pembayaran}/cocokkan', [PaymentChannelController::class, 'match'])->name('cocokkan');
+    Route::post('/pembayaran/{pembayaran}/tolak', [PaymentChannelController::class, 'reject'])->name('tolak');
+});
+
+Route::middleware(['web', 'auth', 'can:set_tarif_online'])->prefix('kanal-pembayaran')->name('kanal.')->group(function () {
+    Route::post('/', [PaymentChannelController::class, 'storeChannel'])->name('simpan');
+});
