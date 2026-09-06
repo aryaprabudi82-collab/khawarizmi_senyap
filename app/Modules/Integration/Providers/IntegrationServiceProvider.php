@@ -5,10 +5,13 @@ namespace App\Modules\Integration\Providers;
 use App\Modules\Integration\Services\Bpjs\BpjsClient;
 use App\Modules\Integration\Services\Bpjs\BpjsVclaimClient;
 use App\Modules\Integration\Services\Bpjs\AplicaresClient;
+use App\Modules\Integration\Services\Bpjs\BpjsClaimClient;
+use App\Modules\Integration\Services\Bpjs\ClaimClient;
 use App\Modules\Integration\Services\Bpjs\BpjsAplicaresClient;
 use App\Modules\Integration\Services\Bpjs\BpjsReferralClient;
 use App\Modules\Integration\Services\Bpjs\BpjsVclaimReferralClient;
 use App\Modules\Integration\Services\Bpjs\FakeAplicaresClient;
+use App\Modules\Integration\Services\Bpjs\FakeClaimClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsReferralClient;
 use App\Modules\Integration\Services\Satusehat\FakeSatusehatClient;
@@ -76,6 +79,25 @@ class IntegrationServiceProvider extends ModuleServiceProvider
             }
 
             return new BpjsAplicaresClient(
+                baseUrl: (string) config('services.bpjs.base_url'),
+                consId: (string) config('services.bpjs.cons_id'),
+                secretKey: (string) config('services.bpjs.secret_key'),
+                userKey: (string) config('services.bpjs.user_key'),
+                ppkCode: (string) config('services.bpjs.ppk_code'),
+            );
+        });
+
+        /*
+         * Grouper INA-CBG. Selama kredensial kosong dipakai FakeClaimClient,
+         * yang sengaja mengembalikan kode CBG mencolok palsu (diawali "X-")
+         * supaya tidak pernah tertukar dengan kode asli.
+         */
+        $this->app->singleton(ClaimClient::class, function () {
+            if (blank(config('services.bpjs.cons_id'))) {
+                return new FakeClaimClient();
+            }
+
+            return new BpjsClaimClient(
                 baseUrl: (string) config('services.bpjs.base_url'),
                 consId: (string) config('services.bpjs.cons_id'),
                 secretKey: (string) config('services.bpjs.secret_key'),
