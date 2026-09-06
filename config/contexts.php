@@ -167,6 +167,21 @@ return [
                     . '— domain J item D, untuk lama_pelayanan_apotek. Sengaja terpisah dari v_prescription_charge yang '
                     . 'berbentuk penagihan per baris obat dan akan mencondongkan rata-rata ke resep yang isinya paling banyak.',
                 'v_prescription_charge' => 'Obat yang sudah diserahkan berikut nilainya. Dipakai billing untuk menarik biaya obat ke tagihan kunjungan.',
+                'v_prescription_detail' => 'Rincian resep per BARIS OBAT berikut aturan pakainya, kode KFA, '
+                    . 'penanda narkotika/psikotropika/high-alert, dan substitusi apoteker (domain L item I). '
+                    . 'Dipakai integration menyusun Medication, MedicationRequest, dan MedicationDispense '
+                    . 'SATUSEHAT. Jumlah DIRESEPKAN dan jumlah DISERAHKAN sengaja terbit sebagai dua kolom: '
+                    . 'saat keduanya berbeda (stok kurang), MedicationRequest memakai yang pertama dan '
+                    . 'MedicationDispense yang kedua — menggabungkannya membuat salah satunya berbohong.',
+                'v_prescription_review' => 'Hasil telaah apoteker berikut temuannya (domain L item I). Dipakai '
+                    . 'integration menyusun QuestionnaireResponse telaah farmasi. Temuan disimpan apa adanya '
+                    . 'karena telaah yang tidak menemukan apa-apa dan telaah yang belum dikerjakan adalah dua '
+                    . 'pernyataan berbeda.',
+                'v_drug_catalog' => 'Master obat TERBATAS pada identitasnya — kode, nama, generik, KFA, bentuk, '
+                    . 'kekuatan, dan penanda narkotika/psikotropika/high-alert (domain L item I). Harga, stok, '
+                    . 'dan margin sengaja TIDAK ikut: konsumen hanya perlu tahu obat apa saja yang ada dan '
+                    . 'bagaimana menyebutnya, sedangkan memaparkan harga dari sini melahirkan sumber kedua bagi '
+                    . 'angka yang sudah dimiliki billing.',
             ],
         ],
 
