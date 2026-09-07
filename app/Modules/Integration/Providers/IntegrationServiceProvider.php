@@ -11,15 +11,21 @@ use App\Modules\Integration\Services\Bpjs\ClaimClient;
 use App\Modules\Integration\Services\Bpjs\QueueClient;
 use App\Modules\Integration\Services\Bpjs\BpjsAplicaresClient;
 use App\Modules\Integration\Services\Bpjs\BpjsAccidentClient;
+use App\Modules\Integration\Services\Bpjs\BpjsAdmissionClient;
+use App\Modules\Integration\Services\Bpjs\BpjsApolApotekClient;
+use App\Modules\Integration\Services\Bpjs\BpjsApotekClient;
 use App\Modules\Integration\Services\Bpjs\BpjsMemberClient;
 use App\Modules\Integration\Services\Bpjs\BpjsReferralClient;
 use App\Modules\Integration\Services\Bpjs\BpjsVclaimAccidentClient;
+use App\Modules\Integration\Services\Bpjs\BpjsVclaimAdmissionClient;
 use App\Modules\Integration\Services\Bpjs\BpjsVclaimMemberClient;
 use App\Modules\Integration\Services\Bpjs\BpjsVclaimReferralClient;
 use App\Modules\Integration\Services\Bpjs\FakeAplicaresClient;
 use App\Modules\Integration\Services\Bpjs\FakeClaimClient;
 use App\Modules\Integration\Services\Bpjs\FakeQueueClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsAccidentClient;
+use App\Modules\Integration\Services\Bpjs\FakeBpjsAdmissionClient;
+use App\Modules\Integration\Services\Bpjs\FakeBpjsApotekClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsMemberClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsReferralClient;
@@ -119,6 +125,38 @@ class IntegrationServiceProvider extends ModuleServiceProvider
             }
 
             return new BpjsVclaimAccidentClient(
+                baseUrl: (string) $this->kredensial()->get('bpjs', 'base_url'),
+                consId: (string) $this->kredensial()->get('bpjs', 'cons_id'),
+                secretKey: (string) $this->kredensial()->get('bpjs', 'secret_key'),
+                userKey: (string) $this->kredensial()->get('bpjs', 'user_key'),
+            );
+        });
+
+        /*
+         * Adapter Surat PRI & reklasifikasi SEP (domain L item L).
+         */
+        $this->app->singleton(BpjsAdmissionClient::class, function () {
+            if (! $this->kredensial()->isReady('bpjs')) {
+                return new FakeBpjsAdmissionClient();
+            }
+
+            return new BpjsVclaimAdmissionClient(
+                baseUrl: (string) $this->kredensial()->get('bpjs', 'base_url'),
+                consId: (string) $this->kredensial()->get('bpjs', 'cons_id'),
+                secretKey: (string) $this->kredensial()->get('bpjs', 'secret_key'),
+                userKey: (string) $this->kredensial()->get('bpjs', 'user_key'),
+            );
+        });
+
+        /*
+         * Adapter Apotek Online BPJS (domain L item M).
+         */
+        $this->app->singleton(BpjsApotekClient::class, function () {
+            if (! $this->kredensial()->isReady('bpjs')) {
+                return new FakeBpjsApotekClient();
+            }
+
+            return new BpjsApolApotekClient(
                 baseUrl: (string) $this->kredensial()->get('bpjs', 'base_url'),
                 consId: (string) $this->kredensial()->get('bpjs', 'cons_id'),
                 secretKey: (string) $this->kredensial()->get('bpjs', 'secret_key'),
