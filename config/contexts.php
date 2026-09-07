@@ -45,7 +45,13 @@ return [
             'domains'     => ['K'],
             'publishes'   => [
                 'v_payer_summary' => 'Penjamin aktif berikut kind-nya (umum, bpjs, asuransi, perusahaan). '
-                    . 'Dipakai billing untuk menentukan siapa yang menanggung tagihan.',
+                    . 'Dipakai billing untuk menentukan siapa yang menanggung tagihan, dan encounter untuk '
+                    . 'daftar pilihan penjamin saat mendaftarkan pasien.',
+                'v_form_template' => 'Template formulir asesmen & skrining berikut SELURUH versinya, '
+                    . 'pertanyaannya, dan aturan skornya (domain M item A). Dipakai clinical menyusun dan '
+                    . 'menilai formulir. Versi LAMA ikut diterbitkan dan itu disengaja: formulir yang diisi '
+                    . 'tahun lalu harus dibaca kembali dengan pertanyaan yang berlaku waktu itu, dan kontrak '
+                    . 'yang hanya memuat versi aktif akan membuat rekam medis lama kehilangan pertanyaannya.',
             ],
         ],
 

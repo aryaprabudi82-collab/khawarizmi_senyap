@@ -2,9 +2,9 @@
 
 namespace App\Modules\Encounter\Http\Controllers;
 
-use App\Modules\Catalog\Models\Payer;
 use App\Modules\Encounter\Models\Registration;
 use App\Modules\Encounter\Services\RegistrationException;
+use App\Modules\Catalog\Services\TariffLookup;
 use App\Modules\Encounter\Services\RegistrationService;
 use App\Modules\Identity\Services\PatientRegistry;
 use App\Modules\Organization\Services\OrganizationDirectory;
@@ -20,6 +20,7 @@ class RegistrationController
         private readonly RegistrationService $registrations,
         private readonly PatientRegistry $patients,
         private readonly OrganizationDirectory $organization,
+        private readonly TariffLookup $tariffs,
     ) {}
 
     /**
@@ -71,7 +72,7 @@ class RegistrationController
                 : null,
             'units' => $this->organization->activeUnits(),
             'praktisi' => $this->organization->practitionersServingOn($tanggal),
-            'penjamin' => Payer::query()->where('is_active', true)->orderBy('name')->get(),
+            'penjamin' => $this->tariffs->activePayers(),
         ]);
     }
 

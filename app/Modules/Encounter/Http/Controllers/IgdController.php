@@ -2,10 +2,10 @@
 
 namespace App\Modules\Encounter\Http\Controllers;
 
-use App\Modules\Catalog\Models\Payer;
 use App\Modules\Encounter\Models\IgdTriage;
 use App\Modules\Encounter\Models\Registration;
 use App\Modules\Encounter\Services\IgdService;
+use App\Modules\Catalog\Services\TariffLookup;
 use App\Modules\Encounter\Services\RegistrationException;
 use App\Modules\Identity\Services\PatientRegistry;
 use Illuminate\Http\RedirectResponse;
@@ -19,6 +19,7 @@ class IgdController
     public function __construct(
         private readonly IgdService $igd,
         private readonly PatientRegistry $patients,
+        private readonly TariffLookup $tariffs,
     ) {}
 
     public function index(Request $request): View
@@ -49,7 +50,7 @@ class IgdController
             'triase' => $triase,
             'cari' => $cari,
             'hasilCari' => $cari === '' ? collect() : $this->patients->search($cari),
-            'penjamin' => Payer::query()->where('is_active', true)->orderBy('name')->get(),
+            'penjamin' => $this->tariffs->activePayers(),
         ]);
     }
 

@@ -2,8 +2,8 @@
 
 namespace App\Modules\Reporting\Http\Controllers;
 
-use App\Modules\Organization\Models\Unit;
 use App\Modules\Reporting\Services\CensusReportService;
+use App\Modules\Reporting\Services\OrganizationContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
@@ -16,7 +16,10 @@ use Illuminate\View\View;
  */
 class CensusReportController
 {
-    public function __construct(private readonly CensusReportService $sensus) {}
+    public function __construct(
+        private readonly CensusReportService $sensus,
+        private readonly OrganizationContext $organization,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -44,7 +47,7 @@ class CensusReportController
             'unitId' => $unitId,
             'kategoriPenunjang' => $kategoriPenunjang,
             'asal' => $asal,
-            'unit' => Unit::query()->where('is_active', true)->orderBy('name')->get(),
+            'unit' => $this->organization->activeUnits(),
 
             'harian' => $this->sensus->dailyCensus($dari, $sampai, $jenisRawat, $unitId),
             'perUnit' => $this->sensus->byUnit($dari, $sampai, $jenisRawat),

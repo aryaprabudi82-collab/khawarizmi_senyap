@@ -2,7 +2,7 @@
 
 namespace App\Modules\Reporting\Http\Controllers;
 
-use App\Modules\Organization\Models\Unit;
+use App\Modules\Reporting\Services\OrganizationContext;
 use App\Modules\Reporting\Services\StatutoryReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -17,7 +17,10 @@ use Illuminate\View\View;
  */
 class StatutoryReportController
 {
-    public function __construct(private readonly StatutoryReportService $rl) {}
+    public function __construct(
+        private readonly StatutoryReportService $rl,
+        private readonly OrganizationContext $organization,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -30,7 +33,7 @@ class StatutoryReportController
         return view('reporting::rl.index', [
             'dari' => $dari,
             'sampai' => $sampai,
-            'unit' => Unit::query()->where('is_active', true)->orderBy('name')->get(),
+            'unit' => $this->organization->activeUnits(),
             'unitGigi' => $unitGigi,
             'unitObgyn' => $unitObgyn,
 

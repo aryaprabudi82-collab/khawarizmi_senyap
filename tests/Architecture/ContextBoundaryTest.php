@@ -116,6 +116,73 @@ class ContextBoundaryTest extends TestCase
         );
     }
 
+    /**
+     * Menutup celah yang ditemukan saat domain M item A dikerjakan.
+     *
+     * Pemeriksaan di atas memindai literal 'schema.tabel'. Mengimpor
+     * Eloquent model milik konteks lain lolos begitu saja — nama tabelnya
+     * tersembunyi di dalam model — padahal akibatnya sama: modul jadi
+     * bergantung pada bentuk TABEL konteks lain, bukan pada kontraknya,
+     * dan perubahan kolom di sana diam-diam merusak modul ini.
+     *
+     * SATU PENGECUALIAN, DAN CUMA SATU: Platform\Models\User. Ia dipakai
+     * sebagai TIPE pelaku ("siapa yang mencatat ini"), bukan untuk mengueri
+     * tabel platform — dan mengedarkan pengguna terautentikasi lintas modul
+     * memang wajar. Menambah pengecualian baru di sini adalah keputusan
+     * desain: kalau sebuah modul perlu MEMBACA data konteks lain, jalannya
+     * menerbitkan view lewat 'publishes', bukan memperpanjang daftar ini.
+     */
+    #[Test]
+    public function modul_tidak_mengimpor_model_konteks_lain(): void
+    {
+        $dikecualikan = ['Platform\\Models\\User'];
+
+        $pelanggaran = [];
+
+        foreach ($this->contexts['active'] as $name => $ctx) {
+            $modul = $ctx['module'];
+
+            foreach ($this->berkasPhpModul($modul) as $berkas) {
+                // Seeder adalah perkakas pengembangan, bukan kode yang
+                // berjalan melayani pasien; ia memang menyiapkan data
+                // lintas modul supaya lingkungan uji bisa berdiri.
+                if (str_ends_with($berkas, 'Seeder.php')) {
+                    continue;
+                }
+
+                $isi = (string) file_get_contents($berkas);
+
+                if (! preg_match_all('/^use App\\\\Modules\\\\([A-Za-z]+)\\\\Models\\\\([A-Za-z]+);/m', $isi, $m, PREG_SET_ORDER)) {
+                    continue;
+                }
+
+                foreach ($m as $hit) {
+                    if ($hit[1] === $modul) {
+                        continue;
+                    }
+
+                    $rujukan = $hit[1] . '\\Models\\' . $hit[2];
+
+                    if (in_array($rujukan, $dikecualikan, true)) {
+                        continue;
+                    }
+
+                    $pelanggaran[] = sprintf(
+                        '%s (konteks %s) mengimpor %s',
+                        basename($berkas), $name, $rujukan
+                    );
+                }
+            }
+        }
+
+        $this->assertSame(
+            [],
+            $pelanggaran,
+            "Modul mengimpor model konteks lain. Baca lewat view yang diterbitkan "
+            . "konteks pemiliknya, bukan lewat model-nya:\n" . implode("\n", $pelanggaran)
+        );
+    }
+
     #[Test]
     public function schema_konteks_terencana_tidak_bentrok_dengan_yang_aktif(): void
     {

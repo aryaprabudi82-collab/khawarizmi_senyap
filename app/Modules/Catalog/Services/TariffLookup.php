@@ -24,6 +24,24 @@ class TariffLookup
     }
 
     /**
+     * Penjamin aktif, untuk daftar pilihan di layar konteks lain.
+     *
+     * Ada di sini, bukan di controller yang membutuhkannya, karena "apa
+     * saja penjamin yang berlaku" adalah pengetahuan milik catalog. Layar
+     * pendaftaran yang mengueri sendiri tabel penjamin tetap bekerja hari
+     * ini dan diam-diam rusak saat catalog mengubah kolomnya.
+     *
+     * @return Collection<int, Payer>
+     */
+    public function activePayers(): Collection
+    {
+        return Payer::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+    }
+
+    /**
      * Tarif yang berlaku pada satu tanggal.
      *
      * Tanggal ikut dipertimbangkan supaya kunjungan lama tetap bisa dihitung
