@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Modules\Catalog\Database\Seeders\DiagnosticTemplateSeeder;
+use App\Modules\Catalog\Database\Seeders\DocumentTypeSeeder;
 use App\Modules\Catalog\Database\Seeders\FluidItemSeeder;
 use App\Modules\Catalog\Database\Seeders\ObservationCatalogSeeder;
 use App\Modules\Catalog\Database\Seeders\StandardInstrumentSeeder;
@@ -53,6 +54,12 @@ class ReferenceDataSeeder extends Seeder
         // Butirnya diambil dari kolom tabel Khanza, bukan dikarang; tidak
         // ada yang diskor karena yang menyimpulkan adalah pemeriksanya.
         $this->call(DiagnosticTemplateSeeder::class);
+
+        // Jenis berkas digital rekam medis (domain M item L). Yang disemai
+        // DAFTAR JENIS, bukan isi dokumen — jenisnya ditentukan dokumen apa
+        // yang benar-benar datang dari luar rumah sakit, bukan kebijakan
+        // internal yang harus disusun komite medik.
+        $this->call(DocumentTypeSeeder::class);
 
         $this->command?->info('Data referensi: penjamin, unit, praktisi, dan tarif registrasi, tindakan & operasi disiapkan.');
         $this->command?->warn('Tarif tindakan/operasi contoh, hanya untuk penjamin Umum — perlu ditinjau ulang bersama bagian keuangan sebelum dipakai melayani pasien.');
