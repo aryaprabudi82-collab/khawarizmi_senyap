@@ -84,6 +84,13 @@ class DocumentTypeSeeder extends Seeder
                 'note' => 'Luka, lesi kulit, atau kondisi yang lebih jelas dilihat daripada diuraikan.',
             ],
             [
+                'code' => 'BUKTI-EDUKASI', 'name' => 'Bukti pelaksanaan edukasi',
+                'category' => 'lainnya', 'needs_wet_signature' => false, 'is_permanent' => false,
+                'note' => 'Foto pelaksanaan edukasi (domain M item Q). Dilampirkan sebagai berkas rekam '
+                    .'medis biasa, bukan tabel berkas tersendiri: bukti_pelaksanaan_informasi_edukasi '
+                    .'Khanza hanya menyimpan jalur foto tanpa pengunggah maupun waktunya.',
+            ],
+            [
                 'code' => 'LAINNYA', 'name' => 'Berkas lain',
                 'category' => 'lainnya', 'needs_wet_signature' => false, 'is_permanent' => false,
                 'note' => 'Keranjang terakhir; kalau sering dipakai, jenisnya perlu ditambah.',
