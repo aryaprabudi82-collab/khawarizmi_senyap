@@ -75,6 +75,14 @@ return [
                     .'namanya; tanpa itu aturan retensi harus ditulis per kode berkas dan akan tertinggal '
                     .'begitu kode baru dibuat. Padanan master_berkas_digital Khanza yang hanya punya kode '
                     .'dan nama.',
+                'v_immunisation_type' => 'Master jenis imunisasi berikut JUMLAH DOSIS, JARAK ANTAR DOSIS, '
+                    .'rute, dan penanda program nasionalnya — domain M item S. Dua yang pertama tidak ada '
+                    .'di master_imunisasi Khanza, dan tanpa keduanya jadwal dosis berikutnya seorang anak '
+                    .'tidak bisa dihitung sistem melainkan harus diingat orang. Kode KFA ikut di sini '
+                    .'supaya pemetaan SATUSEHAT tidak menuntut tabel keempat yang bisa tertinggal.',
+                'v_disability_type' => 'Ragam disabilitas berikut kategorinya menurut UU 8/2016 — domain M '
+                    .'item S. cacat_fisik Khanza hanya punya nama tanpa kategori, dan tanpa kategori '
+                    .'laporan ragam disabilitas harus dikelompokkan ulang dari teks bebas tiap kali.',
             ],
         ],
 

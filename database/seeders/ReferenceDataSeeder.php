@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Modules\Catalog\Database\Seeders\DiagnosticTemplateSeeder;
 use App\Modules\Catalog\Database\Seeders\DocumentTypeSeeder;
 use App\Modules\Catalog\Database\Seeders\FluidItemSeeder;
+use App\Modules\Catalog\Database\Seeders\ImmunisationDisabilitySeeder;
 use App\Modules\Catalog\Database\Seeders\ObservationCatalogSeeder;
 use App\Modules\Catalog\Database\Seeders\StandardInstrumentSeeder;
 use App\Modules\Catalog\Models\Payer;
@@ -60,6 +61,11 @@ class ReferenceDataSeeder extends Seeder
         // yang benar-benar datang dari luar rumah sakit, bukan kebijakan
         // internal yang harus disusun komite medik.
         $this->call(DocumentTypeSeeder::class);
+
+        // Master imunisasi & ragam disabilitas (domain M item S). Disemai
+        // karena isinya ditetapkan di luar rumah sakit: vaksin program
+        // nasional oleh Kemenkes, ragam disabilitas oleh UU 8/2016.
+        $this->call(ImmunisationDisabilitySeeder::class);
 
         $this->command?->info('Data referensi: penjamin, unit, praktisi, dan tarif registrasi, tindakan & operasi disiapkan.');
         $this->command?->warn('Tarif tindakan/operasi contoh, hanya untuk penjamin Umum — perlu ditinjau ulang bersama bagian keuangan sebelum dipakai melayani pasien.');
