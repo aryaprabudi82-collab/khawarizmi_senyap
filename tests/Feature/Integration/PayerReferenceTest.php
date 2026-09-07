@@ -145,7 +145,7 @@ class PayerReferenceTest extends TestCase
     public function penjamin_di_luar_daftar_ditolak(): void
     {
         $this->expectException(IntegrationException::class);
-        $this->expectExceptionMessage("Penjamin 'mandiri-inhealth-lama' tidak dikenal");
+        $this->expectExceptionMessage("Sistem referensi 'mandiri-inhealth-lama' tidak dikenal");
 
         $this->referensi->refresh('mandiri-inhealth-lama', 'poli', [['code' => 'X', 'name' => 'X']]);
     }

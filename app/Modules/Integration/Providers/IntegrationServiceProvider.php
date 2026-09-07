@@ -14,6 +14,8 @@ use App\Modules\Integration\Services\Bpjs\BpjsAccidentClient;
 use App\Modules\Integration\Services\Bpjs\BpjsAdmissionClient;
 use App\Modules\Integration\Services\Bpjs\BpjsApolApotekClient;
 use App\Modules\Integration\Services\Bpjs\BpjsApotekClient;
+use App\Modules\Integration\Services\Bpjs\BpjsFhirSmartClaimClient;
+use App\Modules\Integration\Services\Bpjs\BpjsSmartClaimClient;
 use App\Modules\Integration\Services\Bpjs\BpjsMemberClient;
 use App\Modules\Integration\Services\Bpjs\BpjsReferralClient;
 use App\Modules\Integration\Services\Bpjs\BpjsVclaimAccidentClient;
@@ -27,10 +29,14 @@ use App\Modules\Integration\Services\Bpjs\FakeBpjsAccidentClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsAdmissionClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsApotekClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsClient;
+use App\Modules\Integration\Services\Bpjs\FakeBpjsSmartClaimClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsMemberClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsReferralClient;
 use App\Modules\Integration\Services\CredentialStore;
 use App\Modules\Integration\Services\Satusehat\FakeSatusehatClient;
+use App\Modules\Integration\Services\Sisrute\FakeSisruteClient;
+use App\Modules\Integration\Services\Sisrute\HttpSisruteClient;
+use App\Modules\Integration\Services\Sisrute\SisruteClient;
 use App\Modules\Integration\Services\Satusehat\SatusehatClient;
 use App\Modules\Integration\Services\Satusehat\SatusehatFhirClient;
 use App\Modules\ModuleServiceProvider;
@@ -161,6 +167,41 @@ class IntegrationServiceProvider extends ModuleServiceProvider
                 consId: (string) $this->kredensial()->get('bpjs', 'cons_id'),
                 secretKey: (string) $this->kredensial()->get('bpjs', 'secret_key'),
                 userKey: (string) $this->kredensial()->get('bpjs', 'user_key'),
+            );
+        });
+
+        /*
+         * Adapter Smart Klaim FHIR BPJS (domain L item N).
+         */
+        $this->app->singleton(BpjsSmartClaimClient::class, function () {
+            if (! $this->kredensial()->isReady('bpjs')) {
+                return new FakeBpjsSmartClaimClient();
+            }
+
+            return new BpjsFhirSmartClaimClient(
+                baseUrl: (string) $this->kredensial()->get('bpjs', 'base_url'),
+                consId: (string) $this->kredensial()->get('bpjs', 'cons_id'),
+                secretKey: (string) $this->kredensial()->get('bpjs', 'secret_key'),
+                userKey: (string) $this->kredensial()->get('bpjs', 'user_key'),
+            );
+        });
+
+        /*
+         * Adapter Sisrute Kemenkes (domain L item P). Kredensialnya
+         * TERSENDIRI, bukan kredensial BPJS: Sisrute sistem Kemenkes dengan
+         * skema otentikasi sendiri, dan menumpang kredensial BPJS akan
+         * membuat kegagalannya tampak seperti kredensial BPJS yang salah.
+         */
+        $this->app->singleton(SisruteClient::class, function () {
+            if (! $this->kredensial()->isReady('sisrute')) {
+                return new FakeSisruteClient();
+            }
+
+            return new HttpSisruteClient(
+                baseUrl: (string) $this->kredensial()->get('sisrute', 'base_url'),
+                username: (string) $this->kredensial()->get('sisrute', 'username'),
+                password: (string) $this->kredensial()->get('sisrute', 'password'),
+                facilityCode: (string) $this->kredensial()->get('sisrute', 'facility_code'),
             );
         });
 

@@ -98,6 +98,12 @@ return [
                     . '(domain J item A, kode pembatalan_periksa_dokter). Sengaja tidak digabung ke '
                     . 'v_registration_summary: kontrak itu membuang kunjungan batal supaya billing dan klinis '
                     . 'tidak pernah menindaklanjutinya, dan invarian itu tidak boleh dilonggarkan demi laporan.',
+                'v_outgoing_referral' => 'Rujukan keluar berikut faskes tujuan, alasan, dan diagnosisnya '
+                    . '(domain L item P). Dipakai integration untuk MENGIRIM rujukan ke Sisrute tanpa '
+                    . 'menyalin isinya: rujukannya tetap milik encounter, dan yang dicatat integration cuma '
+                    . 'pengiriman berikut jawaban rumah sakit tujuan. Tanpa kontrak ini satu-satunya jalan '
+                    . 'adalah menyalin isi rujukan ke integration — dan salinan berarti dua sumber kebenaran, '
+                    . 'dengan yang dikirim ke Sisrute justru bisa jadi yang sudah basi.',
             ],
         ],
 
@@ -148,6 +154,12 @@ return [
                     . 'v_encounter_diagnosis karena satu penyakit bisa masuk beberapa kelompok; menggabungkannya '
                     . 'akan menggandakan baris diagnosis dan membuat hitungan morbiditas terlalu besar. Dipakai '
                     . 'reporting sebagai penyaring keanggotaan, bukan tabel yang ikut dijumlahkan.',
+                'v_assessment_summary' => 'Asesmen berikut empat bagian SOAP-nya, status, versi, dan waktu '
+                    . 'finalisasinya (domain L item O). Dipakai integration menyusun ClinicalImpression '
+                    . '(bagian "A") dan CarePlan (bagian "P") SATUSEHAT — keduanya berasal dari catatan yang '
+                    . 'sama, jadi satu kontrak bukan dua. Status dan finalized_at ikut diterbitkan supaya '
+                    . 'konsumen bisa menolak mengirim asesmen yang masih draf: penilaian klinis yang belum '
+                    . 'dinyatakan selesai tidak boleh tersebar ke fasilitas lain.',
             ],
         ],
 

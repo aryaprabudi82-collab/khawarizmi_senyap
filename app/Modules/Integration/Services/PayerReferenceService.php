@@ -253,8 +253,8 @@ class PayerReferenceService
      */
     private function assertPayer(string $payer): void
     {
-        if (! in_array($payer, PayerReference::PENJAMIN, true)) {
-            throw new IntegrationException("Penjamin '{$payer}' tidak dikenal.");
+        if (! in_array($payer, PayerReference::SISTEM, true)) {
+            throw new IntegrationException("Sistem referensi '{$payer}' tidak dikenal.");
         }
     }
 }

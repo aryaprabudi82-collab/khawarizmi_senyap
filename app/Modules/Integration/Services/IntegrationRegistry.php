@@ -97,6 +97,25 @@ class IntegrationRegistry
                 ],
             ],
 
+            'sisrute' => [
+                'label' => 'Sisrute Kemenkes',
+                'description' => 'Sistem Rujukan Terintegrasi: mengajukan rujukan keluar dan menjawab '
+                    . 'rujukan masuk dari rumah sakit lain. Berbeda dari rujukan BPJS yang bersifat '
+                    . 'administratif, Sisrute bersifat klinis dan dua arah.',
+                'doc' => 'Akun Sisrute diberikan Kementerian Kesehatan lewat Dinas Kesehatan provinsi.',
+                'fields' => [
+                    'base_url' => ['label' => 'Base URL Sisrute', 'secret' => false, 'required' => true, 'hint' => ''],
+                    'username' => ['label' => 'Username', 'secret' => false, 'required' => true, 'hint' => ''],
+                    'password' => ['label' => 'Password', 'secret' => true, 'required' => true, 'hint' => ''],
+                    'facility_code' => [
+                        'label' => 'Kode Faskes',
+                        'secret' => false,
+                        'required' => true,
+                        'hint' => 'Menentukan rujukan masuk mana yang ditujukan ke rumah sakit ini.',
+                    ],
+                ],
+            ],
+
             'inhealth' => [
                 'label' => 'Mandiri Inhealth',
                 'description' => 'Eligibilitas dan referensi peserta Inhealth.',

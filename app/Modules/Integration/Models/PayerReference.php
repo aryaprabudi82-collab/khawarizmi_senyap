@@ -16,7 +16,18 @@ class PayerReference extends Model
 
     protected $guarded = ['id'];
 
-    public const PENJAMIN = ['bpjs', 'bpjs-apotek', 'hfis', 'inhealth'];
+    /**
+     * Sistem luar yang daftar referensinya kita salin.
+     *
+     * Kolomnya bernama `payer` karena mekanisme ini lahir untuk penjamin,
+     * dan Sisrute (domain L item P) BUKAN penjamin — ia sistem rujukan
+     * Kemenkes. Yang menyatukan mereka bukan soal siapa yang membayar,
+     * melainkan bentuk datanya: daftar kode milik pihak lain yang kita
+     * salin dan segarkan seluruhnya. Nama konstantanya diluruskan di sini;
+     * nama kolomnya sengaja dibiarkan, karena mengubahnya menuntut migrasi
+     * dan penyesuaian setiap kueri demi perbaikan penamaan semata.
+     */
+    public const SISTEM = ['bpjs', 'bpjs-apotek', 'hfis', 'inhealth', 'sisrute'];
 
     protected function casts(): array
     {
