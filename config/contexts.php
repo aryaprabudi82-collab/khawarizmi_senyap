@@ -52,6 +52,9 @@ return [
                     . 'menilai formulir. Versi LAMA ikut diterbitkan dan itu disengaja: formulir yang diisi '
                     . 'tahun lalu harus dibaca kembali dengan pertanyaan yang berlaku waktu itu, dan kontrak '
                     . 'yang hanya memuat versi aktif akan membuat rekam medis lama kehilangan pertanyaannya.',
+                'v_fluid_item' => 'Master jenis cairan masuk & keluar berikut ARAHNYA (domain M item E). '
+                    . 'Arah melekat pada jenisnya supaya tidak bisa dikirim terpisah: urine selalu keluar, '
+                    . 'dan arah yang bisa dibalik membuka celah urine tercatat sebagai asupan.',
                 'v_observation_code' => 'Katalog jenis pengukuran yang bisa dicatat pada pasien berikut '
                     . 'satuan, tipe nilai, dan rentang BAWAANNYA (domain M item D).',
                 'v_observation_panel_item' => 'Butir panel observasi berikut rentang rujukan yang BERLAKU — '

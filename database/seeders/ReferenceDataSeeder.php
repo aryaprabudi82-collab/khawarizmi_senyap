@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Modules\Catalog\Database\Seeders\FluidItemSeeder;
 use App\Modules\Catalog\Database\Seeders\ObservationCatalogSeeder;
 use App\Modules\Catalog\Models\Payer;
 use App\Modules\Catalog\Models\Service;
@@ -32,6 +33,11 @@ class ReferenceDataSeeder extends Seeder
         // yang sama, dan panel yang jadi kode berarti tiap unit baru
         // menuntut migrasi basis data.
         $this->call(ObservationCatalogSeeder::class);
+
+        // Jenis cairan masuk/keluar (domain M item E): Khanza memasang
+        // kolom per jenis di dua tabel yang isinya nyaris sama; di sini
+        // jenis baru cukup baris baru.
+        $this->call(FluidItemSeeder::class);
 
         $this->command?->info('Data referensi: penjamin, unit, praktisi, dan tarif registrasi, tindakan & operasi disiapkan.');
         $this->command?->warn('Tarif tindakan/operasi contoh, hanya untuk penjamin Umum — perlu ditinjau ulang bersama bagian keuangan sebelum dipakai melayani pasien.');
