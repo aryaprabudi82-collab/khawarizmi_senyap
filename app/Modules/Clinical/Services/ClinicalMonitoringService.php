@@ -42,6 +42,16 @@ class ClinicalMonitoringService
 {
     private const REGISTRASI = 'encounter.v_registration_summary';
 
+    /**
+     * Kantong darah yang benar-benar dikeluarkan UTD (domain N item B).
+     *
+     * Saat item R ditulis, kontrak ini belum ada dan nomor kantong
+     * disimpan apa adanya dengan catatan terang-terangan bahwa ia belum
+     * bisa diperiksa. Sekarang bisa — dan rantai dari donor sampai
+     * pasien tersambung utuh.
+     */
+    private const KANTONG_KELUAR = 'blood.v_issued_unit';
+
     // ------------------------------------------------------ laporan tindakan
 
     /**
@@ -170,6 +180,8 @@ class ClinicalMonitoringService
             );
         }
 
+        $dikeluarkan = $this->issuedUnit($kantong, $registrationId);
+
         $tanda = $this->validSigns($data['reaction_signs'] ?? []);
         $adaReaksi = $data['reaction_occurred'] ?? null;
         $tindakan = trim($data['action_taken'] ?? '');
@@ -202,7 +214,11 @@ class ClinicalMonitoringService
             'registration_number' => $kunjungan->registration_number,
             'patient_mrn' => $kunjungan->patient_mrn,
             'patient_name' => $kunjungan->patient_name,
-            'blood_product' => $data['blood_product'] ?? 'Tidak disebutkan',
+            // Jenis komponen disalin dari kantong yang dikeluarkan bila
+            // kantongnya dikenali — bukan diketik ulang, karena "PRC"
+            // yang diketik pada kantong yang sebenarnya trombosit adalah
+            // kesalahan yang tidak akan ketahuan sampai pasien bereaksi.
+            'blood_product' => $dikeluarkan?->component ?? $data['blood_product'] ?? 'Tidak disebutkan',
             'bag_number' => $kantong,
             'insertion_site' => $data['insertion_site'] ?? null,
             'observed_at' => $data['observed_at'] ?? now(),
@@ -367,6 +383,49 @@ class ClinicalMonitoringService
     }
 
     // ------------------------------------------------------------ internal
+
+    /**
+     * Mencocokkan nomor kantong dengan kantong yang benar-benar
+     * dikeluarkan untuk kunjungan ini.
+     *
+     * DUA KESALAHAN YANG DITANGKAP, dan keduanya berbeda beratnya:
+     *
+     * Kantong yang tidak dikenal sama sekali DITOLAK — nomor yang salah
+     * ketik membuat reaksi transfusi tidak bisa ditelusuri sampai ke
+     * donornya, dan reaksi yang tidak bisa ditelusuri adalah reaksi yang
+     * tidak bisa dicegah terulang.
+     *
+     * Kantong milik pasien LAIN juga ditolak, dan ini yang lebih gawat:
+     * pemantauan yang menempel pada kantong pasien lain menandakan salah
+     * satu dari dua hal — nomornya keliru dicatat, atau darahnya
+     * benar-benar dipasang pada pasien yang salah. Keduanya menuntut
+     * pemeriksaan segera, bukan disimpan diam-diam.
+     *
+     * @throws ClinicalException
+     */
+    private function issuedUnit(string $bagNumber, int $registrationId): ?object
+    {
+        $keluar = DB::table(self::KANTONG_KELUAR)->where('unit_number', $bagNumber)->first();
+
+        if ($keluar === null) {
+            throw new ClinicalException(
+                "Nomor kantong '{$bagNumber}' tidak ditemukan pada daftar kantong yang dikeluarkan unit "
+                .'transfusi darah. Reaksi transfusi hanya bisa ditelusuri sampai ke donornya lewat nomor '
+                .'kantong yang benar.'
+            );
+        }
+
+        if ($keluar->registration_id !== null && $keluar->registration_id !== $registrationId) {
+            throw new ClinicalException(sprintf(
+                "Kantong '%s' dikeluarkan untuk %s, bukan pasien pada kunjungan ini. Periksa segera: "
+                .'entah nomornya keliru dicatat, entah darahnya dipasang pada pasien yang salah.',
+                $bagNumber,
+                $keluar->patient_name,
+            ));
+        }
+
+        return $keluar;
+    }
 
     /**
      * @param  mixed  $nilai

@@ -365,9 +365,18 @@ return [
             'schema' => 'blood',
             'module' => 'Blood',
             'description' => 'Unit Transfusi Darah: donor, unit darah dengan siklus status (karantina -> tersedia -> '
-                .'dikeluarkan), dan penyerahan ke pasien. Domain N Khanza 11 kapabilitas, bersih tanpa mis-tagging.',
+                .'dikeluarkan), dan penyerahan ke pasien. Domain N Khanza 11 kapabilitas, bersih tanpa mis-tagging. '
+                .'Sejak item A juga memegang SKRINING IMLTD per kantong (HBsAg, anti-HCV, anti-HIV, sifilis, '
+                .'malaria) dan penelusuran balik (look-back) berjenjang sampai komponen hasil pemisahan.',
             'domains' => ['N'],
-            'publishes' => [],
+            'publishes' => [
+                'v_issued_unit' => 'Kantong darah yang sudah dikeluarkan berikut penerimanya — domain N '
+                    .'item B. Dipakai clinical memeriksa nomor kantong pada pemantauan reaksi transfusi, '
+                    .'melunasi utang yang dicatat terang-terangan pada domain M item R. DATA DONOR SENGAJA '
+                    .'TIDAK IKUT: ruang perawatan tidak perlu tahu siapa pendonornya, dan menerbitkannya '
+                    .'membuka identitas donor kepada siapa pun yang bisa membaca rekam medis pasien. '
+                    .'Penelusuran ke donor tetap lewat blood, oleh petugas UTD, dengan jejaknya sendiri.',
+            ],
         ],
 
         'correspondence' => [

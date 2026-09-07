@@ -2,6 +2,10 @@
 
 namespace Tests\Feature\Clinical;
 
+use App\Modules\Blood\Services\BloodUnitService;
+use App\Modules\Blood\Services\DonorService;
+use App\Modules\Blood\Services\ScreeningService;
+use App\Modules\Blood\Services\TransfusionService;
 use App\Modules\Catalog\Models\Payer;
 use App\Modules\Clinical\Models\DengueMonitoring;
 use App\Modules\Clinical\Models\GlucoseMonitoring;
@@ -134,15 +138,63 @@ class ClinicalMonitoringTest extends TestCase
     // ============================================== transfusi
 
     #[Test]
+    public function nomor_kantong_diperiksa_terhadap_kantong_yang_benar_benar_dikeluarkan(): void
+    {
+        $kunjungan = $this->daftarkan();
+
+        // Utang yang dicatat terang-terangan saat item R ditulis kini
+        // lunas: domain N item B menerbitkan blood.v_issued_unit.
+        $this->expectException(ClinicalException::class);
+        $this->expectExceptionMessageMatches('/tidak ditemukan pada daftar kantong yang dikeluarkan/');
+
+        $this->pemantauan->monitorTransfusion($kunjungan->id, [
+            'bag_number' => 'KTG-KARANGAN', 'phase' => 'sebelum',
+        ], $this->perawat);
+    }
+
+    #[Test]
+    public function kantong_milik_pasien_lain_ditolak(): void
+    {
+        $kunjungan = $this->daftarkan();
+        $lain = $this->daftarkan();
+        $kantongLain = $this->kantongUntuk($lain);
+
+        // Yang lebih gawat dari salah ketik: entah nomornya keliru,
+        // entah darahnya dipasang pada pasien yang salah.
+        $this->expectException(ClinicalException::class);
+        $this->expectExceptionMessageMatches('/dipasang pada pasien yang salah/');
+
+        $this->pemantauan->monitorTransfusion($kunjungan->id, [
+            'bag_number' => $kantongLain, 'phase' => 'sebelum',
+        ], $this->perawat);
+    }
+
+    #[Test]
+    public function jenis_komponen_disalin_dari_kantong_yang_dikeluarkan(): void
+    {
+        $kunjungan = $this->daftarkan();
+        $kantong = $this->kantongUntuk($kunjungan, 'prc');
+
+        // "PRC" yang diketik pada kantong yang sebenarnya trombosit
+        // adalah kesalahan yang tidak ketahuan sampai pasien bereaksi.
+        $pemantauan = $this->pemantauan->monitorTransfusion($kunjungan->id, [
+            'bag_number' => $kantong, 'blood_product' => 'Trombosit', 'phase' => 'sebelum',
+        ], $this->perawat);
+
+        $this->assertSame('prc', $pemantauan->blood_product);
+    }
+
+    #[Test]
     public function reaksi_transfusi_wajib_menyebut_tanda_dan_tindakannya(): void
     {
         $kunjungan = $this->daftarkan();
+        $kantong = $this->kantongUntuk($kunjungan);
 
         $this->expectException(ClinicalException::class);
         $this->expectExceptionMessageMatches('/reaksi hemolitik yang mengancam nyawa/');
 
         $this->pemantauan->monitorTransfusion($kunjungan->id, [
-            'blood_product' => 'PRC', 'bag_number' => 'KTG-001',
+            'bag_number' => $kantong,
             'phase' => '15-menit', 'reaction_occurred' => true,
         ], $this->perawat);
     }
@@ -151,12 +203,13 @@ class ClinicalMonitoringTest extends TestCase
     public function reaksi_yang_disebut_tandanya_tetap_menuntut_tindakan(): void
     {
         $kunjungan = $this->daftarkan();
+        $kantong = $this->kantongUntuk($kunjungan);
 
         $this->expectException(ClinicalException::class);
         $this->expectExceptionMessageMatches('/tidak membuktikan itu dilakukan/');
 
         $this->pemantauan->monitorTransfusion($kunjungan->id, [
-            'blood_product' => 'PRC', 'bag_number' => 'KTG-002',
+            'bag_number' => $kantong,
             'phase' => '15-menit', 'reaction_occurred' => true,
             'reaction_signs' => ['demam', 'menggigil'],
         ], $this->perawat);
@@ -166,9 +219,10 @@ class ClinicalMonitoringTest extends TestCase
     public function tanda_berat_bisa_ditandai(): void
     {
         $kunjungan = $this->daftarkan();
+        $kantong = $this->kantongUntuk($kunjungan);
 
         $pemantauan = $this->pemantauan->monitorTransfusion($kunjungan->id, [
-            'blood_product' => 'PRC', 'bag_number' => 'KTG-003',
+            'bag_number' => $kantong,
             'phase' => '15-menit', 'reaction_occurred' => true,
             'reaction_signs' => ['nyeri-pinggang', 'urine-gelap', 'gatal'],
             'reaction_severity' => 'berat',
@@ -186,9 +240,10 @@ class ClinicalMonitoringTest extends TestCase
     public function belum_dinilai_bukan_berarti_tidak_ada_reaksi(): void
     {
         $kunjungan = $this->daftarkan();
+        $kantong = $this->kantongUntuk($kunjungan);
 
         $pemantauan = $this->pemantauan->monitorTransfusion($kunjungan->id, [
-            'blood_product' => 'PRC', 'bag_number' => 'KTG-004', 'phase' => 'sebelum',
+            'bag_number' => $kantong, 'phase' => 'sebelum',
         ], $this->perawat);
 
         $this->assertNull($pemantauan->reaction_occurred);
@@ -199,18 +254,20 @@ class ClinicalMonitoringTest extends TestCase
     public function pemantauan_satu_kantong_bisa_dibaca_berurutan(): void
     {
         $kunjungan = $this->daftarkan();
+        $kantong = $this->kantongUntuk($kunjungan);
 
         foreach (['sebelum', '15-menit', 'selesai'] as $i => $tahap) {
             $this->pemantauan->monitorTransfusion($kunjungan->id, [
-                'blood_product' => 'PRC', 'bag_number' => 'KTG-005', 'phase' => $tahap,
+                'bag_number' => $kantong, 'phase' => $tahap,
                 'observed_at' => now()->addMinutes($i * 15),
                 'reaction_occurred' => false,
             ], $this->perawat);
         }
 
+        // Rantainya kini utuh: donor -> kantong -> pasien -> reaksi.
         $this->assertSame(
             ['sebelum', '15-menit', 'selesai'],
-            $this->pemantauan->transfusionTrail('KTG-005')->pluck('phase')->all()
+            $this->pemantauan->transfusionTrail($kantong)->pluck('phase')->all()
         );
     }
 
@@ -223,7 +280,7 @@ class ClinicalMonitoringTest extends TestCase
         $this->expectExceptionMessageMatches('/sampai ke donornya/');
 
         $this->pemantauan->monitorTransfusion($kunjungan->id, [
-            'blood_product' => 'PRC', 'bag_number' => '  ', 'phase' => 'sebelum',
+            'bag_number' => '  ', 'phase' => 'sebelum',
         ], $this->perawat);
     }
 
@@ -231,12 +288,13 @@ class ClinicalMonitoringTest extends TestCase
     public function tanda_reaksi_di_luar_kosakata_ditolak(): void
     {
         $kunjungan = $this->daftarkan();
+        $kantong = $this->kantongUntuk($kunjungan);
 
         $this->expectException(ClinicalException::class);
         $this->expectExceptionMessageMatches('/tidak dikenali: kesemutan/');
 
         $this->pemantauan->monitorTransfusion($kunjungan->id, [
-            'blood_product' => 'PRC', 'bag_number' => 'KTG-006', 'phase' => 'selama',
+            'bag_number' => $kantong, 'phase' => 'selama',
             'reaction_occurred' => true, 'reaction_signs' => ['demam', 'kesemutan'],
             'action_taken' => 'Dihentikan.',
         ], $this->perawat);
@@ -457,6 +515,51 @@ class ClinicalMonitoringTest extends TestCase
     }
 
     // ---------------------------------------------------------------- fixture
+
+    /**
+     * Menyiapkan satu kantong darah yang benar-benar dikeluarkan untuk
+     * kunjungan ini — lengkap dari pendonor, skrining IMLTD, rilis,
+     * sampai penyerahan.
+     *
+     * Panjang, dan memang harus: sejak domain N item B nomor kantong
+     * diperiksa terhadap kantong yang sungguh ada, jadi nomor karangan
+     * tidak lagi bisa dipakai menguji pemantauan reaksi transfusi.
+     */
+    private function kantongUntuk(Registration $kunjungan, string $komponen = 'prc'): string
+    {
+        static $urut = 0;
+        $urut++;
+
+        $donor = app(DonorService::class)->register([
+            'name' => 'Pendonor Pemantauan '.$urut,
+            'blood_type' => 'O', 'rhesus' => '+', 'sex' => 'L', 'birth_date' => '1990-01-01',
+        ]);
+
+        $unit = app(BloodUnitService::class)->collect([
+            'donor_id' => $donor->id,
+            'blood_type' => 'O', 'rhesus' => '+',
+            'component' => $komponen, 'volume_ml' => 250,
+            'collected_at' => now()->subDay(),
+            'expiry_date' => now()->addDays(30)->toDateString(),
+        ]);
+
+        $skrining = app(ScreeningService::class);
+        $skrining->screen($unit, [
+            'hbsag' => 'non-reaktif', 'anti_hcv' => 'non-reaktif', 'anti_hiv' => 'non-reaktif',
+            'syphilis' => 'non-reaktif', 'malaria' => 'non-reaktif',
+        ], $this->perawat);
+        $skrining->releaseAfterScreening($unit->refresh(), $this->perawat);
+
+        app(TransfusionService::class)->issue(
+            $unit->refresh(),
+            $kunjungan->patient_name,
+            $this->perawat,
+            $kunjungan->patient_id,
+            $kunjungan->id,
+        );
+
+        return $unit->unit_number;
+    }
 
     private function laporanFinal(): ProcedureReport
     {

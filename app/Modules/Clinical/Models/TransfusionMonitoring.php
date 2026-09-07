@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * Pemantauan reaksi transfusi.
  *
- * NOMOR KANTONG BELUM BISA DIPERIKSA terhadap kantong yang benar-benar
- * dikeluarkan unit transfusi darah: domain N belum digarap. Disimpan apa
- * adanya, dan pemeriksaannya ditambahkan saat domain N dibangun —
- * bukan dikarang sekarang.
+ * NOMOR KANTONG DIPERIKSA terhadap blood.v_issued_unit sejak domain N
+ * item B: kantong harus benar-benar dikeluarkan unit transfusi darah,
+ * dan dikeluarkan untuk kunjungan ini. Saat item ini pertama ditulis
+ * pemeriksaan itu belum ada dan dinyatakan terang-terangan sebagai
+ * utang; utangnya sudah lunas.
  */
 class TransfusionMonitoring extends Model
 {
