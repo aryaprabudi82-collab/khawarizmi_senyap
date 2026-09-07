@@ -10,12 +10,18 @@ use App\Modules\Integration\Services\Bpjs\BpjsQueueClient;
 use App\Modules\Integration\Services\Bpjs\ClaimClient;
 use App\Modules\Integration\Services\Bpjs\QueueClient;
 use App\Modules\Integration\Services\Bpjs\BpjsAplicaresClient;
+use App\Modules\Integration\Services\Bpjs\BpjsAccidentClient;
+use App\Modules\Integration\Services\Bpjs\BpjsMemberClient;
 use App\Modules\Integration\Services\Bpjs\BpjsReferralClient;
+use App\Modules\Integration\Services\Bpjs\BpjsVclaimAccidentClient;
+use App\Modules\Integration\Services\Bpjs\BpjsVclaimMemberClient;
 use App\Modules\Integration\Services\Bpjs\BpjsVclaimReferralClient;
 use App\Modules\Integration\Services\Bpjs\FakeAplicaresClient;
 use App\Modules\Integration\Services\Bpjs\FakeClaimClient;
 use App\Modules\Integration\Services\Bpjs\FakeQueueClient;
+use App\Modules\Integration\Services\Bpjs\FakeBpjsAccidentClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsClient;
+use App\Modules\Integration\Services\Bpjs\FakeBpjsMemberClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsReferralClient;
 use App\Modules\Integration\Services\CredentialStore;
 use App\Modules\Integration\Services\Satusehat\FakeSatusehatClient;
@@ -80,6 +86,39 @@ class IntegrationServiceProvider extends ModuleServiceProvider
             }
 
             return new BpjsVclaimReferralClient(
+                baseUrl: (string) $this->kredensial()->get('bpjs', 'base_url'),
+                consId: (string) $this->kredensial()->get('bpjs', 'cons_id'),
+                secretKey: (string) $this->kredensial()->get('bpjs', 'secret_key'),
+                userKey: (string) $this->kredensial()->get('bpjs', 'user_key'),
+            );
+        });
+
+        /*
+         * Adapter pencarian & riwayat peserta (domain L item J) — alasan
+         * pemisahannya sama seperti adapter rujukan di atas.
+         */
+        $this->app->singleton(BpjsMemberClient::class, function () {
+            if (! $this->kredensial()->isReady('bpjs')) {
+                return new FakeBpjsMemberClient();
+            }
+
+            return new BpjsVclaimMemberClient(
+                baseUrl: (string) $this->kredensial()->get('bpjs', 'base_url'),
+                consId: (string) $this->kredensial()->get('bpjs', 'cons_id'),
+                secretKey: (string) $this->kredensial()->get('bpjs', 'secret_key'),
+                userKey: (string) $this->kredensial()->get('bpjs', 'user_key'),
+            );
+        });
+
+        /*
+         * Adapter kecelakaan & Jasa Raharja (domain L item K).
+         */
+        $this->app->singleton(BpjsAccidentClient::class, function () {
+            if (! $this->kredensial()->isReady('bpjs')) {
+                return new FakeBpjsAccidentClient();
+            }
+
+            return new BpjsVclaimAccidentClient(
                 baseUrl: (string) $this->kredensial()->get('bpjs', 'base_url'),
                 consId: (string) $this->kredensial()->get('bpjs', 'cons_id'),
                 secretKey: (string) $this->kredensial()->get('bpjs', 'secret_key'),
