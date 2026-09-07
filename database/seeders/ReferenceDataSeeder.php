@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Modules\Catalog\Database\Seeders\FluidItemSeeder;
 use App\Modules\Catalog\Database\Seeders\ObservationCatalogSeeder;
+use App\Modules\Catalog\Database\Seeders\StandardInstrumentSeeder;
 use App\Modules\Catalog\Models\Payer;
 use App\Modules\Catalog\Models\Service;
 use App\Modules\Catalog\Models\Tariff;
@@ -38,6 +39,14 @@ class ReferenceDataSeeder extends Seeder
         // kolom per jenis di dua tabel yang isinya nyaris sama; di sini
         // jenis baru cukup baris baru.
         $this->call(FluidItemSeeder::class);
+
+        // Instrumen skrining & pengkajian BAKU (domain M item F). Hanya yang
+        // isinya memang sudah tertentu karena terbit sebagai instrumen —
+        // Morse, Braden, Aldrete, dan seterusnya. Formulir khas rumah sakit
+        // TIDAK disemai: isinya keputusan komite medik, dan mengarangnya
+        // menghasilkan formulir yang tampak resmi tapi tak pernah disepakati.
+        // Seluruhnya masuk BELUM DISAHKAN.
+        $this->call(StandardInstrumentSeeder::class);
 
         $this->command?->info('Data referensi: penjamin, unit, praktisi, dan tarif registrasi, tindakan & operasi disiapkan.');
         $this->command?->warn('Tarif tindakan/operasi contoh, hanya untuk penjamin Umum — perlu ditinjau ulang bersama bagian keuangan sebelum dipakai melayani pasien.');

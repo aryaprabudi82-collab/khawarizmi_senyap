@@ -31,6 +31,7 @@ class FormResponse extends Model
             'recorded_at' => 'datetime',
             'finalized_at' => 'datetime',
             'is_repeatable' => 'boolean',
+            'template_approved' => 'boolean',
         ];
     }
 

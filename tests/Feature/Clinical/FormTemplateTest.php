@@ -359,11 +359,11 @@ class FormTemplateTest extends TestCase
         $this->buatEws();
         $registrasi = $this->daftarkan();
 
-        $pertama = $this->formulir->open($registrasi->id, 'ews-dewasa', $this->perawat);
-        $kedua = $this->formulir->open($registrasi->id, 'ews-dewasa', $this->perawat);
+        $pertama = $this->formulir->open($registrasi->id, 'ews-uji', $this->perawat);
+        $kedua = $this->formulir->open($registrasi->id, 'ews-uji', $this->perawat);
 
         $this->assertNotSame($pertama->id, $kedua->id);
-        $this->assertSame(2, FormResponse::query()->where('template_code', 'ews-dewasa')->count());
+        $this->assertSame(2, FormResponse::query()->where('template_code', 'ews-uji')->count());
     }
 
     /** Sifat berulang dibekukan di jawabannya, bukan dibaca dari template. */
@@ -371,14 +371,14 @@ class FormTemplateTest extends TestCase
     public function sifat_berulang_dibekukan_pada_jawabannya(): void
     {
         $this->buatEws();
-        $f = $this->formulir->open($this->daftarkan()->id, 'ews-dewasa');
+        $f = $this->formulir->open($this->daftarkan()->id, 'ews-uji');
 
         $this->assertTrue($f->is_repeatable);
 
         // Template diubah jadi sekali-isi; jawaban lama tidak ikut berubah
         // dan tidak mendadak melanggar aturan yang belum berlaku saat ia
         // ditulis.
-        $this->templates->revise('ews-dewasa', ['is_repeatable' => false]);
+        $this->templates->revise('ews-uji', ['is_repeatable' => false]);
 
         $this->assertTrue($f->refresh()->is_repeatable);
     }
@@ -402,10 +402,10 @@ class FormTemplateTest extends TestCase
         $this->buatEws();
         $registrasi = $this->daftarkan();
 
-        $pagi = $this->formulir->open($registrasi->id, 'ews-dewasa');
+        $pagi = $this->formulir->open($registrasi->id, 'ews-uji');
         $this->formulir->save($pagi, ['laju_respirasi' => '12-20', 'kesadaran' => 'sadar']);
 
-        $malam = $this->formulir->open($registrasi->id, 'ews-dewasa');
+        $malam = $this->formulir->open($registrasi->id, 'ews-uji');
         $this->formulir->save($malam, ['laju_respirasi' => '25-34', 'kesadaran' => 'nyeri-verbal']);
 
         $this->assertSame(0, $pagi->refresh()->score);
@@ -491,7 +491,7 @@ class FormTemplateTest extends TestCase
     private function buatEws(): FormTemplate
     {
         return $this->templates->create([
-            'code' => 'ews-dewasa',
+            'code' => 'ews-uji',
             'name' => 'Early Warning Score Dewasa',
             'category' => FormTemplate::PENGKAJIAN_LANJUTAN,
             'is_repeatable' => true,

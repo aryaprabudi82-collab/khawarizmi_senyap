@@ -91,6 +91,10 @@ class FormResponseService
             'category' => $template->category,
             // Dibekukan bersama versinya — lihat catatan migrasi.
             'is_repeatable' => (bool) $template->is_repeatable,
+            // Status pengesahan SAAT formulir dibuka, bukan saat dibaca:
+            // pengesahan yang terjadi hari ini tidak boleh membuat jawaban
+            // tahun lalu tampak seolah dibuat dengan formulir yang sah.
+            'template_approved' => (bool) ($template->is_approved ?? false),
             'answers' => [],
             'status' => FormResponse::DRAF,
             'recorded_by' => $actor?->id,

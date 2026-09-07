@@ -40,6 +40,8 @@ class FormTemplate extends Model
             'scoring' => 'array',
             'is_active' => 'boolean',
             'is_repeatable' => 'boolean',
+            'is_approved' => 'boolean',
+            'approved_at' => 'datetime',
         ];
     }
 

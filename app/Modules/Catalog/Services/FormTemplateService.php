@@ -94,10 +94,76 @@ class FormTemplateService
                 'scoring' => array_key_exists('scoring', $data) ? $data['scoring'] : $aktif->scoring,
                 'is_repeatable' => (bool) ($data['is_repeatable'] ?? $aktif->is_repeatable),
                 'note' => $data['note'] ?? $aktif->note,
+                // Versi baru adalah pertanyaan baru; pengesahan versi lama
+                // TIDAK ikut terbawa. Kalau terbawa, satu revisi diam-diam
+                // bisa mengubah isi formulir yang sudah disahkan tanpa ada
+                // yang menyetujuinya.
+                'is_approved' => false,
                 'is_active' => true,
                 'created_by' => $actorId,
             ]);
         });
+    }
+
+    /**
+     * Mengesahkan satu versi template.
+     *
+     * PENGESAHAN ADALAH PERBUATAN RUMAH SAKIT, bukan sifat bawaan
+     * template. Instrumen baku seperti Morse atau Braden memang sahih
+     * sebagai instrumen — tapi yang belum terjadi adalah RSP UI
+     * MENGADOPSINYA, dan kesetiaan pada instrumen aslinya tidak
+     * menggantikan keputusan itu.
+     *
+     * NOMOR KEPUTUSAN WAJIB DISEBUT. Pengesahan tanpa rujukan berita acara
+     * tidak bisa ditelusuri saat ditanya auditor siapa yang menyetujui,
+     * dan pengesahan yang tidak bisa ditelusuri sama saja dengan tidak ada.
+     *
+     * @throws CatalogException
+     */
+    public function approve(string $code, string $approvalNote, ?int $actorId = null, ?string $actorName = null): FormTemplate
+    {
+        $aktif = $this->active($code)
+            ?? throw new CatalogException("Template '{$code}' tidak punya versi aktif untuk disahkan.");
+
+        $rujukan = trim($approvalNote);
+
+        if ($rujukan === '') {
+            throw new CatalogException(
+                'Nomor keputusan atau berita acara pengesahan wajib disebut: pengesahan yang tidak bisa '
+                . 'ditelusuri sama saja dengan tidak ada.'
+            );
+        }
+
+        if ($aktif->is_approved) {
+            throw new CatalogException("Versi {$aktif->version} template '{$code}' sudah disahkan.");
+        }
+
+        $aktif->update([
+            'is_approved' => true,
+            'approved_at' => now(),
+            'approved_by' => $actorId,
+            'approved_by_name' => $actorName,
+            'approval_note' => $rujukan,
+        ]);
+
+        return $aktif->refresh();
+    }
+
+    /**
+     * Template aktif yang belum disahkan komite medik.
+     *
+     * Inilah daftar yang menjawab "formulir mana yang dipakai tapi belum
+     * pernah disetujui siapa pun" — pertanyaan yang selalu muncul saat
+     * akreditasi.
+     */
+    public function pendingApproval(): Collection
+    {
+        return FormTemplate::query()
+            ->where('is_active', true)
+            ->where('is_approved', false)
+            ->orderBy('category')
+            ->orderBy('name')
+            ->get();
     }
 
     /**
