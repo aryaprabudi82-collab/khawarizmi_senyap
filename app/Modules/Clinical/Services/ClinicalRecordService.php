@@ -28,6 +28,7 @@ class ClinicalRecordService
     public function __construct(
         private readonly RegistrationContext $registrations,
         private readonly TariffLookup $tariffs,
+        private readonly ObservationCatalogContext $observationCatalog,
     ) {}
 
     /**
@@ -158,12 +159,19 @@ class ClinicalRecordService
         $waktu = now();
         $baris = [];
 
+        // Katalog pengukuran dibaca dari data sejak domain M item D, bukan
+        // dari konstanta: rentang normal berbeda menurut kelompok umur, dan
+        // konstanta tidak bisa menyatakan itu.
+        $katalog = $this->observationCatalog->codes();
+
         foreach ($values as $code => $value) {
-            if ($value === null || $value === '' || ! isset(Observation::CATALOG[$code])) {
+            if ($value === null || $value === '' || ! $katalog->has($code)) {
                 continue;
             }
 
-            [$display, $unit] = Observation::CATALOG[$code];
+            $kode = $katalog->get($code);
+            $display = $kode->display;
+            $unit = $kode->unit;
             $numeric = (float) $value;
 
             $baris[] = [
@@ -175,7 +183,7 @@ class ClinicalRecordService
                 'display' => $display,
                 'value_numeric' => $numeric,
                 'unit' => $unit,
-                'is_abnormal' => Observation::isAbnormal($code, $numeric),
+                'is_abnormal' => $this->observationCatalog->isAbnormal($kode, $numeric),
                 'practitioner_id' => $assessment->practitioner_id,
                 'created_by' => $actor?->id,
                 'created_at' => $waktu,

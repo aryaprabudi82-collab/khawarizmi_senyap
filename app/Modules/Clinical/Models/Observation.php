@@ -19,19 +19,20 @@ class Observation extends Model
 
     protected $guarded = ['id'];
 
-    /** Katalog pengukuran yang dipakai layar pemeriksaan rawat jalan. */
-    public const CATALOG = [
-        'tekanan-darah-sistolik'  => ['Tekanan darah sistolik', 'mmHg', 90, 140],
-        'tekanan-darah-diastolik' => ['Tekanan darah diastolik', 'mmHg', 60, 90],
-        'nadi'                    => ['Denyut nadi', 'x/menit', 60, 100],
-        'laju-napas'              => ['Laju napas', 'x/menit', 12, 20],
-        'suhu'                    => ['Suhu tubuh', '°C', 36.0, 37.5],
-        'saturasi-oksigen'        => ['Saturasi oksigen', '%', 95, 100],
-        'berat-badan'             => ['Berat badan', 'kg', null, null],
-        'tinggi-badan'            => ['Tinggi badan', 'cm', null, null],
-        'skala-nyeri'             => ['Skala nyeri', '0-10', 0, 3],
-    ];
-
+    /*
+     * KATALOG PENGUKURAN DIPINDAH KE DATA (domain M item D).
+     *
+     * Dulu ia konstanta di kelas ini dengan sembilan pengukuran. Domain M
+     * menuntut jauh lebih banyak — GCS, setelan ventilator, gula darah,
+     * denyut jantung janin — dan yang lebih menentukan: rentang normalnya
+     * BERBEDA menurut kelompok umur. Laju napas 40 normal pada neonatus
+     * dan gawat pada dewasa, dan konstanta tidak bisa menyatakan itu.
+     *
+     * Sekarang katalognya ada di catalog.observation_codes berikut
+     * panelnya, dan rentang yang berlaku dibaca lewat
+     * ObservationCatalogContext. isAbnormal() ikut pindah ke sana karena
+     * jawabannya bergantung pada PANEL, bukan cuma pada kodenya.
+     */
     protected function casts(): array
     {
         return [
@@ -41,19 +42,4 @@ class Observation extends Model
         ];
     }
 
-    /** Apakah nilai berada di luar rentang rujukan katalog. */
-    public static function isAbnormal(string $code, ?float $value): bool
-    {
-        if ($value === null || ! isset(self::CATALOG[$code])) {
-            return false;
-        }
-
-        [, , $min, $max] = self::CATALOG[$code];
-
-        if ($min === null || $max === null) {
-            return false;
-        }
-
-        return $value < $min || $value > $max;
-    }
 }

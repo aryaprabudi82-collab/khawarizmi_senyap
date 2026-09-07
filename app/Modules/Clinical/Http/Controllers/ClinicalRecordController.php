@@ -6,9 +6,9 @@ use App\Modules\Catalog\Services\TariffLookup;
 use App\Modules\Clinical\Models\Assessment;
 use App\Modules\Clinical\Models\Diagnosis;
 use App\Modules\Clinical\Models\DiagnosisCode;
-use App\Modules\Clinical\Models\Observation;
 use App\Modules\Clinical\Services\ClinicalException;
 use App\Modules\Clinical\Services\ClinicalRecordService;
+use App\Modules\Clinical\Services\ObservationCatalogContext;
 use App\Modules\Clinical\Services\RegistrationContext;
 use App\Modules\Organization\Services\OrganizationDirectory;
 use Carbon\CarbonImmutable;
@@ -23,6 +23,7 @@ class ClinicalRecordController
         private readonly RegistrationContext $registrations,
         private readonly OrganizationDirectory $organization,
         private readonly TariffLookup $tariffs,
+        private readonly ObservationCatalogContext $observationCatalog,
     ) {}
 
     /** Daftar pasien yang menunggu diperiksa. */
@@ -68,7 +69,10 @@ class ClinicalRecordController
             'assessment' => $assessment,
             'kunjungan' => $this->registrations->find($registrasi),
             'observasi' => $this->records->latestObservations($registrasi),
-            'katalogObservasi' => Observation::CATALOG,
+            // Layar pemeriksaan rawat jalan cuma mengukur tanda vital dan
+            // antropometri — setelan ventilator di sini bukan cuma
+            // mengganggu, ia mengundang pengisian yang tidak berarti.
+            'katalogObservasi' => $this->observationCatalog->codesInCategories(['tanda-vital', 'antropometri']),
             'diagnosis' => $this->records->diagnosesFor($registrasi),
             'alergi' => $this->records->allergiesFor($assessment->patient_id),
             'riwayat' => $this->registrations->historyFor($assessment->patient_id, 10),

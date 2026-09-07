@@ -296,21 +296,23 @@
         <div class="card-header"><h3 class="card-title">Tanda vital</h3></div>
         <div class="card-body">
           <div class="row g-3">
-            @foreach ($katalogObservasi as $kode => [$label, $satuan, $min, $max])
+            @foreach ($katalogObservasi as $kode => $ukuran)
               <div class="col-6 col-md-4">
-                <label class="form-label" for="vital-{{ $kode }}">{{ $label }}</label>
+                <label class="form-label" for="vital-{{ $kode }}">{{ $ukuran->display }}</label>
                 <div class="input-group input-group-flat">
                   <input type="number" step="0.01" id="vital-{{ $kode }}" name="vital[{{ $kode }}]"
                          class="form-control" placeholder="—">
-                  <span class="input-group-text">{{ $satuan }}</span>
+                  <span class="input-group-text">{{ $ukuran->unit }}</span>
                 </div>
                 @if (isset($observasi[$kode]))
                   <div class="form-hint {{ $observasi[$kode]->is_abnormal ? 'text-danger' : '' }}">
-                    Terakhir: {{ rtrim(rtrim($observasi[$kode]->value_numeric, '0'), '.') }} {{ $satuan }}
+                    Terakhir: {{ rtrim(rtrim($observasi[$kode]->value_numeric, '0'), '.') }} {{ $ukuran->unit }}
                     @if ($observasi[$kode]->is_abnormal) · di luar rentang @endif
                   </div>
-                @elseif ($min !== null)
-                  <div class="form-hint">Rujukan {{ $min }}–{{ $max }}</div>
+                @elseif ($ukuran->reference_low !== null)
+                  <div class="form-hint">
+                    Rujukan {{ rtrim(rtrim($ukuran->reference_low, '0'), '.') }}&ndash;{{ rtrim(rtrim($ukuran->reference_high, '0'), '.') }}
+                  </div>
                 @endif
               </div>
             @endforeach

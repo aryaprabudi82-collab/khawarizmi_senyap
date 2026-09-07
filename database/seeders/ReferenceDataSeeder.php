@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Modules\Catalog\Database\Seeders\ObservationCatalogSeeder;
 use App\Modules\Catalog\Models\Payer;
 use App\Modules\Catalog\Models\Service;
 use App\Modules\Catalog\Models\Tariff;
@@ -25,6 +26,12 @@ class ReferenceDataSeeder extends Seeder
         $this->seedRegistrationTariffs();
         $this->seedProcedureTariffs();
         $this->seedOperationTariffs();
+
+        // Katalog observasi jadi data sejak domain M item D: 12 kode
+        // catatan_observasi_* Khanza adalah panel berbeda dari pengukuran
+        // yang sama, dan panel yang jadi kode berarti tiap unit baru
+        // menuntut migrasi basis data.
+        $this->call(ObservationCatalogSeeder::class);
 
         $this->command?->info('Data referensi: penjamin, unit, praktisi, dan tarif registrasi, tindakan & operasi disiapkan.');
         $this->command?->warn('Tarif tindakan/operasi contoh, hanya untuk penjamin Umum — perlu ditinjau ulang bersama bagian keuangan sebelum dipakai melayani pasien.');

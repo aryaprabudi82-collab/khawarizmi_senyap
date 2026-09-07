@@ -52,6 +52,13 @@ return [
                     . 'menilai formulir. Versi LAMA ikut diterbitkan dan itu disengaja: formulir yang diisi '
                     . 'tahun lalu harus dibaca kembali dengan pertanyaan yang berlaku waktu itu, dan kontrak '
                     . 'yang hanya memuat versi aktif akan membuat rekam medis lama kehilangan pertanyaannya.',
+                'v_observation_code' => 'Katalog jenis pengukuran yang bisa dicatat pada pasien berikut '
+                    . 'satuan, tipe nilai, dan rentang BAWAANNYA (domain M item D).',
+                'v_observation_panel_item' => 'Butir panel observasi berikut rentang rujukan yang BERLAKU — '
+                    . 'rentang panel bila diisi, kalau tidak rentang bawaan kodenya (domain M item D). '
+                    . 'Penggabungan itu dilakukan di kontrak, bukan diserahkan ke tiap konsumen: aturan '
+                    . '"rentang panel mengalahkan bawaan" yang ditemukan ulang di banyak tempat akan benar '
+                    . 'di sebagian tempat saja, dan yang salah menandai seluruh bayi abnormal sepanjang hari.',
                 'v_nursing_problem' => 'Master masalah keperawatan (diagnosis keperawatan) berikut '
                     . 'spesialisasi dan kode SDKI-nya bila ada — domain M item B. Menaungi 8 tabel master '
                     . 'Khanza yang berbentuk identik dan cuma berbeda spesialisasinya.',
