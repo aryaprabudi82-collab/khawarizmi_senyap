@@ -61,17 +61,22 @@ class FormResponseService
         $kunjungan = DB::table(self::REGISTRASI)->where('id', $registrationId)->first()
             ?? throw new ClinicalException('Kunjungan tidak ditemukan atau sudah dibatalkan.');
 
-        $berjalan = FormResponse::query()
-            ->where('registration_id', $registrationId)
-            ->where('template_code', $templateCode)
-            ->where('status', '<>', FormResponse::DIBATALKAN)
-            ->first();
-
-        if ($berjalan !== null) {
-            return $berjalan;
-        }
-
         $template = $this->activeTemplate($templateCode);
+
+        // Instrumen yang memang dinilai berulang SELALU membuka lembar
+        // baru: melanjutkan draf lama akan menimpa penilaian sebelumnya,
+        // dan yang hilang justru penilaian yang menangkap perburukan.
+        if (! $template->is_repeatable) {
+            $berjalan = FormResponse::query()
+                ->where('registration_id', $registrationId)
+                ->where('template_code', $templateCode)
+                ->where('status', '<>', FormResponse::DIBATALKAN)
+                ->first();
+
+            if ($berjalan !== null) {
+                return $berjalan;
+            }
+        }
 
         return FormResponse::query()->create([
             'registration_id' => $registrationId,
@@ -84,6 +89,8 @@ class FormResponseService
             'template_version' => $template->version,
             'template_name' => $template->name,
             'category' => $template->category,
+            // Dibekukan bersama versinya — lihat catatan migrasi.
+            'is_repeatable' => (bool) $template->is_repeatable,
             'answers' => [],
             'status' => FormResponse::DRAF,
             'recorded_by' => $actor?->id,

@@ -123,10 +123,23 @@ class SatusehatMedicationTest extends TestCase
         $this->assertSame($hasilPertama['medication'], $hasilKedua['medication']);
 
         // Dua obat, bukan empat — meski diresepkan dua kali.
-        $this->assertSame(2, OutboundMessage::query()->where('resource_type', 'medication')->count());
+        //
+        // Yang dihitung RESOURCE-nya, bukan baris buku kirim: buku kirim
+        // memang mencatat tiap PERCOBAAN, dan dua resep dengan waktu tulis
+        // berbeda sah punya dua baris untuk obat yang sama. Yang tidak boleh
+        // berlipat adalah resource di sisi SATUSEHAT.
+        $this->assertCount(2, OutboundMessage::query()
+            ->where('resource_type', 'medication')
+            ->pluck('external_reference')
+            ->unique());
 
-        // Resepnya sendiri tetap dua, masing-masing dengan permintaannya.
-        $this->assertSame(4, OutboundMessage::query()->where('resource_type', 'medicationrequest')->count());
+        // Resepnya sendiri tetap dua, masing-masing dengan permintaannya —
+        // dan MedicationRequest memang harus berlipat, karena resepnya
+        // memang dua.
+        $this->assertCount(4, OutboundMessage::query()
+            ->where('resource_type', 'medicationrequest')
+            ->pluck('external_reference')
+            ->unique());
     }
 
     /**

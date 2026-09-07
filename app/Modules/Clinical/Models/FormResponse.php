@@ -30,6 +30,7 @@ class FormResponse extends Model
             'answers' => 'array',
             'recorded_at' => 'datetime',
             'finalized_at' => 'datetime',
+            'is_repeatable' => 'boolean',
         ];
     }
 

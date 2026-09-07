@@ -39,6 +39,7 @@ class FormTemplate extends Model
             'sections' => 'array',
             'scoring' => 'array',
             'is_active' => 'boolean',
+            'is_repeatable' => 'boolean',
         ];
     }
 

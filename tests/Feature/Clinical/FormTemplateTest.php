@@ -344,6 +344,79 @@ class FormTemplateTest extends TestCase
         $f->update(['status' => FormResponse::FINAL]);
     }
 
+    // ------------------------------------------------------ template berulang
+
+    /**
+     * KOREKSI TERHADAP ATURAN ITEM A. "Satu formulir per kunjungan" benar
+     * untuk asesmen, tapi Early Warning Score dinilai setiap beberapa jam
+     * — itulah gunanya: menangkap perburukan yang tidak terlihat pada satu
+     * titik waktu. Aturan lama akan menahan penilaian kedua, dan pasien
+     * yang memburuk pukul tiga pagi tidak akan punya barisnya.
+     */
+    #[Test]
+    public function instrumen_berulang_membuka_lembar_baru_setiap_kali(): void
+    {
+        $this->buatEws();
+        $registrasi = $this->daftarkan();
+
+        $pertama = $this->formulir->open($registrasi->id, 'ews-dewasa', $this->perawat);
+        $kedua = $this->formulir->open($registrasi->id, 'ews-dewasa', $this->perawat);
+
+        $this->assertNotSame($pertama->id, $kedua->id);
+        $this->assertSame(2, FormResponse::query()->where('template_code', 'ews-dewasa')->count());
+    }
+
+    /** Sifat berulang dibekukan di jawabannya, bukan dibaca dari template. */
+    #[Test]
+    public function sifat_berulang_dibekukan_pada_jawabannya(): void
+    {
+        $this->buatEws();
+        $f = $this->formulir->open($this->daftarkan()->id, 'ews-dewasa');
+
+        $this->assertTrue($f->is_repeatable);
+
+        // Template diubah jadi sekali-isi; jawaban lama tidak ikut berubah
+        // dan tidak mendadak melanggar aturan yang belum berlaku saat ia
+        // ditulis.
+        $this->templates->revise('ews-dewasa', ['is_repeatable' => false]);
+
+        $this->assertTrue($f->refresh()->is_repeatable);
+    }
+
+    /** Asesmen biasa TETAP satu per kunjungan — aturan item A tidak luntur. */
+    #[Test]
+    public function template_biasa_tetap_satu_per_kunjungan(): void
+    {
+        $this->buatSkriningTbc();
+        $registrasi = $this->daftarkan();
+
+        $pertama = $this->formulir->open($registrasi->id, 'skrining-tbc');
+        $kedua = $this->formulir->open($registrasi->id, 'skrining-tbc');
+
+        $this->assertSame($pertama->id, $kedua->id);
+    }
+
+    #[Test]
+    public function skor_ews_dinilai_per_penilaian_bukan_diakumulasi(): void
+    {
+        $this->buatEws();
+        $registrasi = $this->daftarkan();
+
+        $pagi = $this->formulir->open($registrasi->id, 'ews-dewasa');
+        $this->formulir->save($pagi, ['laju_respirasi' => '12-20', 'kesadaran' => 'sadar']);
+
+        $malam = $this->formulir->open($registrasi->id, 'ews-dewasa');
+        $this->formulir->save($malam, ['laju_respirasi' => '25-34', 'kesadaran' => 'nyeri-verbal']);
+
+        $this->assertSame(0, $pagi->refresh()->score);
+        $this->assertSame('rendah', $pagi->refresh()->risk_level);
+
+        // Penilaian malam berdiri sendiri — perburukan terlihat karena
+        // keduanya tercatat terpisah, bukan tertimpa.
+        $this->assertSame(5, $malam->refresh()->score);
+        $this->assertSame('tinggi', $malam->refresh()->risk_level);
+    }
+
     // ---------------------------------------------------------------- daftar
 
     /**
@@ -407,6 +480,39 @@ class FormTemplateTest extends TestCase
                 ['min' => 2, 'max' => 99, 'risk_level' => 'tinggi', 'interpretation' => 'Segera rujuk ke poli paru.'],
             ]],
             'note' => 'Mengikuti pedoman skrining TBC Kemenkes.',
+        ], $this->perawat->id);
+    }
+
+    /**
+     * Early Warning Score dewasa: instrumen pemantauan yang memang dinilai
+     * berulang. Bandnya mengikuti bentuk pemantauan_pews_dewasa Khanza —
+     * parameter berkategori, masing-masing berbobot skor.
+     */
+    private function buatEws(): FormTemplate
+    {
+        return $this->templates->create([
+            'code' => 'ews-dewasa',
+            'name' => 'Early Warning Score Dewasa',
+            'category' => FormTemplate::PENGKAJIAN_LANJUTAN,
+            'is_repeatable' => true,
+            'sections' => [['title' => 'Parameter fisiologis', 'questions' => [
+                ['key' => 'laju_respirasi', 'label' => 'Laju respirasi', 'type' => 'choice', 'options' => [
+                    ['value' => '12-20', 'label' => '12 - 20', 'score' => 0],
+                    ['value' => '21-24', 'label' => '21 - 24', 'score' => 2],
+                    ['value' => '25-34', 'label' => '25 - 34', 'score' => 3],
+                ]],
+                ['key' => 'kesadaran', 'label' => 'Tingkat kesadaran', 'type' => 'choice', 'options' => [
+                    ['value' => 'sadar', 'label' => 'Sadar', 'score' => 0],
+                    ['value' => 'nyeri-verbal', 'label' => 'Nyeri/Verbal', 'score' => 2],
+                    ['value' => 'unrespon', 'label' => 'Unrespon', 'score' => 3],
+                ]],
+            ]]],
+            'scoring' => ['bands' => [
+                ['min' => 0, 'max' => 2, 'risk_level' => 'rendah', 'interpretation' => 'Pemantauan rutin.'],
+                ['min' => 3, 'max' => 4, 'risk_level' => 'sedang', 'interpretation' => 'Tingkatkan frekuensi pemantauan.'],
+                ['min' => 5, 'max' => 99, 'risk_level' => 'tinggi', 'interpretation' => 'Aktifkan tim reaksi cepat.'],
+            ]],
+            'note' => 'Ambang mengikuti pedoman EWS dewasa yang berlaku di RSP UI.',
         ], $this->perawat->id);
     }
 
