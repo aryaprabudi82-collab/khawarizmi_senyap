@@ -33,6 +33,9 @@ use App\Modules\Integration\Services\Bpjs\FakeBpjsSmartClaimClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsMemberClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsReferralClient;
 use App\Modules\Integration\Services\CredentialStore;
+use App\Modules\Integration\Services\Inhealth\FakeInhealthClient;
+use App\Modules\Integration\Services\Inhealth\HttpInhealthClient;
+use App\Modules\Integration\Services\Inhealth\InhealthClient;
 use App\Modules\Integration\Services\Satusehat\FakeSatusehatClient;
 use App\Modules\Integration\Services\Sisrute\FakeSisruteClient;
 use App\Modules\Integration\Services\Sisrute\HttpSisruteClient;
@@ -202,6 +205,22 @@ class IntegrationServiceProvider extends ModuleServiceProvider
                 username: (string) $this->kredensial()->get('sisrute', 'username'),
                 password: (string) $this->kredensial()->get('sisrute', 'password'),
                 facilityCode: (string) $this->kredensial()->get('sisrute', 'facility_code'),
+            );
+        });
+
+        /*
+         * Adapter Mandiri Inhealth (domain L item Q).
+         */
+        $this->app->singleton(InhealthClient::class, function () {
+            if (! $this->kredensial()->isReady('inhealth')) {
+                return new FakeInhealthClient();
+            }
+
+            return new HttpInhealthClient(
+                baseUrl: (string) $this->kredensial()->get('inhealth', 'base_url'),
+                username: (string) $this->kredensial()->get('inhealth', 'username'),
+                password: (string) $this->kredensial()->get('inhealth', 'password'),
+                providerCode: (string) $this->kredensial()->get('inhealth', 'provider_code'),
             );
         });
 
