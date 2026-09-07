@@ -52,6 +52,13 @@ return [
                     . 'menilai formulir. Versi LAMA ikut diterbitkan dan itu disengaja: formulir yang diisi '
                     . 'tahun lalu harus dibaca kembali dengan pertanyaan yang berlaku waktu itu, dan kontrak '
                     . 'yang hanya memuat versi aktif akan membuat rekam medis lama kehilangan pertanyaannya.',
+                'v_nursing_problem' => 'Master masalah keperawatan (diagnosis keperawatan) berikut '
+                    . 'spesialisasi dan kode SDKI-nya bila ada — domain M item B. Menaungi 8 tabel master '
+                    . 'Khanza yang berbentuk identik dan cuma berbeda spesialisasinya.',
+                'v_nursing_care_plan' => 'Master rencana keperawatan BERIKUT kode masalah induknya — '
+                    . 'domain M item B. Hierarkinya ikut diterbitkan, bukan disembunyikan: Khanza sendiri '
+                    . 'memasang foreign key dari rencana ke masalah, dan konsumen harus bisa menegakkan '
+                    . 'aturan "rencana melekat pada masalahnya" tanpa menemukan ulang aturannya sendiri.',
             ],
         ],
 
