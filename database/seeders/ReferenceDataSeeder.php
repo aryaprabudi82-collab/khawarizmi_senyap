@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Modules\Catalog\Database\Seeders\DiagnosticTemplateSeeder;
 use App\Modules\Catalog\Database\Seeders\FluidItemSeeder;
 use App\Modules\Catalog\Database\Seeders\ObservationCatalogSeeder;
 use App\Modules\Catalog\Database\Seeders\StandardInstrumentSeeder;
@@ -47,6 +48,11 @@ class ReferenceDataSeeder extends Seeder
         // menghasilkan formulir yang tampak resmi tapi tak pernah disepakati.
         // Seluruhnya masuk BELUM DISAHKAN.
         $this->call(StandardInstrumentSeeder::class);
+
+        // Template hasil pemeriksaan penunjang khusus (domain M item G).
+        // Butirnya diambil dari kolom tabel Khanza, bukan dikarang; tidak
+        // ada yang diskor karena yang menyimpulkan adalah pemeriksanya.
+        $this->call(DiagnosticTemplateSeeder::class);
 
         $this->command?->info('Data referensi: penjamin, unit, praktisi, dan tarif registrasi, tindakan & operasi disiapkan.');
         $this->command?->warn('Tarif tindakan/operasi contoh, hanya untuk penjamin Umum — perlu ditinjau ulang bersama bagian keuangan sebelum dipakai melayani pasien.');

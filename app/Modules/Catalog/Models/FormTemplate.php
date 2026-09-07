@@ -23,6 +23,7 @@ class FormTemplate extends Model
     public const PENGKAJIAN_LANJUTAN = 'pengkajian-lanjutan';
     public const CHECKLIST = 'checklist';
     public const CATATAN = 'catatan';
+    public const HASIL_PEMERIKSAAN = 'hasil-pemeriksaan';
 
     public const KATEGORI = [
         self::ASESMEN_MEDIS,
@@ -31,6 +32,7 @@ class FormTemplate extends Model
         self::PENGKAJIAN_LANJUTAN,
         self::CHECKLIST,
         self::CATATAN,
+        self::HASIL_PEMERIKSAAN,
     ];
 
     protected function casts(): array
