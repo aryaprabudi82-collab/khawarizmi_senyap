@@ -342,7 +342,18 @@ return [
                 .'menyimpan 34 kapabilitas audit PPI dan insiden K3 yang konseptual milik konteks ini; belum digarap '
                 .'wave ini.',
             'domains' => ['R'],
-            'publishes' => [],
+            'publishes' => [
+                'v_incident_summary' => 'Insiden keselamatan pasien berikut jenis, pita dampak, unit, dan '
+                    .'statusnya — domain O item B, menaungi 5 kode grafik_ikp_*. Uraian kejadian, akar '
+                    .'masalah, dan tindakan korektifnya SENGAJA tidak ikut: yang dibutuhkan grafik cuma '
+                    .'penggolongannya, dan menerbitkan uraian insiden membuka cerita rinci kesalahan '
+                    .'kepada siapa pun yang bisa membuka layar laporan.',
+                'v_k3_incident' => 'Insiden K3 berikut jenis cidera, JENIS LUKA, dampak, bagian tubuh, '
+                    .'jenis pekerjaan, lokasi, dan penyebabnya — domain O item B, menaungi 10 kode '
+                    .'grafik_k3_*. Jenis luka berbeda dari jenis cidera (yang satu mekanismenya, yang satu '
+                    .'akibatnya), dan kolomnya baru ditambahkan setelah pembandingan dengan k3rs_peristiwa '
+                    .'Khanza menemukan lubangnya.',
+            ],
         ],
 
         'inventory' => [

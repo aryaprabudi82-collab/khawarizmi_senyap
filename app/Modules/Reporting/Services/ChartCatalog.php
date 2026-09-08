@@ -81,6 +81,67 @@ class ChartCatalog
                     'kelompok-umur' => ['column' => self::EKSPRESI_UMUR, 'label' => 'Kelompok umur'],
                 ],
             ],
+
+            'insiden-keselamatan' => [
+                'label' => 'Insiden keselamatan pasien (IKP)',
+                'source' => 'quality.v_incident_summary',
+                'date_column' => 'occurred_at',
+                'khanza' => 'Menaungi grafik_ikp_pertahun, _perbulan, _pertanggal, _jenis, _dampak',
+                'dimensions' => [
+                    'jenis' => ['column' => 'r.incident_type', 'label' => 'Jenis insiden (KPC/KNC/KTC/KTD/sentinel)'],
+                    'dampak' => ['column' => 'r.severity_band', 'label' => 'Pita dampak (biru/hijau/kuning/merah)'],
+                    'status' => ['column' => 'r.status', 'label' => 'Status penanganan'],
+                    'lokasi' => ['column' => 'r.location_detail', 'label' => 'Lokasi rinci'],
+                ],
+            ],
+
+            'k3' => [
+                'label' => 'Insiden keselamatan & kesehatan kerja (K3)',
+                'source' => 'quality.v_k3_incident',
+                'date_column' => 'occurred_at',
+                'khanza' => 'Menaungi 10 kode grafik_k3_*',
+                'dimensions' => [
+                    'jenis-cidera' => ['column' => 'r.injury_type', 'label' => 'Jenis cidera'],
+                    // Berbeda dari jenis cidera, dan itulah alasan
+                    // kolomnya ditambahkan — lihat catatan migrasi
+                    // publish_quality_chart_contracts.
+                    'jenis-luka' => ['column' => 'r.wound_type', 'label' => 'Jenis luka'],
+                    'dampak-cidera' => ['column' => 'r.injury_impact', 'label' => 'Dampak cidera'],
+                    'bagian-tubuh' => ['column' => 'r.body_part', 'label' => 'Bagian tubuh'],
+                    'jenis-pekerjaan' => ['column' => 'r.job_type', 'label' => 'Jenis pekerjaan'],
+                    'lokasi' => ['column' => 'r.location', 'label' => 'Lokasi kejadian'],
+                    'penyebab' => ['column' => 'r.cause', 'label' => 'Penyebab kecelakaan'],
+                    'status' => ['column' => 'r.status', 'label' => 'Status penanganan'],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Kode grafik Khanza yang SENGAJA tidak dibuatkan dataset di sini
+     * karena sudah dihitung konteks lain.
+     *
+     * Disebutkan terang-terangan, bukan dibiarkan tampak terlewat:
+     * kesembilan kode HAIs sudah dilayani HaisSurveillanceService sejak
+     * domain J item E, dan ratesByUnit($dari, $sampai, 'vap') PERSIS
+     * grafik_HAIs_laju_vap. Menghitung ulang lajunya di sini melahirkan
+     * sumber kedua bagi angka infeksi — dan dua angka laju yang berbeda
+     * untuk bangsal yang sama jauh lebih buruk daripada satu grafik yang
+     * harus dibuka di layar lain.
+     *
+     * @return array<string, string>
+     */
+    public static function servedElsewhere(): array
+    {
+        return [
+            'grafik_HAIs_pasienbangsal' => 'HaisSurveillanceService::events() per bangsal',
+            'grafik_HAIs_pasienbulan' => 'HaisSurveillanceService::monthlyEvents()',
+            'grafik_HAIs_laju_vap' => "HaisSurveillanceService::ratesByUnit(..., 'vap')",
+            'grafik_HAIs_laju_iad' => "HaisSurveillanceService::ratesByUnit(..., 'iad')",
+            'grafik_HAIs_laju_pleb' => "HaisSurveillanceService::ratesByUnit(..., 'plebitis')",
+            'grafik_HAIs_laju_isk' => "HaisSurveillanceService::ratesByUnit(..., 'isk')",
+            'grafik_HAIs_laju_ilo' => "HaisSurveillanceService::ratesByUnit(..., 'ilo')",
+            'grafik_HAIs_laju_hap' => "HaisSurveillanceService::ratesByUnit(..., 'hap')",
         ];
     }
 
