@@ -204,6 +204,17 @@ class OperationalChartTest extends TestCase
     }
 
     #[Test]
+    public function penerimaan_obat_dijumlahkan_nilainya_bukan_dihitung_barisnya(): void
+    {
+        // "Berapa nilai barang yang masuk bulan ini" dan "berapa kali ada
+        // pengiriman" adalah dua pertanyaan yang sama sekali lain.
+        $this->assertTrue($this->grafik->isSummed('penerimaan-obat'));
+
+        $sumbu = $this->grafik->availableDimensions('penerimaan-obat');
+        $this->assertArrayHasKey('suplier', $sumbu);
+    }
+
+    #[Test]
     public function seluruh_dataset_menyebut_kode_khanza_yang_dinaunginya(): void
     {
         // Dataset tanpa keterangan kode yang dinaunginya membuat

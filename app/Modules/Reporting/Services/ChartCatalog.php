@@ -283,6 +283,22 @@ class ChartCatalog
                     'hasil-akhir' => ['column' => 'r.outcome', 'label' => 'Hasil akhir pengobatan'],
                 ],
             ],
+
+            'penerimaan-obat' => [
+                'label' => 'Penerimaan obat, alkes & BHP',
+                'source' => 'pharmacy.v_goods_receipt',
+                'date_column' => 'received_at',
+                // DIJUMLAHKAN NILAINYA, bukan dihitung barisnya: yang
+                // ditanyakan "berapa nilai barang yang masuk bulan ini",
+                // dan menghitung baris menjawab "berapa kali ada
+                // pengiriman" — pertanyaan yang sama sekali lain.
+                'measure' => 'r.nilai_terima',
+                'measure_label' => 'Nilai penerimaan (rupiah)',
+                'khanza' => 'Menaungi penerimaan_obat_perbulan',
+                'dimensions' => [
+                    'suplier' => ['column' => 'r.supplier_name', 'label' => 'Suplier'],
+                ],
+            ],
         ];
     }
 
