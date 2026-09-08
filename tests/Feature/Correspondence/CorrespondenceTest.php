@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Correspondence;
 
+use App\Modules\Correspondence\Models\Announcement;
 use App\Modules\Correspondence\Models\IncomingLetter;
 use App\Modules\Correspondence\Models\OutgoingLetter;
 use App\Modules\Correspondence\Services\AnnouncementService;
@@ -21,7 +22,9 @@ class CorrespondenceTest extends TestCase
     use RefreshDatabase;
 
     private LetterService $letters;
+
     private AnnouncementService $announcements;
+
     private User $petugas;
 
     protected function setUp(): void
@@ -51,7 +54,17 @@ class CorrespondenceTest extends TestCase
     #[Test]
     public function surat_masuk_bisa_didisposisikan_lalu_diarsipkan(): void
     {
-        $surat = $this->letters->disposition($this->catatMasuk(), 'Bidang Pelayanan Medis');
+        // Sejak domain P item D, disposisi punya isi dan tenggatnya sendiri
+        // dan bisa berturut-turut; forwarded_to kini cache disposisi
+        // TERAKHIR, bukan satu-satunya catatan.
+        $surat = $this->catatMasuk();
+
+        $this->letters->dispose($surat, [
+            'to_name' => 'Bidang Pelayanan Medis',
+            'instruction' => 'Mohon ditindaklanjuti',
+        ]);
+
+        $surat->refresh();
         $this->assertSame(IncomingLetter::STATUS_DIDISPOSISIKAN, $surat->status);
         $this->assertSame('Bidang Pelayanan Medis', $surat->forwarded_to);
 
@@ -107,7 +120,7 @@ class CorrespondenceTest extends TestCase
             'title' => 'Pengumuman Aktif', 'body' => 'Sedang tayang', 'starts_at' => now()->subDay()->toDateString(), 'ends_at' => null,
         ], $this->petugas->id);
 
-        $hasil = \App\Modules\Correspondence\Models\Announcement::query()->currentlyVisible()->get();
+        $hasil = Announcement::query()->currentlyVisible()->get();
 
         $this->assertCount(1, $hasil);
         $this->assertSame($tayang->id, $hasil->first()->id);

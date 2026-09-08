@@ -4,6 +4,7 @@ use App\Modules\Correspondence\Http\Controllers\AnnouncementController;
 use App\Modules\Correspondence\Http\Controllers\CertificateController;
 use App\Modules\Correspondence\Http\Controllers\ConsentController;
 use App\Modules\Correspondence\Http\Controllers\ConsentTemplateController;
+use App\Modules\Correspondence\Http\Controllers\LetterArchiveController;
 use App\Modules\Correspondence\Http\Controllers\LetterController;
 use App\Modules\Correspondence\Http\Controllers\PatientRequestController;
 use Illuminate\Support\Facades\Route;
@@ -18,8 +19,24 @@ Route::middleware(['web', 'auth'])
             Route::post('/masuk', [LetterController::class, 'storeIncoming'])->name('masuk.simpan');
             Route::post('/masuk/{surat}/disposisi', [LetterController::class, 'disposition'])->name('masuk.disposisi');
             Route::post('/masuk/{surat}/arsip', [LetterController::class, 'archiveIncoming'])->name('masuk.arsip');
+            Route::post('/masuk/{surat}/dibalas', [LetterController::class, 'markReplied'])->name('masuk.dibalas');
+            Route::post('/disposisi/{disposisi}/selesai', [LetterController::class, 'completeDisposition'])->name('disposisi.selesai');
             Route::post('/keluar', [LetterController::class, 'storeOutgoing'])->name('keluar.simpan');
             Route::post('/keluar/{surat}/kirim', [LetterController::class, 'send'])->name('keluar.kirim');
+
+            /*
+             * Master arsip: lokasi fisik berjenjang, klasifikasi perihal, dan
+             * indeks temu balik — enam kode Khanza (surat_ruang, surat_almari,
+             * surat_rak, surat_map, surat_klasifikasi, surat_indeks) di satu
+             * layar, di bawah gerbang yang sama dengan register suratnya.
+             * Yang mengelola arsipnya adalah yang mencatat suratnya.
+             */
+            Route::prefix('master')->name('master.')->group(function () {
+                Route::get('/', [LetterArchiveController::class, 'index'])->name('index');
+                Route::post('/lokasi', [LetterArchiveController::class, 'storeLocation'])->name('lokasi.simpan');
+                Route::post('/klasifikasi', [LetterArchiveController::class, 'storeClassification'])->name('klasifikasi.simpan');
+                Route::post('/indeks', [LetterArchiveController::class, 'storeIndexTerm'])->name('indeks.simpan');
+            });
         });
 
         Route::middleware('can:pengumuman_epasien')->prefix('pengumuman')->name('pengumuman.')->group(function () {
