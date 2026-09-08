@@ -197,6 +197,12 @@ return [
                     .'sama, jadi satu kontrak bukan dua. Status dan finalized_at ikut diterbitkan supaya '
                     .'konsumen bisa menolak mengirim asesmen yang masih draf: penilaian klinis yang belum '
                     .'dinyatakan selesai tidak boleh tersebar ke fasilitas lain.',
+                'v_dialysis_session' => 'Sesi hemodialisa berikut jenis akses, mesin, dan statusnya — '
+                    .'domain O item D, menaungi grafik_harian/bulanan/tahunan_hemodialisa. Serologi pasien, '
+                    .'berat kering, target ultrafiltrasi, dan penyulit selama sesi SENGAJA tidak ikut: '
+                    .'grafik menanyakan berapa banyak sesi berjalan, bukan keadaan klinis tiap pasien. '
+                    .'Sesi DIBATALKAN dikecualikan (sesi batal bukan sesi), tapi yang DIHENTIKAN di tengah '
+                    .'tetap ikut — pasiennya benar-benar didialisis.',
             ],
         ],
 
@@ -230,7 +236,10 @@ return [
                     .'kekuatan, dan penanda narkotika/psikotropika/high-alert (domain L item I). Harga, stok, '
                     .'dan margin sengaja TIDAK ikut: konsumen hanya perlu tahu obat apa saja yang ada dan '
                     .'bagaimana menyebutnya, sedangkan memaparkan harga dari sini melahirkan sumber kedua bagi '
-                    .'angka yang sudah dimiliki billing.',
+                    .'angka yang sudah dimiliki billing. Sejak domain O item D ikut membawa NAMA kategori, '
+                    .'golongan, dan industri farmasinya — nama, bukan id, karena grafik yang mengelompokkan '
+                    .'menurut drug_category_id menampilkan batang berlabel 3, 7, dan 12 yang tidak bisa '
+                    .'dibaca siapa pun. Harga tetap tidak ikut.',
             ],
         ],
 
@@ -329,7 +338,12 @@ return [
             'domains' => ['C'],
             'publishes' => [
                 'v_employee_summary' => 'Pegawai aktif berikut jabatan dan unit kerjanya. '
-                    .'Dipakai quality untuk memilih pegawai saat mencatat insiden K3.',
+                    .'Dipakai quality untuk memilih pegawai saat mencatat insiden K3. Sejak domain O item D '
+                    .'ikut membawa PENDIDIKAN dan STATUS KERJA, dua dari sembilan sumbu grafik kepegawaian '
+                    .'Khanza. Lima sisanya (jenjang & kelompok jabatan, status wajib pajak, risiko kerja, '
+                    .'emergency index) SENGAJA belum dibuat kolomnya: semuanya menuntut RSP UI menetapkan '
+                    .'kosakatanya sendiri, dan menebaknya menghasilkan grafik resmi berisi kategori yang '
+                    .'tidak pernah disepakati. Tercatat di ChartCatalog::pendingData().',
             ],
         ],
 
@@ -464,7 +478,12 @@ return [
                     .'kamar yang ditempati sampai malam, karena tarif kamar adalah tarif per malam.',
                 'v_diet_order' => 'Permintaan diet berikut HARI-DIET-nya (selisih mulai-selesai) — domain J item E. '
                     .'Hari-diet, bukan jumlah permintaan: satu permintaan lima hari adalah lima hari pemberian, dan '
-                    .'menghitungnya sebagai satu membuat angka gizi jauh lebih kecil daripada kenyataannya.',
+                    .'menghitungnya sebagai satu membuat angka gizi jauh lebih kecil daripada kenyataannya. '
+                    .'Sejak domain O item D ikut membawa BANGSAL, kelas, dan nomor kamarnya — penggabungan '
+                    .'admisi-bed-ruang dilakukan di kontrak supaya tidak ditemukan ulang tiap kali ada yang '
+                    .'menghitung porsi per bangsal. Yang dihitung tetap ORDER, bukan nampan yang benar-benar '
+                    .'diantar dapur: jumlah porsi harian menuntut pencatatan distribusi makan di kitchen, '
+                    .'dan itu belum ada.',
                 'v_bed_assignment' => 'Rentang penempatan bed (assigned_at/released_at), tanpa identitas pasien '
                     .'— domain J item D, untuk hari-rawat pada hitungan BOR. Dihitung dari penempatan yang sungguh '
                     .'terjadi supaya pasien yang pindah kamar tidak terlewat maupun tergandakan.',

@@ -199,6 +199,100 @@ class ChartCatalog
                     'satuan' => ['column' => 'r.unit', 'label' => 'Satuan'],
                 ],
             ],
+
+            'pegawai' => [
+                'label' => 'Kepegawaian',
+                'kind' => self::KONDISI,
+                'source' => 'hr.v_employee_summary',
+                'date_column' => 'id',
+                'khanza' => 'Menaungi 3 dari 9 kode grafik pegawai; 5 sisanya di pendingData()',
+                'dimensions' => [
+                    'jabatan' => ['column' => 'r.position', 'label' => 'Jabatan'],
+                    'pendidikan' => ['column' => 'r.education', 'label' => 'Pendidikan terakhir'],
+                    'status-kerja' => ['column' => 'r.employment_type', 'label' => 'Status kerja'],
+                ],
+            ],
+
+            'obat' => [
+                'label' => 'Item apotek',
+                'kind' => self::KONDISI,
+                'source' => 'pharmacy.v_drug_catalog',
+                'date_column' => 'drug_id',
+                'khanza' => 'Menaungi item_apotek_jenis, _kategori, _golongan, _industrifarmasi',
+                'dimensions' => [
+                    'jenis' => ['column' => 'r.form', 'label' => 'Bentuk sediaan'],
+                    'kategori' => ['column' => 'r.category_name', 'label' => 'Kategori'],
+                    'golongan' => ['column' => 'r.class_name', 'label' => 'Golongan'],
+                    'industri-farmasi' => ['column' => 'r.manufacturer_name', 'label' => 'Industri farmasi'],
+                ],
+            ],
+
+            'diet' => [
+                'label' => 'Order diet pasien',
+                'source' => 'inpatient.v_diet_order',
+                'date_column' => 'start_date',
+                'khanza' => 'Menaungi 4 kode grafik_porsidiet_*',
+                'dimensions' => [
+                    'jenis-diet' => ['column' => 'r.diet_type', 'label' => 'Jenis diet'],
+                    'bangsal' => ['column' => 'r.ward_name', 'label' => 'Bangsal'],
+                    'kelas' => ['column' => 'r.room_class', 'label' => 'Kelas ruang'],
+                    'status' => ['column' => 'r.status', 'label' => 'Status order'],
+                ],
+            ],
+
+            'hemodialisa' => [
+                'label' => 'Sesi hemodialisa',
+                'source' => 'clinical.v_dialysis_session',
+                'date_column' => 'started_at',
+                'khanza' => 'Menaungi grafik_harian_hemodialisa, _bulanan, _tahunan',
+                'dimensions' => [
+                    'akses' => ['column' => 'r.access_type', 'label' => 'Jenis akses vaskular'],
+                    'mesin' => ['column' => 'r.machine_code', 'label' => 'Mesin'],
+                    'status' => ['column' => 'r.status', 'label' => 'Status sesi'],
+                ],
+            ],
+
+            'ranap-pulang' => [
+                'label' => 'Kepulangan rawat inap',
+                'source' => 'inpatient.v_admission_summary',
+                'date_column' => 'discharged_at',
+                'khanza' => 'Menaungi grafik_sttspulangranap dan grafik_bulanan_meninggal',
+                'dimensions' => [
+                    'status-pulang' => ['column' => 'r.discharge_status', 'label' => 'Status pulang'],
+                    'bangsal' => ['column' => 'r.room_unit_name', 'label' => 'Bangsal'],
+                    'kelas' => ['column' => 'r.room_class', 'label' => 'Kelas ruang'],
+                    'dpjp' => ['column' => 'r.dpjp_name', 'label' => 'DPJP'],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Kode grafik Khanza yang BELUM BISA DIGAMBAR karena datanya memang
+     * belum ada — bukan karena terlewat.
+     *
+     * Disebutkan terang-terangan supaya terbaca sebagai keputusan.
+     * Kelima dimensi kepegawaian di bawah ini menuntut RSP UI
+     * menetapkan kosakatanya sendiri: berapa jenjang jabatan, apa
+     * namanya, siapa masuk kelompok mana, bagaimana risiko kerja
+     * digolongkan. Membuat kolomnya sekarang berarti menebak struktur
+     * kepegawaian sebuah rumah sakit demi menggambar batang, dan yang
+     * dihasilkan grafik yang tampak resmi dengan kategori yang tidak
+     * pernah disepakati siapa pun — kekeliruan yang sama seperti
+     * mengarang isi formulir klinis pada domain M.
+     *
+     * @return array<string, string>
+     */
+    public static function pendingData(): array
+    {
+        return [
+            'grafik_jenjang_jabatanpegawai' => 'Menunggu RSP UI menetapkan daftar jenjang jabatan.',
+            'grafik_kelompok_jabatanpegawai' => 'Menunggu RSP UI menetapkan pengelompokan jabatan.',
+            'grafik_sttswppegawai' => 'Menunggu data status wajib pajak, yang tinggal di penggajian.',
+            'grafik_resiko_kerjapegawai' => 'Menunggu RSP UI menetapkan penggolongan risiko kerja.',
+            'grafik_emergency_indexpegawai' => 'Menunggu RSP UI menetapkan indeks kesiapsiagaan bencana.',
+            'grafik_bidangpegawai' => 'Bidang/bagian belum dibedakan dari unit kerja pada hr.employees.',
+            'grafik_departemenpegawai' => 'Departemen belum dibedakan dari unit kerja pada hr.employees.',
         ];
     }
 
