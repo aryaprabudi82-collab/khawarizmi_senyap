@@ -564,6 +564,25 @@ return [
             'publishes' => [],
         ],
 
+        'library' => [
+            'schema' => 'library',
+            'module' => 'Library',
+            'description' => 'Perpustakaan rumah sakit (Khanza domain Q, 13 kode ber-flag dari 16 baris menu): '
+                .'katalog koleksi cetak & ebook, eksemplar fisik, keanggotaan, peminjaman, dan denda. '
+                .'EBOOK BUKAN TABEL KEDUA — `perpustakaan_ebook` Khanza menyalin `perpustakaan_buku` nyaris '
+                .'kolom per kolom, dan dua tabel untuk satu hal membuat setiap pencarian harus menggabungkan '
+                .'keduanya; pencarian yang lupa salah satunya tetap menghasilkan daftar yang terlihat wajar, '
+                .'hanya saja tanpa separuh koleksi. Di sini ebook adalah MEDIUM sebuah koleksi. '
+                .'Tiga baris menu Khanza tanpa access flag ("Koleksi Penelitian", "Cari Koleksi Ebook", '
+                .'"Cari Inventaris Perpustakaan") dilayani penyaring pada layar katalog — ketiganya memang '
+                .'pencarian atas data yang sama, bukan layar tersendiri. '
+                .'Anggota perpustakaan SENGAJA tidak ditautkan keras ke identity.patients atau hr.employees: '
+                .'keanggotaan hidup lebih lama daripada kepegawaian, dan mengikatnya akan membuat riwayat '
+                .'pinjam seorang pensiunan lenyap bersama status pegawainya.',
+            'domains' => ['Q'],
+            'publishes' => [],
+        ],
+
     ],
 
     /*

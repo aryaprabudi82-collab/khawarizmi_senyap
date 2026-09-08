@@ -425,5 +425,16 @@
             "parkir_jenis",
             "parkir_in"
         ]
+    },
+    {
+        "code": "pustakawan",
+        "name": "Pustakawan",
+        "description": "Katalog koleksi cetak & ebook, master katalog (ruang, kategori, jenis, pengarang, penerbit), eksemplar fisik, keanggotaan, peminjaman, dan denda perpustakaan.",
+        "_catatan_scope": "Peran baru, bukan dilekatkan ke petugas-tu: perpustakaan rumah sakit dijalankan pustakawan, dan menggabungkannya dengan tata usaha akan memberi petugas surat-menyurat akses ke riwayat pinjam seluruh pegawai — daftar bacaan seseorang adalah hal yang tidak perlu dibaca orang yang tidak mengelolanya. Preseden yang sama dipakai saat membuat petugas-lab-kesling, petugas-utd, dan petugas-parkir: peran baru dibuat ketika penugasan nyatanya memang orang yang berbeda. koleksi_perpustakaan menggerbangi layar katalog dan sekaligus menaungi ebook_perpustakaan (satu tabel, medium berbeda — memisahkan gerbangnya melahirkan kewenangan yang tidak bisa ditegakkan tanpa menyaring baris). kategori_perpustakaan jadi umbrella lima kode master (ruang, kategori, jenis, pengarang, penerbit) yang semuanya dikelola orang yang sama.",
+        "contexts": [],
+        "extra_permissions": [
+            "koleksi_perpustakaan",
+            "kategori_perpustakaan"
+        ]
     }
 ]

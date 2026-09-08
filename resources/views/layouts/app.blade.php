@@ -224,7 +224,7 @@
         @endcanany
 
         @canany(['surat_masuk', 'pengumuman_epasien', 'rekap_kunjungan', 'bpjs_cek_kartu', 'satu_sehat_referensi_pasien', 'user'])
-          <li class="nav-item dropdown {{ request()->routeIs(['correspondence.*', 'reporting.*', 'integrasi.*', 'platform.*']) ? 'active' : '' }}">
+          <li class="nav-item dropdown {{ request()->routeIs(['correspondence.*', 'library.*', 'reporting.*', 'integrasi.*', 'platform.*']) ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Administrasi</a>
             <div class="dropdown-menu">
               @can('surat_masuk')
@@ -235,6 +235,9 @@
               @endcan
               @can('template_persetujuan_penolakan_tindakan')
                 <a class="dropdown-item" href="{{ route('correspondence.persetujuan.master.index') }}">Master Persetujuan</a>
+              @endcan
+              @can('koleksi_perpustakaan')
+                <a class="dropdown-item" href="{{ route('library.index') }}">Perpustakaan</a>
               @endcan
               @can('rekap_kunjungan')
                 <a class="dropdown-item" href="{{ route('reporting.dashboard') }}">Laporan</a>
