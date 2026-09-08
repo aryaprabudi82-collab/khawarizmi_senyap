@@ -203,6 +203,14 @@ return [
                     .'grafik menanyakan berapa banyak sesi berjalan, bukan keadaan klinis tiap pasien. '
                     .'Sesi DIBATALKAN dikecualikan (sesi batal bukan sesi), tapi yang DIHENTIKAN di tengah '
                     .'tetap ikut — pasiennya benar-benar didialisis.',
+                'v_tb_case' => 'Register program TB (TB-03) berikut klasifikasi, status HIV, sumber obat, '
+                    .'dan hasil akhir pengobatannya — domain O item E, menaungi 11 kode grafik_tb_* dan '
+                    .'memberi isi pada kemenkes_sitt domain J yang sebelumnya baru menghitung diagnosis TB '
+                    .'dari kamus ICD. STATUS HIV IKUT DITERBITKAN meski paling sensitif: program TB '
+                    .'nasional mewajibkan pelaporannya dan angkanya menentukan penyediaan ART. Yang ikut '
+                    .'cuma STATUSNYA sebagai kategori — NOMOR REKAM MEDIS DAN NAMA PASIEN TIDAK, karena '
+                    .'register TB yang bisa dibaca per nama lewat layar laporan adalah daftar pengidap '
+                    .'yang beredar di luar keperluannya.',
             ],
         ],
 

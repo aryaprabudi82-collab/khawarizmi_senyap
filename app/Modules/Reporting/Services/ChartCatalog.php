@@ -264,6 +264,25 @@ class ChartCatalog
                     'dpjp' => ['column' => 'r.dpjp_name', 'label' => 'DPJP'],
                 ],
             ],
+
+            'tb' => [
+                'label' => 'Register program TB',
+                'source' => 'clinical.v_tb_case',
+                'date_column' => 'registered_on',
+                'khanza' => 'Menaungi 11 kode grafik_tb_*',
+                'dimensions' => [
+                    'periode-laporan' => ['column' => 'r.report_quarter', 'label' => 'Triwulan laporan'],
+                    'rujukan' => ['column' => 'r.referral_source', 'label' => 'Sumber rujukan'],
+                    'tipe-diagnosis' => ['column' => 'r.diagnosis_type', 'label' => 'Tipe diagnosis'],
+                    'lokasi-anatomi' => ['column' => 'r.anatomical_site', 'label' => 'Lokasi anatomi'],
+                    'riwayat' => ['column' => 'r.treatment_history', 'label' => 'Riwayat pengobatan'],
+                    'status-hiv' => ['column' => 'r.hiv_status', 'label' => 'Status HIV'],
+                    'hasil-tes-hiv' => ['column' => 'r.hiv_test_result', 'label' => 'Hasil tes HIV'],
+                    'skoring-anak' => ['column' => 'r.child_score', 'label' => 'Skoring TB anak'],
+                    'sumber-obat' => ['column' => 'r.drug_source', 'label' => 'Sumber obat'],
+                    'hasil-akhir' => ['column' => 'r.outcome', 'label' => 'Hasil akhir pengobatan'],
+                ],
+            ],
         ];
     }
 
