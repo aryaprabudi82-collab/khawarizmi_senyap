@@ -60,7 +60,8 @@
         "extra_permissions": [
             "tindakan_ranap",
             "diet_pasien",
-            "barcoderanap"
+            "barcoderanap",
+            "surat_permohonan_privasi"
         ]
     },
     {
@@ -87,7 +88,8 @@
             "resep_obat",
             "penilaian_awal_medis_ralan",
             "persetujuan_penolakan_tindakan",
-            "surat_keterangan_sehat"
+            "surat_keterangan_sehat",
+            "surat_permohonan_privasi"
         ],
         "_catatan_exclusion": "insiden_keselamatan(_pasien) tercatat context 'clinical' di katalog permission (warisan domain M Khanza), tapi modulnya sekarang di konteks quality (lihat config/contexts.php) dan Wave 1 ini sengaja admin-mutu-only — pelaporan insiden oleh staf klinis sendiri (bukan cuma admin mutu) adalah perluasan wajar untuk wave berikutnya, bukan dikecualikan selamanya. persetujuan_penolakan_tindakan dan surat_keterangan_sehat tercatat domain P/'correspondence' di Khanza (bercampur dengan surat-menyurat kantor) padahal dokumen klinis yang diterbitkan dokter — diberikan di sini, bukan ke petugas-tu. tindakan_ranap tercatat context 'encounter' tapi modulnya sekarang konteks inpatient (kelola kamar/bed) — kewenangan bangsal/administratif, bukan kewenangan klinis dokter, dikecualikan sama seperti pada peran perawat. diet_pasien (juga context 'encounter', juga sungguhan di konteks inpatient) SEBALIKNYA sengaja TIDAK dikecualikan — order diet keputusan klinis dokter, lihat catatan lengkap di peran petugas-ranap soal bagaimana dokter tetap bisa membuka /rawat-inap untuk itu tanpa ikut kebagian akses kelola kamar/bed. deposit_pasien dan perkiraan_biaya_ranap dikecualikan — kapabilitas keuangan (paket Java \"keuangan\"), bukan kewenangan klinis dokter, lihat catatan lengkap di peran petugas-daftar. booking_mcu_perusahaan dikecualikan — pemesanan administratif loket, bukan tindakan klinis.",
         "excluded_permissions": [
@@ -110,7 +112,8 @@
         "extra_permissions": [
             "pasien",
             "registrasi",
-            "penilaian_awal_keperawatan_ralan"
+            "penilaian_awal_keperawatan_ralan",
+            "surat_permohonan_privasi"
         ],
         "_catatan_exclusion": "Menulis resep dan tindakan operasi bukan kewenangan perawat, meski ikut kebawa dari context encounter yang bercampur. insiden_keselamatan(_pasien) dan tindakan_ranap dikecualikan dengan alasan sama seperti pada peran dokter — lihat catatannya di sana. rujukan_keluar juga dikecualikan — surat rujukan medis diterbitkan dokter, bukan perawat. deposit_pasien, perkiraan_biaya_ranap, dan booking_mcu_perusahaan dikecualikan — kapabilitas keuangan/administratif loket, bukan keperawatan. booking_operasi dikecualikan dengan alasan sama dengan operasi — menjadwalkan operasi bukan kewenangan perawat, walau tetap tersedia untuk dokter (pengambil keputusan operasi) lewat wholesale context yang sama. layanan_program_kfr dikecualikan dengan alasan sama dengan rujukan_keluar — permintaan rujukan ke program KFR keputusan klinis dokter, bukan perawat.",
         "excluded_permissions": [
@@ -278,7 +281,8 @@
             "peristiwa_k3rs",
             "jenis_cidera_k3rstahun",
             "penyakit_ralan",
-            "harian_HAIs"
+            "harian_HAIs",
+            "template_persetujuan_penolakan_tindakan"
         ]
     },
     {

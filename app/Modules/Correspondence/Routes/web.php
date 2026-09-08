@@ -5,6 +5,7 @@ use App\Modules\Correspondence\Http\Controllers\CertificateController;
 use App\Modules\Correspondence\Http\Controllers\ConsentController;
 use App\Modules\Correspondence\Http\Controllers\ConsentTemplateController;
 use App\Modules\Correspondence\Http\Controllers\LetterController;
+use App\Modules\Correspondence\Http\Controllers\PatientRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth'])
@@ -47,6 +48,24 @@ Route::middleware(['web', 'auth'])
                 Route::get('/', [ConsentTemplateController::class, 'index'])->name('index');
                 Route::post('/template', [ConsentTemplateController::class, 'store'])->name('template.simpan');
                 Route::post('/alasan', [ConsentTemplateController::class, 'storeReason'])->name('alasan.simpan');
+            });
+
+        /*
+         * Hak pasien: lima jenis permintaan (privasi, perlindungan dari
+         * kekerasan, bimbingan rohani, second opinion, cuti perawatan) dan
+         * serah terima barang/anggota tubuh — enam kode Khanza, satu layar,
+         * digerbangi surat_permohonan_privasi sebagai umbrella.
+         *
+         * Satu gerbang, bukan enam: keenamnya dikerjakan petugas ruangan yang
+         * sama, dan memecahnya akan melahirkan kewenangan yang tidak
+         * dipegang siapa pun.
+         */
+        Route::middleware('can:surat_permohonan_privasi')
+            ->prefix('hak-pasien')->name('hak-pasien.')->group(function () {
+                Route::get('/', [PatientRequestController::class, 'index'])->name('index');
+                Route::post('/', [PatientRequestController::class, 'store'])->name('simpan');
+                Route::post('/{permintaan}/jawab', [PatientRequestController::class, 'respond'])->name('jawab');
+                Route::post('/serah-terima', [PatientRequestController::class, 'storeHandover'])->name('serah-terima');
             });
 
         Route::middleware('can:surat_keterangan_sehat')->prefix('keterangan')->name('keterangan.')->group(function () {
