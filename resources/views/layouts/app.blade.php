@@ -230,6 +230,9 @@
               @can('pengumuman_epasien')
                 <a class="dropdown-item" href="{{ route('correspondence.pengumuman.index') }}">Pengumuman E-Pasien</a>
               @endcan
+              @can('template_persetujuan_penolakan_tindakan')
+                <a class="dropdown-item" href="{{ route('correspondence.persetujuan.master.index') }}">Master Persetujuan</a>
+              @endcan
               @can('rekap_kunjungan')
                 <a class="dropdown-item" href="{{ route('reporting.dashboard') }}">Laporan</a>
               @endcan

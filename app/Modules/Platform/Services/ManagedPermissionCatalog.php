@@ -3,6 +3,7 @@
 namespace App\Modules\Platform\Services;
 
 use App\Modules\Platform\Models\Permission;
+use Illuminate\Support\Collection;
 
 /**
  * Permission yang benar-benar dipakai layar "Kelola Peran", dikelompokkan per modul.
@@ -43,7 +44,7 @@ class ManagedPermissionCatalog
         'harian_HAIs', 'lama_pelayanan_pasien', 'rekap_lab_pertahun', 'rekap_jm_dokter', 'rl4a', 'rekap_kunjungan', 'rekap_pembayaran_ralan', 'rekap_obat_pasien', 'rekap_pengadaan_dapur', 'resep_luar', 'resep_obat', 'retur_ke_suplier', 'retur_obat_ranap', 'ringkasan_tindakan', 'rujukan_keluar', 'satu_sehat_kirim_condition', 'satu_sehat_kirim_encounter',
         'satu_sehat_mapping_lokasi', 'satu_sehat_referensi_dokter', 'satu_sehat_referensi_pasien',
         'permintaan_ranap', 'sirkulasi_cssd', 'sensus_harian_ralan', 'sisa_stok', 'skp_penilaian', 'stok_opname_logistik', 'stok_opname_obat', 'suplier_inventaris', 'surat_keterangan_sehat', 'surat_masuk', 'surat_pemesanan_dapur', 'surat_pemesanan_non_medis',
-        'tambahan_biaya', 'tarif_ralan', 'telaah_resep', 'tindakan_ranap', 'utd_cekal_darah', 'utd_pemisahan_darah', 'utd_pendonor', 'utd_penyerahan_darah', 'utd_stok_darah',
+        'tambahan_biaya', 'tarif_ralan', 'telaah_resep', 'template_persetujuan_penolakan_tindakan', 'tindakan_ranap', 'utd_cekal_darah', 'utd_pemisahan_darah', 'utd_pendonor', 'utd_penyerahan_darah', 'utd_stok_darah',
         'user', 'verifikasi_penerimaan_dapur', 'verifikasi_penerimaan_farmasi', 'verifikasi_penerimaan_logistik',
     ];
 
@@ -98,9 +99,9 @@ class ManagedPermissionCatalog
     ];
 
     /**
-     * @return list<array{context: string, label: string, permissions: \Illuminate\Support\Collection}>
-     *         Diurutkan sesuai MODULE_LABELS supaya tampil dalam urutan alur kerja RS,
-     *         bukan abjad — pendaftaran dulu baru penunjang, baru administrasi.
+     * @return list<array{context: string, label: string, permissions: Collection}>
+     *                                                                              Diurutkan sesuai MODULE_LABELS supaya tampil dalam urutan alur kerja RS,
+     *                                                                              bukan abjad — pendaftaran dulu baru penunjang, baru administrasi.
      */
     public function grouped(): array
     {

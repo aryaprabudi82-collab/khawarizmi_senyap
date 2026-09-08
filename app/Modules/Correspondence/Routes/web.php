@@ -3,6 +3,7 @@
 use App\Modules\Correspondence\Http\Controllers\AnnouncementController;
 use App\Modules\Correspondence\Http\Controllers\CertificateController;
 use App\Modules\Correspondence\Http\Controllers\ConsentController;
+use App\Modules\Correspondence\Http\Controllers\ConsentTemplateController;
 use App\Modules\Correspondence\Http\Controllers\LetterController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,9 +30,24 @@ Route::middleware(['web', 'auth'])
         Route::middleware('can:persetujuan_penolakan_tindakan')->prefix('persetujuan')->name('persetujuan.')->group(function () {
             Route::get('/', [ConsentController::class, 'index'])->name('index');
             Route::post('/', [ConsentController::class, 'store'])->name('simpan');
+            Route::post('/template', [ConsentController::class, 'storeFromTemplate'])->name('dari-template');
+            Route::post('/butir/{butir}', [ConsentController::class, 'confirmItem'])->name('butir.konfirmasi');
+            Route::post('/{persetujuan}/putuskan', [ConsentController::class, 'decide'])->name('putuskan');
             Route::post('/{persetujuan}/batal', [ConsentController::class, 'cancel'])->name('batal');
             Route::get('/{persetujuan}/cetak', [ConsentController::class, 'print'])->name('cetak');
         });
+
+        /*
+         * Master persetujuan: template penjelasan + daftar alasan penolakan.
+         * Satu layar, dua kode Khanza — master_menolak_anjuran_medis ikut
+         * digerbangi kode template sebagai umbrella.
+         */
+        Route::middleware('can:template_persetujuan_penolakan_tindakan')
+            ->prefix('persetujuan/master')->name('persetujuan.master.')->group(function () {
+                Route::get('/', [ConsentTemplateController::class, 'index'])->name('index');
+                Route::post('/template', [ConsentTemplateController::class, 'store'])->name('template.simpan');
+                Route::post('/alasan', [ConsentTemplateController::class, 'storeReason'])->name('alasan.simpan');
+            });
 
         Route::middleware('can:surat_keterangan_sehat')->prefix('keterangan')->name('keterangan.')->group(function () {
             Route::get('/', [CertificateController::class, 'index'])->name('index');
