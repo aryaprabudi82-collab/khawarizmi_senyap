@@ -434,7 +434,11 @@
         "contexts": [],
         "extra_permissions": [
             "koleksi_perpustakaan",
-            "kategori_perpustakaan"
+            "kategori_perpustakaan",
+            "inventaris_perpustakaan",
+            "anggota_perpustakaan",
+            "peminjaman_perpustakaan",
+            "set_peminjaman_perpustakaan"
         ]
     }
 ]

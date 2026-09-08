@@ -237,7 +237,13 @@
                 <a class="dropdown-item" href="{{ route('correspondence.persetujuan.master.index') }}">Master Persetujuan</a>
               @endcan
               @can('koleksi_perpustakaan')
-                <a class="dropdown-item" href="{{ route('library.index') }}">Perpustakaan</a>
+                <a class="dropdown-item" href="{{ route('library.index') }}">Perpustakaan — Katalog</a>
+              @endcan
+              @can('peminjaman_perpustakaan')
+                <a class="dropdown-item" href="{{ route('library.sirkulasi.index') }}">Perpustakaan — Sirkulasi</a>
+              @endcan
+              @can('anggota_perpustakaan')
+                <a class="dropdown-item" href="{{ route('library.anggota.index') }}">Perpustakaan — Anggota</a>
               @endcan
               @can('rekap_kunjungan')
                 <a class="dropdown-item" href="{{ route('reporting.dashboard') }}">Laporan</a>
