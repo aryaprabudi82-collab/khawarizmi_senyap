@@ -38,6 +38,24 @@ class ChartCatalog
 
     public const TAHUNAN = 'tahunan';
 
+    /**
+     * Dua macam dataset, dan bedanya bukan soal rasa.
+     *
+     * PERISTIWA dihitung dalam sebuah periode: kunjungan, insiden,
+     * pengajuan. Pertanyaannya "berapa banyak yang terjadi bulan lalu".
+     *
+     * KONDISI adalah keadaan saat ini: berapa aset di tiap ruang, berapa
+     * di tiap kategori. Pertanyaannya "berapa banyak yang ADA", dan
+     * menyaringnya dengan periode akan menjawab pertanyaan yang berbeda
+     * — "berapa aset yang DIPEROLEH bulan lalu" — dengan judul yang
+     * sama. Angka yang masuk akal dan salah adalah yang paling
+     * berbahaya, jadi kedua macam ini dibedakan dan penyaring periode
+     * pada dataset kondisi harus disebut sendiri.
+     */
+    public const PERISTIWA = 'peristiwa';
+
+    public const KONDISI = 'kondisi';
+
     /** Satuan waktu berikut format pengelompokannya di PostgreSQL. */
     public const GRANULARITAS = [
         self::HARIAN => ['trunc' => 'day', 'label' => 'Per tanggal'],
@@ -112,6 +130,73 @@ class ChartCatalog
                     'lokasi' => ['column' => 'r.location', 'label' => 'Lokasi kejadian'],
                     'penyebab' => ['column' => 'r.cause', 'label' => 'Penyebab kecelakaan'],
                     'status' => ['column' => 'r.status', 'label' => 'Status penanganan'],
+                ],
+            ],
+
+            'inventaris' => [
+                'label' => 'Inventaris & aset',
+                'kind' => self::KONDISI,
+                'source' => 'asset.v_asset_inventory',
+                'date_column' => 'acquisition_date',
+                'khanza' => 'Menaungi 5 kode grafik_inventaris_*',
+                'dimensions' => [
+                    'ruang' => ['column' => 'r.location_name', 'label' => 'Ruang / lokasi'],
+                    'jenis' => ['column' => 'r.type_name', 'label' => 'Jenis'],
+                    'kategori' => ['column' => 'r.category_name', 'label' => 'Kategori'],
+                    'merk' => ['column' => 'r.brand', 'label' => 'Merk'],
+                    'produsen' => ['column' => 'r.manufacturer_name', 'label' => 'Produsen'],
+                    'kondisi' => ['column' => 'r.condition', 'label' => 'Kondisi'],
+                    'status' => ['column' => 'r.status', 'label' => 'Status aset'],
+                ],
+            ],
+
+            'pengajuan-aset' => [
+                'label' => 'Pengajuan aset',
+                'source' => 'asset.v_asset_requisition',
+                'date_column' => 'created_at',
+                'khanza' => 'Menaungi grafik_pengajuan_aset_urgensi, _status, _departemen',
+                'dimensions' => [
+                    'urgensi' => ['column' => 'r.urgency', 'label' => 'Urgensi'],
+                    'status' => ['column' => 'r.status', 'label' => 'Status pengajuan'],
+                    'departemen' => ['column' => 'r.unit_name', 'label' => 'Unit / departemen'],
+                ],
+            ],
+
+            'perbaikan-inventaris' => [
+                'label' => 'Perbaikan inventaris',
+                'source' => 'asset.v_maintenance_request',
+                'date_column' => 'created_at',
+                'khanza' => 'Menaungi 4 kode grafik_perbaikan_inventaris_*',
+                'joins' => [
+                    [
+                        'table' => 'platform.v_user_summary',
+                        'alias' => 'u',
+                        'local' => 'r.assigned_to',
+                        'foreign' => 'u.id',
+                    ],
+                ],
+                'dimensions' => [
+                    'status' => ['column' => 'r.status', 'label' => 'Status perbaikan'],
+                    'pelaksana' => ['column' => 'u.name', 'label' => 'Pelaksana'],
+                    'lokasi' => ['column' => 'r.location_name', 'label' => 'Lokasi aset'],
+                ],
+            ],
+
+            'kesling' => [
+                'label' => 'Pemakaian air & timbulan limbah',
+                'source' => 'asset.v_environmental_measurement',
+                'date_column' => 'measured_on',
+                // DIJUMLAHKAN, bukan dihitung — lihat catatan kelas
+                // ChartService: grafik yang menghitung baris akan
+                // menampilkan "jumlah pencatatan" berlabel "pemakaian
+                // air".
+                'measure' => 'r.quantity',
+                'measure_label' => 'Jumlah (sesuai satuan kategorinya)',
+                'khanza' => 'Menaungi 10 kode grafik air PDAM/tanah dan limbah B3/domestik',
+                'dimensions' => [
+                    'kategori' => ['column' => 'r.category', 'label' => 'Kategori pengukuran'],
+                    'parameter' => ['column' => 'r.parameter', 'label' => 'Parameter'],
+                    'satuan' => ['column' => 'r.unit', 'label' => 'Satuan'],
                 ],
             ],
         ];

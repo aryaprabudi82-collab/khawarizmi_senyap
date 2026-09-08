@@ -421,6 +421,22 @@ return [
                 'v_cssd_circulation' => 'Sirkulasi set CSSD berikut keempat stempel waktunya (diterima/diproses/steril/'
                     .'didistribusikan) — domain J item D, untuk lama_pelayanan_cssd. Rantainya sudah lengkap sejak '
                     .'domain G, jadi laporan ini tidak butuh pencatatan baru, cuma kontraknya.',
+                'v_asset_inventory' => 'Aset berikut lokasi, jenis, kategori, merk, dan produsennya — domain '
+                    .'O item C, menaungi 5 kode grafik_inventaris_*. Dataset KEADAAN, bukan peristiwa: '
+                    .'berapa aset di tiap ruang adalah keadaan sekarang, dan menyaringnya dengan periode '
+                    .'akan menjawab pertanyaan yang berbeda dengan judul yang sama.',
+                'v_asset_requisition' => 'Pengajuan aset berikut URGENSI, status, dan unitnya — domain O '
+                    .'item C. Kolom urgensi baru ditambahkan: tanpanya pengajuan diproses menurut urutan '
+                    .'datang, sehingga permintaan mengganti alat rusak di ruang tindakan mengantre di '
+                    .'belakang permintaan mengganti kursi kantor.',
+                'v_maintenance_request' => 'Permintaan perbaikan berikut status, pelaksana, dan lokasi '
+                    .'asetnya — domain O item C, menaungi 4 kode grafik_perbaikan_inventaris_*.',
+                'v_environmental_measurement' => 'Pengukuran kesehatan lingkungan (air PDAM, air tanah, '
+                    .'limbah B3 padat & cair, limbah domestik) berikut QUANTITY dan SATUANNYA — domain O '
+                    .'item C, menaungi 10 kode grafik kesling. Satuannya ikut karena menjumlahkan kilogram '
+                    .'limbah padat bersama liter limbah cair menghasilkan angka yang tidak berarti apa-apa: '
+                    .'konsumen wajib menyaring per kategori lebih dulu, dan satuannya yang membuktikan '
+                    .'penyaringnya benar.',
             ],
         ],
 

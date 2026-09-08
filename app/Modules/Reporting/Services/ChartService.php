@@ -6,20 +6,18 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Penyaji grafik (domain O item A).
+ * Penyaji grafik (domain O item A, diperluas item C).
  *
- * SATU LAYANAN UNTUK 113 KODE GRAFIK. Yang membedakan grafik-grafik itu
- * cuma tiga hal: dataset apa, dikelompokkan menurut apa, dan pada satuan
- * waktu apa. Ketiganya jadi parameter, dan katalognya yang menentukan
- * mana yang sah — lihat ChartCatalog.
+ * SATU LAYANAN UNTUK PULUHAN KODE GRAFIK. Yang membedakan grafik-grafik
+ * itu cuma: dataset apa, dikelompokkan menurut apa, pada satuan waktu
+ * apa. Ketiganya jadi parameter, dan katalognya yang menentukan mana
+ * yang sah — lihat ChartCatalog.
  *
- * EMPAT ATURAN.
+ * ENAM ATURAN.
  *
  * 1. NAMA KOLOM TIDAK PERNAH DATANG DARI PEMANGGIL. Yang diterima cuma
- *    kunci sumbu; kolomnya dicari di katalog. Menerima nama kolom dari
- *    luar berarti membiarkan pemanggil memilih kolom mana pun dari view
- *    yang diterbitkan — dan pada laporan yang dibuka lewat peramban,
- *    "pemanggil" bisa siapa saja.
+ *    kunci sumbu; kolomnya dicari di katalog. Pada laporan yang dibuka
+ *    lewat peramban, "pemanggil" bisa siapa saja.
  *
  * 2. SUMBU YANG TIDAK DIKENAL DITOLAK, BUKAN DIABAIKAN. Grafik yang
  *    diam-diam mengabaikan sumbunya akan menampilkan satu batang berisi
@@ -28,14 +26,25 @@ use Illuminate\Support\Facades\DB;
  * 3. NILAI KOSONG TIDAK DIBUANG, TAPI DIBERI LABEL. Pasien yang
  *    pekerjaannya tidak tercatat tetap kunjungan yang terjadi;
  *    membuangnya membuat jumlah seluruh batang lebih kecil daripada
- *    jumlah kunjungan sebenarnya, dan tidak ada yang tahu selisihnya ke
- *    mana. Labelnya "tidak tercatat" — bukan dikosongkan, bukan
- *    dihilangkan.
+ *    jumlah kejadian sebenarnya, dan tidak ada yang tahu selisihnya ke
+ *    mana.
  *
- * 4. KUNJUNGAN BATAL DIKECUALIKAN dari hitungan kunjungan, tapi bisa
- *    digrafikkan sendiri lewat sumbu status. Aturan yang sama sudah
- *    berlaku sejak domain J item A: kunjungan batal bukan kunjungan,
- *    tapi jumlahnya sendiri adalah informasi yang dicari.
+ * 4. YANG DIJUMLAHKAN BUKAN SELALU BARIS. Grafik pemakaian air dan
+ *    timbulan limbah menanyakan BERAPA BANYAK, bukan berapa kali
+ *    dicatat — dan grafik yang menghitung baris akan menampilkan
+ *    "jumlah pencatatan" dengan label "pemakaian air", angka yang
+ *    tampak masuk akal dan sepenuhnya salah. Dataset menyebut sendiri
+ *    kolom yang dijumlahkan; yang tidak menyebut dihitung barisnya.
+ *
+ * 5. DATASET KONDISI TIDAK DISARING PERIODE. Berapa aset di tiap ruang
+ *    adalah keadaan SAAT INI; menyaringnya dengan periode menjawab
+ *    pertanyaan yang berbeda — berapa aset yang DIPEROLEH bulan lalu —
+ *    dengan judul yang sama. Penyaringan periode pada dataset kondisi
+ *    harus diminta sendiri, dan deret waktu atasnya ditolak.
+ *
+ * 6. KUNJUNGAN BATAL DIKECUALIKAN dari hitungan kunjungan, tapi bisa
+ *    digrafikkan sendiri lewat sumbu status — aturan yang sama sejak
+ *    domain J item A.
  */
 class ChartService
 {
@@ -46,7 +55,7 @@ class ChartService
     /**
      * Deret grafik: satu dataset, satu sumbu, satu periode.
      *
-     * @return array<int, array{label: string, value: int}>
+     * @return array<int, array{label: string, value: int|float}>
      *
      * @throws ReportingException
      */
@@ -73,19 +82,22 @@ class ChartService
 
         $baris = $this->query($isi, $from, $until, $filters)
             ->selectRaw("{$label} AS label")
-            ->selectRaw('COUNT(*) AS value')
+            ->selectRaw($this->measureExpression($isi).' AS value')
             ->groupBy(DB::raw($label))
             ->orderByDesc('value')
             ->limit($limit)
             ->get();
 
-        return $baris->map(fn ($r) => ['label' => $r->label, 'value' => (int) $r->value])->all();
+        return $baris->map(fn ($r) => [
+            'label' => $r->label,
+            'value' => $this->castMeasure($isi, $r->value),
+        ])->all();
     }
 
     /**
      * Deret grafik menurut waktu.
      *
-     * @return array<int, array{period: string, value: int}>
+     * @return array<int, array{period: string, value: int|float}>
      *
      * @throws ReportingException
      */
@@ -96,8 +108,16 @@ class ChartService
         string $until,
         array $filters = [],
     ): array {
-        $isi = ChartCatalog::dataset($dataset)
-            ?? throw new ReportingException("Dataset '{$dataset}' tidak dikenali.");
+        $isi = $this->datasetOrFail($dataset);
+
+        if (($isi['kind'] ?? ChartCatalog::PERISTIWA) === ChartCatalog::KONDISI) {
+            throw new ReportingException(
+                "Dataset '{$dataset}' adalah KEADAAN SAAT INI, bukan peristiwa, jadi tidak punya deret "
+                .'waktu. Berapa aset di tiap ruang adalah keadaan sekarang; menggrafikkannya menurut '
+                .'waktu akan menjawab pertanyaan yang berbeda — berapa aset yang DIPEROLEH tiap bulan — '
+                .'dengan judul yang sama.'
+            );
+        }
 
         if (! array_key_exists($granularity, ChartCatalog::GRANULARITAS)) {
             throw new ReportingException(
@@ -111,14 +131,14 @@ class ChartService
 
         $baris = $this->query($isi, $from, $until, $filters)
             ->selectRaw("date_trunc('{$trunc}', {$kolomTanggal}::timestamp) AS bucket")
-            ->selectRaw('COUNT(*) AS value')
+            ->selectRaw($this->measureExpression($isi).' AS value')
             ->groupBy(DB::raw("date_trunc('{$trunc}', {$kolomTanggal}::timestamp)"))
             ->orderBy('bucket')
             ->get();
 
         return $baris->map(fn ($r) => [
             'period' => $this->formatPeriod($r->bucket, $granularity),
-            'value' => (int) $r->value,
+            'value' => $this->castMeasure($isi, $r->value),
         ])->all();
     }
 
@@ -131,12 +151,15 @@ class ChartService
      *
      * @throws ReportingException
      */
-    public function total(string $dataset, string $from, string $until, array $filters = []): int
+    public function total(string $dataset, string $from, string $until, array $filters = []): int|float
     {
-        $isi = ChartCatalog::dataset($dataset)
-            ?? throw new ReportingException("Dataset '{$dataset}' tidak dikenali.");
+        $isi = $this->datasetOrFail($dataset);
 
-        return (int) $this->query($isi, $from, $until, $filters)->count();
+        $baris = $this->query($isi, $from, $until, $filters)
+            ->selectRaw($this->measureExpression($isi).' AS value')
+            ->first();
+
+        return $this->castMeasure($isi, $baris?->value ?? 0);
     }
 
     /**
@@ -148,10 +171,19 @@ class ChartService
      */
     public function availableDimensions(string $dataset): array
     {
-        ChartCatalog::dataset($dataset)
-            ?? throw new ReportingException("Dataset '{$dataset}' tidak dikenali.");
+        $this->datasetOrFail($dataset);
 
         return ChartCatalog::dimensionsFor($dataset);
+    }
+
+    /**
+     * Dataset ini menjumlahkan sesuatu, bukan menghitung barisnya.
+     *
+     * @throws ReportingException
+     */
+    public function isSummed(string $dataset): bool
+    {
+        return isset($this->datasetOrFail($dataset)['measure']);
     }
 
     // ------------------------------------------------------------ internal
@@ -161,10 +193,13 @@ class ChartService
      */
     private function query(array $dataset, string $from, string $until, array $filters)
     {
-        $kolomTanggal = 'r.'.$dataset['date_column'];
+        $query = DB::table($dataset['source'].' as r');
 
-        $query = DB::table($dataset['source'].' as r')
-            ->whereBetween(DB::raw($kolomTanggal.'::date'), [$from, $until]);
+        // Dataset KONDISI tidak disaring periode — lihat aturan 5.
+        if (($dataset['kind'] ?? ChartCatalog::PERISTIWA) !== ChartCatalog::KONDISI) {
+            $kolomTanggal = 'r.'.$dataset['date_column'];
+            $query->whereBetween(DB::raw($kolomTanggal.'::date'), [$from, $until]);
+        }
 
         if (isset($dataset['patient_join'])) {
             $query->leftJoin(
@@ -172,6 +207,15 @@ class ChartService
                 'p.id',
                 '=',
                 'r.'.$dataset['patient_join'],
+            );
+        }
+
+        foreach ($dataset['joins'] ?? [] as $join) {
+            $query->leftJoin(
+                $join['table'].' as '.$join['alias'],
+                $join['foreign'],
+                '=',
+                $join['local'],
             );
         }
 
@@ -198,17 +242,59 @@ class ChartService
     }
 
     /**
+     * @param  array<string, mixed>  $dataset
+     */
+    private function measureExpression(array $dataset): string
+    {
+        return isset($dataset['measure'])
+            ? "COALESCE(SUM({$dataset['measure']}), 0)"
+            : 'COUNT(*)';
+    }
+
+    /**
+     * @param  array<string, mixed>  $dataset
+     * @param  mixed  $nilai
+     */
+    /**
+     * Hitungan tetap bilangan bulat, penjumlahan tetap pecahan.
+     *
+     * Mengembalikan pecahan untuk keduanya akan membuat "3 kunjungan"
+     * tampil sebagai 3.0 — kecil, tapi angka laporan yang bentuknya
+     * berubah tanpa alasan membuat pembacanya ragu apakah ada yang lain
+     * ikut berubah.
+     *
+     * @param  array<string, mixed>  $dataset
+     * @param  mixed  $nilai
+     */
+    private function castMeasure(array $dataset, $nilai): int|float
+    {
+        return isset($dataset['measure'])
+            ? round((float) $nilai, 3)
+            : (int) $nilai;
+    }
+
+    /**
+     * @return array<string, mixed>
+     *
+     * @throws ReportingException
+     */
+    private function datasetOrFail(string $dataset): array
+    {
+        return ChartCatalog::dataset($dataset)
+            ?? throw new ReportingException(
+                "Dataset '{$dataset}' tidak dikenali. Pilihannya: "
+                .implode(', ', array_keys(ChartCatalog::datasets())).'.'
+            );
+    }
+
+    /**
      * @return array{0: array<string, mixed>, 1: array<string, string>}
      *
      * @throws ReportingException
      */
     private function resolve(string $dataset, string $dimension): array
     {
-        $isi = ChartCatalog::dataset($dataset)
-            ?? throw new ReportingException(
-                "Dataset '{$dataset}' tidak dikenali. Pilihannya: "
-                .implode(', ', array_keys(ChartCatalog::datasets())).'.'
-            );
+        $isi = $this->datasetOrFail($dataset);
 
         $sumbu = $isi['dimensions'][$dimension] ?? null;
 
