@@ -34,9 +34,12 @@ class PatientConsent extends Model
         'anak', 'saudara-kandung', 'pengampu', 'lainnya',
     ];
 
+    public const JENIS_MEMILIH_DPJP = 'memilih-dpjp';
+
     public const TYPES = [
         'tindakan', 'penolakan-anjuran-medis', 'resusitasi', 'umum',
         'pemeriksaan-hiv', 'penundaan-pelayanan', 'rawat-inap', 'pulang-permintaan-sendiri',
+        'pernyataan-pasien-umum', self::JENIS_MEMILIH_DPJP,
     ];
 
     protected $table = 'correspondence.patient_consents';

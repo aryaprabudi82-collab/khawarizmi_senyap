@@ -73,6 +73,14 @@ Route::middleware(['web', 'auth'])
             Route::post('/', [CertificateController::class, 'store'])->name('simpan');
             Route::post('/{surat}/batal', [CertificateController::class, 'cancel'])->name('batal');
             Route::get('/{surat}/cetak', [CertificateController::class, 'print'])->name('cetak');
+
+            /*
+             * Surat kontrol (skdp_bpjs) ikut gerbang yang sama: sama-sama
+             * dokumen yang diterbitkan dokter untuk dibawa pasien keluar,
+             * dan dikerjakan orang yang sama di poliklinik.
+             */
+            Route::post('/kontrol', [CertificateController::class, 'storeControl'])->name('kontrol.simpan');
+            Route::post('/kontrol/{kontrol}', [CertificateController::class, 'updateControl'])->name('kontrol.perbarui');
         });
 
     });

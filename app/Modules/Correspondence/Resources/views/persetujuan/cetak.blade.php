@@ -14,6 +14,8 @@
     'penundaan-pelayanan' => 'Formulir Persetujuan Penundaan Pelayanan',
     'rawat-inap' => 'Formulir Persetujuan Rawat Inap',
     'pulang-permintaan-sendiri' => 'Surat Pernyataan Pulang Atas Permintaan Sendiri',
+    'pernyataan-pasien-umum' => 'Surat Pernyataan Pasien Umum',
+    'memilih-dpjp' => 'Surat Pernyataan Memilih Dokter Penanggung Jawab Pelayanan',
   ][$persetujuan->consent_type];
 
   $labelHubungan = fn (?string $h) => $h ? ucwords(str_replace('-', ' ', $h)) : null;
@@ -96,6 +98,16 @@
         @endforeach
       </tbody>
     </table>
+  @endif
+
+  @if ($persetujuan->chosen_practitioner_name)
+    {{--
+      Dicetak sebagai PILIHAN, bukan penetapan. Penugasan DPJP adalah
+      keputusan rumah sakit dan tercatat di modul rawat inap; keduanya bisa
+      berbeda karena dokter yang diminta bisa saja tidak tersedia.
+    --}}
+    <p><strong>Dokter yang dipilih:</strong> {{ $persetujuan->chosen_practitioner_name }}
+      <br><em>Pilihan ini akan diupayakan sepanjang dokter yang bersangkutan tersedia.</em></p>
   @endif
 
   @if ($persetujuan->refusal_risk_explained)

@@ -20,6 +20,7 @@ class ConsentService
     {
         $this->assertPenandaTanganSah($data);
         $this->assertPenolakanDijelaskanRisikonya($data);
+        $this->assertDokterPilihan($data);
 
         return PatientConsent::query()->create($data + [
             'consent_number' => $this->numbers->allocate('PST'),
@@ -241,6 +242,27 @@ class ConsentService
         if ($hubungan === 'diri-sendiri' && filled($alasan)) {
             throw new CorrespondenceException(
                 'Pasien menandatangani sendiri, jadi tidak ada alasan perwakilan yang perlu dicatat.'
+            );
+        }
+    }
+
+    /**
+     * Pernyataan memilih DPJP tanpa menyebut dokternya tidak menyatakan
+     * apa-apa; dan dokter pilihan pada jenis lain akan terbaca sebagai
+     * penunjukan operator — keputusan yang sama sekali lain.
+     */
+    private function assertDokterPilihan(array $data): void
+    {
+        $jenis = $data['consent_type'] ?? null;
+        $dokter = $data['chosen_practitioner_name'] ?? null;
+
+        if ($jenis === PatientConsent::JENIS_MEMILIH_DPJP && blank($dokter)) {
+            throw new CorrespondenceException('Pernyataan memilih DPJP harus menyebutkan dokter yang dipilih.');
+        }
+
+        if ($jenis !== PatientConsent::JENIS_MEMILIH_DPJP && filled($dokter)) {
+            throw new CorrespondenceException(
+                'Dokter pilihan hanya berlaku pada pernyataan memilih DPJP.'
             );
         }
     }

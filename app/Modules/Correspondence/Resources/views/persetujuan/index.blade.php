@@ -93,6 +93,8 @@
           <option value="penundaan-pelayanan">Persetujuan Penundaan Pelayanan</option>
           <option value="pemeriksaan-hiv">Persetujuan Pemeriksaan HIV</option>
           <option value="pulang-permintaan-sendiri">Pulang Atas Permintaan Sendiri (APS)</option>
+          <option value="pernyataan-pasien-umum">Pernyataan Pasien Umum</option>
+          <option value="memilih-dpjp">Pernyataan Memilih DPJP</option>
         </select>
       </div>
       <div class="col-6 col-md-3">
@@ -133,6 +135,12 @@
       <div class="col-12 col-md-8">
         <label class="form-label">Akibat Penolakan yang Dijelaskan</label>
         <input type="text" name="refusal_risk_explained" class="form-control" placeholder="Wajib untuk penolakan anjuran medis">
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Dokter yang Dipilih</label>
+        <input type="text" name="chosen_practitioner_name" class="form-control" placeholder="Hanya untuk pernyataan memilih DPJP">
+        <div class="form-hint">Ini PILIHAN pasien, bukan penugasan DPJP &mdash; penugasannya tetap keputusan rumah sakit dan tercatat di modul rawat inap.</div>
       </div>
 
       <div class="col-12"><label class="form-label">Uraian Tindakan/Keputusan</label><textarea name="procedure_description" class="form-control" rows="3" required></textarea></div>

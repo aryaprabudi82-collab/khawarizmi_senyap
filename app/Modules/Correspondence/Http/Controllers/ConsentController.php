@@ -51,6 +51,8 @@ class ConsentController
             'explained_by_name' => ['nullable', 'string', 'max:150'],
             'refusal_reason_id' => ['nullable', 'integer', 'exists:correspondence.medical_advice_refusal_reasons,id'],
             'refusal_risk_explained' => ['nullable', 'string', 'max:1000'],
+            'chosen_practitioner_id' => ['nullable', 'integer'],
+            'chosen_practitioner_name' => ['nullable', 'string', 'max:150'],
         ], [], [
             'consent_type' => 'jenis persetujuan', 'patient_name' => 'nama pasien',
             'procedure_description' => 'uraian tindakan', 'decision' => 'keputusan',
@@ -59,6 +61,13 @@ class ConsentController
             'delegation_reason' => 'alasan perwakilan',
             'refusal_risk_explained' => 'akibat penolakan yang dijelaskan',
         ]);
+
+        // Dokter pilihan hanya sah pada pernyataan memilih DPJP; dikosongkan
+        // di sini supaya string kosong dari formulir tidak lolos jadi nilai.
+        if ($data['consent_type'] !== PatientConsent::JENIS_MEMILIH_DPJP) {
+            $data['chosen_practitioner_id'] = null;
+            $data['chosen_practitioner_name'] = null;
+        }
 
         try {
             $persetujuan = $this->consents->issue($data, $request->user()->id);

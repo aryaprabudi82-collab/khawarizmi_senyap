@@ -410,12 +410,42 @@ class PatientRequestTest extends TestCase
     {
         // Persetujuan tindakan yang menyimpan "dokter pilihan" akan terbaca
         // sebagai penunjukan operator — keputusan yang sama sekali lain.
-        $this->expectException(QueryException::class);
+        $this->expectException(CorrespondenceException::class);
+        $this->expectExceptionMessageMatches('/hanya berlaku pada pernyataan memilih DPJP/');
 
         $this->consents->issue([
             'consent_type' => 'tindakan', 'patient_name' => 'Budi',
             'procedure_description' => 'Apendektomi', 'decision' => 'setuju',
             'chosen_practitioner_id' => 42, 'chosen_practitioner_name' => 'dr. Andi',
+        ], $this->petugas->id);
+    }
+
+    #[Test]
+    public function basis_data_juga_menolak_dokter_pilihan_pada_jenis_lain(): void
+    {
+        // Service bukan satu-satunya pintu ke tabel ini.
+        $this->expectException(QueryException::class);
+
+        DB::table('correspondence.patient_consents')->insert([
+            'consent_number' => 'PST-UJI-DPJP', 'consent_type' => 'tindakan',
+            'patient_name' => 'Budi', 'procedure_description' => 'Apendektomi',
+            'decision' => 'setuju', 'signed_at' => now(), 'status' => 'aktif',
+            'chosen_practitioner_id' => 42, 'chosen_practitioner_name' => 'dr. Andi',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    #[Test]
+    public function pernyataan_memilih_dpjp_tanpa_dokter_ditolak(): void
+    {
+        // Pernyataan memilih DPJP tanpa menyebut dokternya tidak menyatakan
+        // apa-apa.
+        $this->expectException(CorrespondenceException::class);
+        $this->expectExceptionMessageMatches('/harus menyebutkan dokter yang dipilih/');
+
+        $this->consents->issue([
+            'consent_type' => 'memilih-dpjp', 'patient_name' => 'Budi',
+            'procedure_description' => 'Memilih DPJP', 'decision' => 'setuju',
         ], $this->petugas->id);
     }
 

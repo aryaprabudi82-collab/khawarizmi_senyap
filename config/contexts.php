@@ -492,6 +492,13 @@ return [
                     .'menghitung porsi per bangsal. Yang dihitung tetap ORDER, bukan nampan yang benar-benar '
                     .'diantar dapur: jumlah porsi harian menuntut pencatatan distribusi makan di kitchen, '
                     .'dan itu belum ada.',
+                'v_admission_period' => 'Periode rawat inap (masuk/keluar) tanpa rincian klinis — domain P item C. '
+                    .'Dipakai correspondence untuk surat keterangan rawat inap: tanggalnya DISALIN dari sini, '
+                    .'tidak diketik ulang di layar surat, karena surat itu dipakai untuk klaim asuransi dan izin '
+                    .'kerja — tanggal yang berbeda dari admisi akan harus disangkal rumah sakit sendiri. '
+                    .'DPJP, bed, kelas, cara pulang, dan catatan admisi SENGAJA tidak ikut: surat ini menjawab '
+                    .'satu pertanyaan (kapan pasien dirawat), dan menyertakan sisanya berarti menyerahkan '
+                    .'rincian perawatan kepada perusahaan asuransi lewat pintu yang tidak dimaksudkan untuk itu.',
                 'v_bed_assignment' => 'Rentang penempatan bed (assigned_at/released_at), tanpa identitas pasien '
                     .'— domain J item D, untuk hari-rawat pada hitungan BOR. Dihitung dari penempatan yang sungguh '
                     .'terjadi supaya pasien yang pindah kamar tidak terlewat maupun tergandakan.',

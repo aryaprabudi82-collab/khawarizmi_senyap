@@ -13,6 +13,7 @@ use App\Modules\Platform\Models\Role;
 use App\Modules\Platform\Models\User;
 use Database\Seeders\ReferenceDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -21,7 +22,9 @@ class ClinicalDocumentTest extends TestCase
     use RefreshDatabase;
 
     private ConsentService $consents;
+
     private CertificateService $certificates;
+
     private User $dokter;
 
     protected function setUp(): void
@@ -126,11 +129,23 @@ class ClinicalDocumentTest extends TestCase
     #[Test]
     public function seluruh_jenis_consent_dan_certificate_yang_diperlebar_bisa_dicatat(): void
     {
+        /*
+         * Uji ini SEBELUMNYA menerbitkan setiap jenis dengan data minimal
+         * yang sama. Properti itu sengaja dihapus pada domain P item A-C:
+         * beberapa jenis kini memang menuntut lebih — persetujuan memilih
+         * DPJP menuntut dokternya, penolakan anjuran medis menuntut akibat
+         * yang dijelaskan, surat "bebas X" menuntut hasil pemeriksaannya,
+         * dan surat sakit pihak kedua menuntut identitas orang yang
+         * membutuhkannya. Yang tetap dijaga di sini adalah maksud aslinya:
+         * SETIAP jenis yang terdaftar harus bisa diterbitkan dan dicetak,
+         * supaya peta judul di blade tidak pernah kehilangan kunci.
+         */
         foreach (PatientConsent::TYPES as $jenis) {
             $persetujuan = $this->consents->issue([
                 'consent_type' => $jenis, 'patient_name' => 'Pasien Uji',
-                'procedure_description' => 'Uraian untuk jenis ' . $jenis, 'decision' => 'setuju',
-            ], $this->dokter->id);
+                'procedure_description' => 'Uraian untuk jenis '.$jenis,
+                'decision' => 'setuju',
+            ] + $this->syaratTambahanConsent($jenis), $this->dokter->id);
 
             $this->assertSame($jenis, $persetujuan->consent_type);
 
@@ -144,8 +159,8 @@ class ClinicalDocumentTest extends TestCase
         foreach (MedicalCertificate::TYPES as $jenis) {
             $surat = $this->certificates->issue([
                 'certificate_type' => $jenis, 'patient_name' => 'Pasien Uji', 'purpose' => 'uji coba',
-                'content' => 'Isi untuk jenis ' . $jenis, 'valid_from' => now()->toDateString(),
-            ], $this->dokter->id);
+                'content' => 'Isi untuk jenis '.$jenis, 'valid_from' => now()->toDateString(),
+            ] + $this->syaratTambahanCertificate($jenis), $this->dokter->id);
 
             $this->assertSame($jenis, $surat->certificate_type);
 
@@ -153,5 +168,76 @@ class ClinicalDocumentTest extends TestCase
                 ->get(route('correspondence.keterangan.cetak', $surat))
                 ->assertOk();
         }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function syaratTambahanConsent(string $jenis): array
+    {
+        return match ($jenis) {
+            'memilih-dpjp' => ['chosen_practitioner_name' => 'dr. Andi'],
+            default => [],
+        };
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function syaratTambahanCertificate(string $jenis): array
+    {
+        if (in_array($jenis, MedicalCertificate::JENIS_BERTEMUAN, true)) {
+            return [
+                'examination_result' => 'Hasil pemeriksaan untuk jenis '.$jenis,
+                'is_clear' => true,
+            ];
+        }
+
+        if ($jenis === MedicalCertificate::JENIS_SAKIT_PIHAK_KEDUA) {
+            return ['third_party_name' => 'Siti Aminah', 'third_party_relationship' => 'istri'];
+        }
+
+        if ($jenis === MedicalCertificate::JENIS_RAWAT_INAP) {
+            return ['registration_id' => $this->buatAdmisiUji()];
+        }
+
+        return [];
+    }
+
+    /** Surat keterangan rawat inap menyalin periodenya dari admisi. */
+    private function buatAdmisiUji(): int
+    {
+        $registrationId = 710001;
+
+        DB::table('inpatient.admissions')->insert([
+            'admission_number' => 'ADM-DOK-UJI',
+            'registration_id' => $registrationId,
+            'patient_id' => 810001,
+            'patient_mrn' => 'RM-DOK-UJI',
+            'patient_name' => 'Pasien Uji',
+            'bed_id' => $this->bedUji(),
+            'admitted_at' => now()->subDays(4),
+            'discharged_at' => now()->subDay(),
+            'status' => 'pulang',
+            'discharge_status' => 'sembuh',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        return $registrationId;
+    }
+
+    /** Bed dibuat lewat kueri langsung — correspondence tidak boleh mengimpor model konteks lain. */
+    private function bedUji(): int
+    {
+        $roomId = DB::table('inpatient.rooms')->insertGetId([
+            'room_number' => 'UJI-DOK', 'room_class' => 'kelas-3',
+            'daily_rate' => 250000, 'is_active' => true,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        return DB::table('inpatient.beds')->insertGetId([
+            'room_id' => $roomId, 'bed_number' => 'A', 'status' => 'tersedia',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
     }
 }
