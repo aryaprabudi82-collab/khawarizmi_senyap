@@ -251,6 +251,9 @@
               @can('stok_opname_toko')
                 <a class="dropdown-item" href="{{ route('retail.stok.index') }}">Toko — Stok &amp; Opname</a>
               @endcan
+              @can('toko_pengadaan_barang')
+                <a class="dropdown-item" href="{{ route('retail.pengadaan.index') }}">Toko — Pengadaan</a>
+              @endcan
               @can('rekap_kunjungan')
                 <a class="dropdown-item" href="{{ route('reporting.dashboard') }}">Laporan</a>
               @endcan

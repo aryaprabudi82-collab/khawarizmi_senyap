@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Retail\Http\Controllers\ProcurementController;
 use App\Modules\Retail\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,6 +36,28 @@ Route::middleware(['web', 'auth'])
             Route::post('/opname', [ProductController::class, 'openOpname'])->name('opname.buka');
             Route::post('/opname/baris/{baris}', [ProductController::class, 'recordCount'])->name('opname.hitung');
             Route::post('/opname/{opname}/tutup', [ProductController::class, 'completeOpname'])->name('opname.tutup');
+        });
+
+        /*
+         * Rantai pengadaan. `toko_pengadaan_barang` menggerbangi layarnya dan
+         * menaungi `toko_pengajuan_barang`, `toko_surat_pemesanan`,
+         * `toko_penerimaan_barang`, `toko_retur_beli`, `toko_hutang`, dan
+         * `toko_bayar_pemesanan`: seluruh rantai dikerjakan orang yang sama
+         * di toko sebesar koperasi rumah sakit, dan memecah gerbangnya
+         * melahirkan kewenangan yang tidak dipegang siapa pun. Surat
+         * pemesanan sendiri bukan entitas kedua — ia tampilan cetak pesanan
+         * yang sama, pola yang persis dipakai `pemesanan_obat` domain D.
+         */
+        Route::middleware('can:toko_pengadaan_barang')->prefix('pengadaan')->name('pengadaan.')->group(function () {
+            Route::get('/', [ProcurementController::class, 'index'])->name('index');
+            Route::post('/pengajuan', [ProcurementController::class, 'storeRequisition'])->name('pengajuan.simpan');
+            Route::post('/pengajuan/{pengajuan}/putuskan', [ProcurementController::class, 'decideRequisition'])->name('pengajuan.putuskan');
+            Route::post('/pesanan', [ProcurementController::class, 'storeOrder'])->name('pesanan.simpan');
+            Route::post('/pesanan/{pesanan}/kirim', [ProcurementController::class, 'sendOrder'])->name('pesanan.kirim');
+            Route::get('/pesanan/{pesanan}/surat', [ProcurementController::class, 'printOrder'])->name('pesanan.surat');
+            Route::post('/pesanan/{pesanan}/terima', [ProcurementController::class, 'receive'])->name('pesanan.terima');
+            Route::post('/penerimaan/{penerimaan}/bayar', [ProcurementController::class, 'pay'])->name('penerimaan.bayar');
+            Route::post('/retur', [ProcurementController::class, 'storeReturn'])->name('retur.simpan');
         });
 
     });
