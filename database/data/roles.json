@@ -440,5 +440,16 @@
             "peminjaman_perpustakaan",
             "set_peminjaman_perpustakaan"
         ]
+    },
+    {
+        "code": "petugas-toko",
+        "name": "Petugas Toko/Koperasi",
+        "description": "Barang dagangan & master (kategori, suplier, tingkat harga), harga jual bertingkat, buku besar stok, stok opname, pengadaan, penjualan tunai & piutang, retur, dan rekap harian toko/koperasi rumah sakit.",
+        "_catatan_scope": "Peran baru, bukan dititipkan ke petugas-logistik maupun apoteker: stok toko dan stok medis memang harus terpisah, dan menggabungkan perannya membuka jalan yang persis ingin dihindari — permintaan bangsal menarik barang dagangan koperasi, atau obat terjual di kasir toko. Domain S 25 kode, satu di antaranya (satuan_barang) sudah diselesaikan domain D sebagai milik pharmacy karena Khanza memakai kode yang sama lintas domain D/E/F/S. toko_barang jadi umbrella untuk toko_jenis dan toko_suplier (ketiganya dikelola orang yang sama); stok_opname_toko jadi umbrella untuk toko_riwayat_barang, toko_sirkulasi, dan toko_sirkulasi2 — ketiganya membaca buku besar yang sama dengan penyaring berbeda, dan tiga layar berarti tiga tempat memperbaiki satu kesalahan yang sama.",
+        "contexts": [],
+        "extra_permissions": [
+            "toko_barang",
+            "stok_opname_toko"
+        ]
     }
 ]

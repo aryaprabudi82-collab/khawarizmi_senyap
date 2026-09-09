@@ -583,6 +583,26 @@ return [
             'publishes' => [],
         ],
 
+        'retail' => [
+            'schema' => 'retail',
+            'module' => 'Retail',
+            'description' => 'Toko/koperasi rumah sakit (Khanza domain S, 25 kode — satu di antaranya '
+                .'`satuan_barang` yang sudah diselesaikan domain D sebagai milik pharmacy, jadi 24 kode '
+                .'sendiri): master barang & suplier, harga jual bertingkat, buku besar stok, opname, '
+                .'pengadaan, penjualan tunai & piutang, retur, dan rekap harian. '
+                .'INI IMPLEMENTASI KETIGA dari mekanisme rantai pasok yang sama setelah pharmacy dan '
+                .'inventory, DAN ITU DISENGAJA: menyatukannya akan melahirkan kesalahan yang jauh lebih '
+                .'mahal daripada duplikasinya — permintaan bangsal bisa menarik stok barang dagangan '
+                .'koperasi, dan obat bisa terjual di kasir toko. Kalau muncul instansi KEEMPAT, menyari '
+                .'mekanisme buku besar stok jadi satu komponen bersama (yang tetap menulis ke schema '
+                .'masing-masing konteks) menjadi pilihan yang lebih murah daripada menyalinnya lagi. '
+                .'Stok TIDAK disimpan sebagai kolom pada barangnya seperti `tokobarang.stok` Khanza: '
+                .'saldo tanpa buku besar tidak bisa direkonsiliasi, dan begitu satu transaksi gagal di '
+                .'tengah, angkanya melenceng tanpa cara menelusuri sejak kapan maupun karena apa.',
+            'domains' => ['S'],
+            'publishes' => [],
+        ],
+
     ],
 
     /*

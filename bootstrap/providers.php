@@ -23,6 +23,7 @@ use App\Modules\Pharmacy\Providers\PharmacyServiceProvider;
 use App\Modules\Platform\Providers\PlatformServiceProvider;
 use App\Modules\Quality\Providers\QualityServiceProvider;
 use App\Modules\Reporting\Providers\ReportingServiceProvider;
+use App\Modules\Retail\Providers\RetailServiceProvider;
 use App\Providers\AppServiceProvider;
 
 return [
@@ -53,4 +54,5 @@ return [
     LibraryServiceProvider::class,
     KitchenServiceProvider::class,
     ParkingServiceProvider::class,
+    RetailServiceProvider::class,
 ];
