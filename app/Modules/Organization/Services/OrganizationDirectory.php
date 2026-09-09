@@ -2,6 +2,7 @@
 
 namespace App\Modules\Organization\Services;
 
+use App\Modules\Organization\Models\OperatingRoom;
 use App\Modules\Organization\Models\PracticeSchedule;
 use App\Modules\Organization\Models\Practitioner;
 use App\Modules\Organization\Models\Unit;
@@ -39,6 +40,46 @@ class OrganizationDirectory
     public function findPractitioner(int $id): ?Practitioner
     {
         return Practitioner::query()->find($id);
+    }
+
+    /**
+     * Ruang operasi aktif, untuk daftar pilihan di clinical dan encounter.
+     *
+     * KEDUA KONTEKS ITU SEBELUMNYA MENGETIK NAMANYA BEBAS, dan laporan RL
+     * mengelompokkan utilisasi kamar operasi berdasarkan teks itu — "OK 1"
+     * dan "OK1" terhitung dua ruang berbeda pada laporan wajib, tanpa satu
+     * pun galat muncul.
+     *
+     * @return Collection<int, OperatingRoom>
+     */
+    public function activeOperatingRooms(): Collection
+    {
+        return OperatingRoom::query()
+            ->where('is_active', true)
+            ->orderBy('code')
+            ->get();
+    }
+
+    public function findOperatingRoomByCode(string $code): ?OperatingRoom
+    {
+        return OperatingRoom::query()->where('code', $code)->first();
+    }
+
+    /**
+     * Apakah kode ruang operasi ini sah dan masih dipakai.
+     *
+     * Dipakai memvalidasi isian di konteks lain. Ruang yang sudah
+     * dinonaktifkan ditolak untuk pencatatan BARU, tapi baris lama yang
+     * sudah menunjuknya tetap terbaca — riwayat operasi di ruang yang
+     * sekarang ditutup tidak boleh lenyap dari laporan.
+     */
+    public function operatingRoomIsUsable(?string $code): bool
+    {
+        if ($code === null || $code === '') {
+            return true;
+        }
+
+        return OperatingRoom::query()->where('code', $code)->where('is_active', true)->exists();
     }
 
     /**

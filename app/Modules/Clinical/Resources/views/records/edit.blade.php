@@ -281,7 +281,17 @@
                 <option value="tanpa">Tanpa</option>
               </select>
             </div>
-            <div class="col-4"><input type="text" name="operating_room" class="form-control form-control-sm" placeholder="Ruang Operasi"></div>
+            {{-- Dipilih dari master, tidak diketik: laporan RL mengelompokkan
+                 utilisasi kamar operasi berdasarkan nilai ini, jadi dua ejaan
+                 memecah satu ruang jadi dua baris pada laporan wajib. --}}
+            <div class="col-4">
+              <select name="operating_room" class="form-select form-select-sm">
+                <option value="">— Ruang Operasi —</option>
+                @foreach ($ruangOperasi as $r)
+                  <option value="{{ $r->code }}">{{ $r->code }} · {{ $r->name }}</option>
+                @endforeach
+              </select>
+            </div>
             <div class="col-4"><button class="btn btn-sm btn-outline-primary w-100">Catat</button></div>
             <div class="col-12"><input type="text" name="note" class="form-control form-control-sm" placeholder="Catatan (opsional)"></div>
           </form>

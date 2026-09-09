@@ -31,9 +31,9 @@ class OperationBookingController
         $hasilPencarian = $q === '' ? collect() : Registration::query()
             ->where('status', '!=', Registration::STATUS_BATAL)
             ->where(function ($query) use ($q) {
-                $query->where('registration_number', 'ilike', '%' . $q . '%')
-                    ->orWhere('patient_mrn', 'ilike', '%' . $q . '%')
-                    ->orWhere('patient_name', 'ilike', '%' . $q . '%');
+                $query->where('registration_number', 'ilike', '%'.$q.'%')
+                    ->orWhere('patient_mrn', 'ilike', '%'.$q.'%')
+                    ->orWhere('patient_name', 'ilike', '%'.$q.'%');
             })
             ->orderByDesc('registered_at')
             ->limit(20)
@@ -45,6 +45,7 @@ class OperationBookingController
             'hasilPencarian' => $hasilPencarian,
             'status' => $request->string('status')->toString(),
             'praktisi' => $this->organization->activePractitioners(),
+            'ruangOperasi' => $this->organization->activeOperatingRooms(),
         ]);
     }
 
@@ -60,6 +61,18 @@ class OperationBookingController
         ], [], [
             'registration_id' => 'kunjungan', 'procedure_name' => 'nama tindakan operasi', 'scheduled_at' => 'jadwal',
         ]);
+
+        /*
+         * Ruang operasi dipilih dari master, tidak diketik — dan ini tempat
+         * KEDUA yang dulu mengetiknya bebas. Ruang yang sama diketik dua
+         * kali oleh dua orang berbeda (penjadwal di sini, operator di
+         * laporan operasi), lalu laporan RL mengelompokkan berdasarkan
+         * teksnya dan memecah satu ruang jadi dua baris.
+         */
+        if (! $this->organization->operatingRoomIsUsable($data['operating_room'] ?? null)) {
+            return back()->withInput()->with('galat',
+                'Ruang operasi harus dipilih dari master ruang operasi yang aktif.');
+        }
 
         $registrationId = (int) $data['registration_id'];
         unset($data['registration_id']);

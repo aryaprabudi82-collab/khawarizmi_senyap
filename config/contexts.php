@@ -100,6 +100,10 @@ return [
             'publishes' => [
                 'v_unit_summary' => 'Unit layanan aktif berikut kuota hariannya.',
                 'v_practitioner_summary' => 'Praktisi berikut spesialisasi dan masa aktifnya.',
+                'v_operating_room' => 'Master ruang operasi aktif berikut unit pemiliknya. '
+                    .'Dibaca clinical dan encounter, yang keduanya sebelumnya menyimpan nama ruang '
+                    .'sebagai teks bebas — dan laporan RL mengelompokkan berdasarkan teks itu, '
+                    .'sehingga dua ejaan memecah satu ruang jadi dua baris pada laporan wajib.',
             ],
         ],
 
@@ -600,6 +604,35 @@ return [
                 .'saldo tanpa buku besar tidak bisa direkonsiliasi, dan begitu satu transaksi gagal di '
                 .'tengah, angkanya melenceng tanpa cara menelusuri sejak kapan maupun karena apa.',
             'domains' => ['S'],
+            'publishes' => [],
+        ],
+
+        'philanthropy' => [
+            'schema' => 'philanthropy',
+            'module' => 'Philanthropy',
+            'description' => 'Filantropi/CSR/ZIS (Khanza domain T, 16 kode): kriteria asesmen kelayakan '
+                .'penerima dana kesehatan, pendataan penerima, survei rumah, putusan kelayakan, dan '
+                .'penyaluran zakat/infak/sedekah/CSR. '
+                .'KEENAM BELAS KODE ITU KOSAKATA SATU INSTRUMEN YANG TIDAK PERNAH DIBANGUN KHANZA: '
+                .'lima belas tabel `zis_keterangan_*` identik kolom per kolom (kode + keterangan), dan '
+                .'yang keenam belas — kepemilikan rumah — tidak punya tabel sama sekali meski menunya '
+                .'ada, karena kelas Java yang ditunjuknya adalah kelas ATAP RUMAH, salinan yang lupa '
+                .'diganti. Di sini keenam belasnya jadi SATU tabel berkolom kategori, pola yang sama '
+                .'dengan icra_risk_items domain R. '
+                .'LAHIR NYARIS KOSONG: batas penghasilan, ukuran rumah yang dianggap layak, dan jenis '
+                .'dinding yang dianggap tidak layak adalah penilaian amil RSP UI — menebaknya berarti '
+                .'menerbitkan kriteria kemiskinan resmi yang tidak pernah disepakati siapa pun, lalu '
+                .'memakainya menolak orang. Kecuali delapan golongan asnaf (At-Taubah 60) yang '
+                .'ditetapkan di luar rumah sakit dan karena itu boleh disalin. '
+                .'PENYALURAN WAJIB MENYEBUT PENERIMANYA: `ambil_dankes` Khanza hanya berisi tanggal, '
+                .'kategori, dan jumlah — tanpa rujukan ke penerima sama sekali, sehingga penerimaan '
+                .'ganda tidak bisa terlihat dan tidak ada bantuan yang bisa ditelusuri ke dasar '
+                .'kelayakannya. '
+                .'TIDAK ADA AMBANG OTOMATIS: bobot boleh diisi dan totalnya dihitung, tapi putusannya '
+                .'tetap keputusan manusia berikut nama pemutus dan alasannya. '
+                .'SENGAJA TIDAK DIBANGUN DI SINI: pembukuan dana ZIS — penerimaan dan saldonya '
+                .'transaksi keuangan dan sudah dipegang konteks finance.',
+            'domains' => ['T'],
             'publishes' => [],
         ],
 

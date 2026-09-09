@@ -82,6 +82,7 @@ class ClinicalRecordController
             'katalogTindakan' => $this->tariffs->servicesByCategory('tindakan'),
             'operasi' => $this->records->operationsFor($registrasi),
             'katalogOperasi' => $this->tariffs->servicesByCategory('operasi'),
+            'ruangOperasi' => $this->organization->activeOperatingRooms(),
         ]);
     }
 
@@ -113,6 +114,20 @@ class ClinicalRecordController
             'operating_room' => ['nullable', 'string', 'max:50'],
             'note' => ['nullable', 'string', 'max:500'],
         ], [], ['service_code' => 'tindakan operasi', 'surgeon_name' => 'nama operator']);
+
+        /*
+         * Ruang operasi dipilih dari master, tidak diketik.
+         *
+         * Sebelumnya kolom ini teks bebas di sini DAN di jadwal operasi
+         * (encounter), sementara StatutoryReportService mengelompokkan
+         * laporan RL berdasarkan teksnya — "OK 1" dan "OK1" memecah satu
+         * ruang jadi dua baris pada laporan wajib, dan tidak ada galat yang
+         * muncul karena angkanya tetap tampak wajar.
+         */
+        if (! $this->organization->operatingRoomIsUsable($data['operating_room'] ?? null)) {
+            return back()->withInput()->with('galat',
+                'Ruang operasi harus dipilih dari master ruang operasi yang aktif.');
+        }
 
         try {
             $this->records->recordOperation(

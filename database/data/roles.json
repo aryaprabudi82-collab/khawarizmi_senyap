@@ -71,8 +71,10 @@
         "_catatan_scope": "Context 'catalog' semula memberi 37 kapabilitas yang ternyata template klinis (triase, keperawatan) - domain M Khanza memakai awalan 'Master' untuk banyak hal yang bukan data referensi administratif. Khanza sendiri tidak punya permission khusus untuk CRUD data master semacam ini (menunya berbasis laporan/alur kerja, bukan panel admin), jadi tarif_ralan dipakai sebagai gerbang tunggal, konsisten dengan pola registrasi/resep_obat yang menggerbangi satu area fungsional utuh.",
         "contexts": [],
         "extra_permissions": [
-            "tarif_ralan"
-        ]
+            "tarif_ralan",
+            "ruang_ok"
+        ],
+        "_catatan_ruang_ok": "ruang_ok (domain U) dipegang gerbangnya sendiri, TIDAK dilebur ke tarif_ralan: yang menyusun daftar kamar operasi adalah instalasi bedah, bukan orang yang menetapkan tarif rawat jalan — dan Khanza pun memberinya kode tersendiri. Diberikan ke admin-master untuk Wave 1 karena belum ada peran instalasi bedah; layak ditinjau ulang kalau peran itu dibuat. Master ini menutup cacat yang SUDAH merusak laporan wajib: nama ruang operasi sebelumnya teks bebas di clinical.operations DAN encounter.operation_bookings, sementara StatutoryReportService mengelompokkan laporan RL berdasarkan teks itu — dua ejaan memecah satu ruang jadi dua baris."
     },
     {
         "code": "dokter",
@@ -452,6 +454,17 @@
             "stok_opname_toko",
             "toko_pengadaan_barang",
             "toko_penjualan"
+        ]
+    },
+    {
+        "code": "petugas-zis",
+        "name": "Petugas ZIS/Filantropi",
+        "description": "Kriteria asesmen kelayakan, pendataan calon penerima dana kesehatan, survei rumah, putusan kelayakan, dan penyaluran dana zakat/infak/sedekah/CSR.",
+        "_catatan_scope": "Peran baru, bukan dititipkan ke petugas-keuangan maupun petugas-tu: yang menilai kelayakan seseorang menerima bantuan adalah amil/panitia ZIS, bukan orang yang memegang kasnya — dan menggabungkannya berarti satu orang bisa menyatakan seseorang layak lalu mengeluarkan uangnya sendiri tanpa ada yang menoleh. Preseden peran-baru yang sama dipakai pada petugas-parkir, pustakawan, dan petugas-toko. Domain T 16 kode, dan SELURUHNYA kosakata satu instrumen yang di Khanza tidak pernah dibangun; dua gerbang dipakai di sini dan pemilihannya disengaja: zis_kategori_asnaf_penerima_dankes (satu-satunya kode ber-kind Master yang isinya ditetapkan di luar rumah sakit) menaungi kelima belas kosakata lain sebagai layar kriteria, sementara zis_pengeluaran_penerima_dankes menggerbangi layar kerjanya — asesmen, putusan, dan penyaluran. Memecahnya jadi enam belas gerbang berarti enam belas kewenangan untuk enam belas daftar berbentuk sama, dan tidak ada satu pun yang membuka pekerjaan yang sesungguhnya. Yang SENGAJA tidak masuk peran ini: pembukuan dananya, yang tetap milik konteks finance.",
+        "contexts": [],
+        "extra_permissions": [
+            "zis_kategori_asnaf_penerima_dankes",
+            "zis_pengeluaran_penerima_dankes"
         ]
     }
 ]

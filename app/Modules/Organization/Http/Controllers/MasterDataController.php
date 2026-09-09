@@ -2,6 +2,7 @@
 
 namespace App\Modules\Organization\Http\Controllers;
 
+use App\Modules\Organization\Models\OperatingRoom;
 use App\Modules\Organization\Models\PracticeSchedule;
 use App\Modules\Organization\Models\Practitioner;
 use App\Modules\Organization\Models\Unit;
@@ -135,5 +136,56 @@ class MasterDataController
         $this->admin->removeSchedule($jadwal);
 
         return back()->with('sukses', 'Jadwal praktik dihapus.');
+    }
+
+    /**
+     * Master ruang operasi (Khanza `ruang_ok`, domain U).
+     *
+     * Menutup cacat yang sudah merusak laporan wajib: nama ruang operasi
+     * sebelumnya diketik bebas di dua konteks sekaligus, sementara laporan
+     * RL mengelompokkan berdasarkan teks itu.
+     */
+    public function operatingRooms(): View
+    {
+        return view('organization::master.ruang-operasi', [
+            'ruang' => OperatingRoom::query()->with('unit')->orderBy('code')->get(),
+            'unitAktif' => Unit::query()->where('is_active', true)->orderBy('name')->get(),
+        ]);
+    }
+
+    public function storeOperatingRoom(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'code' => ['required', 'string', 'max:20', Rule::unique(OperatingRoom::class, 'code')],
+            'name' => ['required', 'string', 'max:60'],
+            'unit_id' => ['nullable', 'integer', Rule::exists(Unit::class, 'id')],
+            'note' => ['nullable', 'string', 'max:255'],
+        ], [], ['code' => 'kode', 'name' => 'nama', 'unit_id' => 'unit']);
+
+        OperatingRoom::query()->create($data + ['is_active' => true]);
+
+        return back()->with('sukses', "Ruang operasi {$data['name']} ditambahkan.");
+    }
+
+    public function updateOperatingRoom(Request $request, OperatingRoom $ruang): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:60'],
+            'unit_id' => ['nullable', 'integer', Rule::exists(Unit::class, 'id')],
+            'note' => ['nullable', 'string', 'max:255'],
+            'is_active' => ['nullable', 'boolean'],
+        ], [], ['name' => 'nama', 'unit_id' => 'unit']);
+
+        /*
+         * KODE TIDAK BISA DIUBAH. Operasi dan jadwal yang sudah tercatat
+         * menunjuk ruang lewat kodenya; mengubah kode berarti seluruh
+         * riwayat menunjuk ruang yang tidak ada lagi — dan laporan
+         * utilisasinya berhenti di tanggal perubahan tanpa ada yang
+         * memberi tahu. Ruang yang salah kode dinonaktifkan, lalu yang
+         * benar dibuat baru.
+         */
+        $ruang->update($data + ['is_active' => (bool) $request->boolean('is_active')]);
+
+        return back()->with('sukses', "Ruang operasi {$ruang->name} diperbarui.");
     }
 }

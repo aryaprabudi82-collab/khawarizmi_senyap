@@ -120,13 +120,16 @@
           </li>
         @endcanany
 
-        @canany(['tarif_ralan', 'pasien'])
+        @canany(['tarif_ralan', 'pasien', 'ruang_ok'])
           <li class="nav-item dropdown {{ request()->routeIs(['master.*', 'pasien.*']) ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Data Master</a>
             <div class="dropdown-menu">
               @can('tarif_ralan')
                 <a class="dropdown-item" href="{{ route('master.index') }}">Layanan &amp; Tarif</a>
                 <a class="dropdown-item" href="{{ route('master.organisasi') }}">Unit &amp; Praktisi</a>
+              @endcan
+              @can('ruang_ok')
+                <a class="dropdown-item" href="{{ route('master.ruang-operasi') }}">Ruang Operasi</a>
               @endcan
               @can('pasien')
                 <a class="dropdown-item" href="{{ route('pasien.index') }}">Pasien</a>
@@ -223,8 +226,8 @@
           </li>
         @endcanany
 
-        @canany(['surat_masuk', 'pengumuman_epasien', 'rekap_kunjungan', 'bpjs_cek_kartu', 'satu_sehat_referensi_pasien', 'user'])
-          <li class="nav-item dropdown {{ request()->routeIs(['correspondence.*', 'library.*', 'retail.*', 'reporting.*', 'integrasi.*', 'platform.*']) ? 'active' : '' }}">
+        @canany(['surat_masuk', 'pengumuman_epasien', 'rekap_kunjungan', 'bpjs_cek_kartu', 'satu_sehat_referensi_pasien', 'user', 'aplikasi', 'zis_pengeluaran_penerima_dankes', 'zis_kategori_asnaf_penerima_dankes'])
+          <li class="nav-item dropdown {{ request()->routeIs(['correspondence.*', 'library.*', 'retail.*', 'philanthropy.*', 'reporting.*', 'integrasi.*', 'platform.*']) ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Administrasi</a>
             <div class="dropdown-menu">
               @can('surat_masuk')
@@ -257,6 +260,12 @@
               @can('toko_penjualan')
                 <a class="dropdown-item" href="{{ route('retail.penjualan.index') }}">Toko — Kasir &amp; Piutang</a>
               @endcan
+              @can('zis_pengeluaran_penerima_dankes')
+                <a class="dropdown-item" href="{{ route('philanthropy.bantuan.index') }}">ZIS — Bantuan Dana Kesehatan</a>
+              @endcan
+              @can('zis_kategori_asnaf_penerima_dankes')
+                <a class="dropdown-item" href="{{ route('philanthropy.kriteria.index') }}">ZIS — Kriteria Asesmen</a>
+              @endcan
               @can('rekap_kunjungan')
                 <a class="dropdown-item" href="{{ route('reporting.dashboard') }}">Laporan</a>
               @endcan
@@ -273,6 +282,9 @@
                 <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="{{ route('platform.pengguna.index') }}">Kelola Pengguna</a>
                 <a class="dropdown-item" href="{{ route('platform.peran.index') }}">Kelola Peran</a>
+              @endcan
+              @can('aplikasi')
+                <a class="dropdown-item" href="{{ route('platform.pengaturan.index') }}">Pengaturan Aplikasi</a>
               @endcan
             </div>
           </li>

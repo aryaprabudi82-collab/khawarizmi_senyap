@@ -20,6 +20,7 @@ use App\Modules\Order\Providers\OrderServiceProvider;
 use App\Modules\Organization\Providers\OrganizationServiceProvider;
 use App\Modules\Parking\Providers\ParkingServiceProvider;
 use App\Modules\Pharmacy\Providers\PharmacyServiceProvider;
+use App\Modules\Philanthropy\Providers\PhilanthropyServiceProvider;
 use App\Modules\Platform\Providers\PlatformServiceProvider;
 use App\Modules\Quality\Providers\QualityServiceProvider;
 use App\Modules\Reporting\Providers\ReportingServiceProvider;
@@ -55,4 +56,5 @@ return [
     KitchenServiceProvider::class,
     ParkingServiceProvider::class,
     RetailServiceProvider::class,
+    PhilanthropyServiceProvider::class,
 ];

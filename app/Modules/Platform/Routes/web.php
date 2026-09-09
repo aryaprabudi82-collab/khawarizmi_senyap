@@ -2,6 +2,7 @@
 
 use App\Modules\Platform\Http\Controllers\AuthController;
 use App\Modules\Platform\Http\Controllers\RoleController;
+use App\Modules\Platform\Http\Controllers\SettingController;
 use App\Modules\Platform\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,5 +37,25 @@ Route::middleware('web')->group(function () {
                 Route::delete('/{peran}', [RoleController::class, 'destroy'])->name('hapus');
             });
         });
+
+        /*
+         * Pengaturan aplikasi & identitas rumah sakit (domain U item A).
+         *
+         * `aplikasi` menggerbangi layarnya dan menaungi `admin`, `set_nota`,
+         * `set_no_rm`, `set_penggunaan_tarif`, `set_oto_ralan`,
+         * `setup_jam_kamin`, `set_input_parsial`, `setup_embalase`, dan
+         * `set_harga_obat` — kesepuluhnya di Khanza adalah menu terpisah untuk
+         * satu baris pengaturan masing-masing, dan sepuluh layar berarti tidak
+         * ada satu pun tempat yang bisa menjawab "apa saja yang belum diatur".
+         *
+         * Gerbangnya DIPISAH dari `user`: yang mengelola akun bukan
+         * mesti orang yang boleh mengubah tarif embalase atau format nota.
+         */
+        Route::middleware('can:aplikasi')->prefix('pengaturan/aplikasi')
+            ->name('platform.pengaturan.')->group(function () {
+                Route::get('/', [SettingController::class, 'index'])->name('index');
+                Route::post('/institusi', [SettingController::class, 'saveInstitution'])->name('institusi');
+                Route::post('/{pengaturan}', [SettingController::class, 'update'])->name('perbarui');
+            });
     });
 });

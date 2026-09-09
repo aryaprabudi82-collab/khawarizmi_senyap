@@ -137,7 +137,16 @@
             </div>
             <div class="col-6">
               <label class="form-label" for="ok-{{ $k->id }}">Ruang Operasi</label>
-              <input type="text" id="ok-{{ $k->id }}" name="operating_room" class="form-control" placeholder="mis. OK 1">
+              {{-- Dipilih dari master, tidak diketik. Ruang yang sama dulu
+                   diketik dua kali oleh dua orang berbeda — penjadwal di sini
+                   dan operator di laporan operasi — lalu laporan RL
+                   mengelompokkan berdasarkan teksnya. --}}
+              <select id="ok-{{ $k->id }}" name="operating_room" class="form-select">
+                <option value="">— belum ditentukan —</option>
+                @foreach ($ruangOperasi as $r)
+                  <option value="{{ $r->code }}">{{ $r->code }} · {{ $r->name }}</option>
+                @endforeach
+              </select>
             </div>
             <div class="col-12">
               <label class="form-label" for="jadwal-{{ $k->id }}">Jadwal</label>
