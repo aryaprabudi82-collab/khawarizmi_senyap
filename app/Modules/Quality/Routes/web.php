@@ -1,9 +1,9 @@
 <?php
 
+use App\Modules\Quality\Http\Controllers\HaisController;
 use App\Modules\Quality\Http\Controllers\IcraController;
 use App\Modules\Quality\Http\Controllers\IncidentController;
 use App\Modules\Quality\Http\Controllers\K3IncidentController;
-use App\Modules\Quality\Http\Controllers\HaisController;
 use App\Modules\Quality\Http\Controllers\K3RecapController;
 use App\Modules\Quality\Http\Controllers\PpiAuditController;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +25,22 @@ Route::middleware(['web', 'auth'])
             Route::post('/', [IcraController::class, 'store'])->name('simpan');
             Route::post('/{kajian}/selesai', [IcraController::class, 'complete'])->name('selesai');
             Route::post('/{kajian}/batal', [IcraController::class, 'cancel'])->name('batal');
+
+            /*
+             * Master ICRA: area & kelompok risikonya, matriks, tindakan
+             * pengendalian, dan persyaratan per kelas. Lima kode Khanza di
+             * satu layar, digerbangi kode pengkajian sebagai umbrella —
+             * yang menyusun kosakatanya adalah IPCN yang sama dengan yang
+             * mengisi pengkajiannya, dan memecah gerbangnya melahirkan
+             * kewenangan yang tidak dipegang siapa pun.
+             */
+            Route::prefix('master')->name('master.')->group(function () {
+                Route::get('/', [IcraController::class, 'master'])->name('index');
+                Route::post('/area', [IcraController::class, 'storeArea'])->name('area.simpan');
+                Route::post('/tindakan', [IcraController::class, 'storeControlMeasure'])->name('tindakan.simpan');
+                Route::post('/persyaratan', [IcraController::class, 'storeRequirement'])->name('persyaratan.simpan');
+                Route::post('/matriks/{sel}', [IcraController::class, 'updateMatrix'])->name('matriks.perbarui');
+            });
         });
 
         Route::middleware('can:audit_kepatuhan_apd')->prefix('ppi')->name('ppi.')->group(function () {

@@ -6,6 +6,7 @@
 
 @section('actions')
   <a href="{{ route('quality.insiden.index') }}" class="btn btn-link">&larr; Insiden</a>
+  <a href="{{ route('quality.icra.master.index') }}" class="btn btn-link">Master ICRA &rarr;</a>
 @endsection
 
 @section('content')
@@ -16,8 +17,8 @@
     <form method="POST" action="{{ route('quality.icra.simpan') }}" class="row g-2">
       @csrf
       <div class="col-12 col-md-4"><label class="form-label">Nama Proyek</label><input type="text" name="project_name" class="form-control" required></div>
-      <div class="col-6 col-md-3"><label class="form-label">Jenis Aktivitas</label><input type="text" name="project_type" class="form-control" placeholder="mis. renovasi" required></div>
-      <div class="col-6 col-md-3"><label class="form-label">Lokasi</label><input type="text" name="location" class="form-control" required></div>
+      <div class="col-6 col-md-3"><label class="form-label">Uraian Aktivitas</label><input type="text" name="project_type" class="form-control" placeholder="mis. renovasi plafon" required></div>
+      <div class="col-6 col-md-3"><label class="form-label">Lokasi (uraian)</label><input type="text" name="location" class="form-control" required></div>
       <div class="col-12 col-md-2">
         <label class="form-label">Unit</label>
         <select name="unit_id" class="form-select">
@@ -40,15 +41,44 @@
         </div>
       @endforeach
 
-      <div class="col-6 col-md-3">
-        <label class="form-label">Kelas Risiko</label>
-        <select name="risk_class" class="form-select" required>
-          <option value="I">Kelas I</option>
-          <option value="II">Kelas II</option>
-          <option value="III">Kelas III</option>
-          <option value="IV">Kelas IV</option>
+      {{-- KELAS PENCEGAHAN TIDAK LAGI DIKETIK: ia dihitung dari matriks
+           (tipe aktivitas x kelompok risiko area). Dengan kelas yang diketik,
+           proyek Tipe D di ruang isolasi bisa tercatat Kelas I dan tidak ada
+           yang menolaknya &mdash; lalu dokumen ICRA-nya justru jadi bukti bahwa
+           rumah sakit sudah menilai dan menyimpulkan boleh. --}}
+      <div class="col-12"><hr class="my-1"><div class="form-label mb-0">Penentu Kelas Pencegahan</div>
+        <div class="form-hint">Kelas dihitung dari matriks ICRA, bukan dipilih. Sel tertentu memberi RENTANG &mdash; pedomannya menyerahkan pilihan kepada komite pengendalian infeksi, dan pada sel itu kelas serta pemutusnya wajib diisi.</div>
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label">Tipe Aktivitas Proyek</label>
+        <select name="activity_type_id" class="form-select" required>
+          @foreach ($aktivitas as $a)
+            <option value="{{ $a->id }}">{{ $a->name }}</option>
+          @endforeach
         </select>
       </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label">Area Terdampak</label>
+        <select name="area_id" class="form-select" required>
+          @foreach ($area as $ar)
+            <option value="{{ $ar->id }}">{{ $ar->name }} &middot; {{ $ar->riskGroup->name }}</option>
+          @endforeach
+        </select>
+        @if ($area->isEmpty())
+          <div class="form-hint text-danger">Belum ada area terdaftar &mdash; isi dulu di Master ICRA. Kelompok risikonya keputusan RSP UI, bukan tebakan sistem.</div>
+        @endif
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label">Kelas Pilihan (bila matriks memberi rentang)</label>
+        <select name="chosen_class_id" class="form-select">
+          <option value="">&mdash; ikut matriks &mdash;</option>
+          @foreach ($kelas as $k)
+            <option value="{{ $k->id }}">{{ $k->name }}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="col-12 col-md-4"><label class="form-label">Diputuskan Oleh</label><input type="text" name="class_decided_by" class="form-control" placeholder="Nama IPCN/komite"></div>
+      <div class="col-12 col-md-8"><label class="form-label">Alasan Pemilihan Kelas</label><input type="text" name="class_decision_reason" class="form-control"></div>
       <div class="col-6 col-md-3"><label class="form-label">Berlaku Sampai</label><input type="date" name="valid_until" class="form-control"></div>
 
       <div class="col-12 col-md-6"><label class="form-label">Persyaratan yang Harus Dipenuhi</label><textarea name="required_precautions" class="form-control" rows="2"></textarea></div>

@@ -6,7 +6,10 @@ use App\Modules\Platform\Database\Seeders\PermissionCatalogSeeder;
 use App\Modules\Platform\Database\Seeders\RoleSeeder;
 use App\Modules\Platform\Models\Role;
 use App\Modules\Platform\Models\User;
+use App\Modules\Quality\Models\IcraActivityType;
+use App\Modules\Quality\Models\IcraArea;
 use App\Modules\Quality\Models\IcraAssessment;
+use App\Modules\Quality\Models\IcraRiskGroup;
 use App\Modules\Quality\Models\IncidentReport;
 use App\Modules\Quality\Services\IcraService;
 use App\Modules\Quality\Services\IncidentReportService;
@@ -21,7 +24,9 @@ class QualityTest extends TestCase
     use RefreshDatabase;
 
     private IncidentReportService $incidents;
+
     private IcraService $icra;
+
     private User $adminMutu;
 
     protected function setUp(): void
@@ -138,6 +143,19 @@ class QualityTest extends TestCase
 
     private function kaji(): IcraAssessment
     {
+        /*
+         * Sejak domain R item A, tipe aktivitas dan area WAJIB: kelas
+         * pencegahan dihitung dari matriks, dan pengkajian yang tidak bisa
+         * menentukan kelasnya bukan pengkajian ICRA. `risk_class` tidak
+         * lagi dikirim — kalau dikirim pun ia diabaikan.
+         */
+        $area = IcraArea::query()->create([
+            'code' => 'AREA-QT',
+            'name' => 'Gedung B Lantai 2',
+            'risk_group_id' => IcraRiskGroup::query()->where('code', '2')->value('id'),
+            'is_active' => true,
+        ]);
+
         return $this->icra->assess([
             'project_name' => 'Renovasi Poliklinik Anak',
             'project_type' => 'renovasi',
@@ -146,7 +164,9 @@ class QualityTest extends TestCase
             'fire_risk_level' => 'rendah',
             'safety_risk_level' => 'sedang',
             'utility_risk_level' => 'rendah',
-            'risk_class' => 'II',
-        ], $this->adminMutu->id);
+        ], $this->adminMutu->id,
+            IcraActivityType::query()->where('code', 'B')->firstOrFail(),
+            $area
+        );
     }
 }
