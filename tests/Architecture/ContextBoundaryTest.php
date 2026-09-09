@@ -23,7 +23,7 @@ class ContextBoundaryTest extends TestCase
     {
         parent::setUp();
 
-        $this->contexts = require dirname(__DIR__, 2) . '/config/contexts.php';
+        $this->contexts = require dirname(__DIR__, 2).'/config/contexts.php';
     }
 
     #[Test]
@@ -36,7 +36,7 @@ class ContextBoundaryTest extends TestCase
             $this->assertArrayHasKey('module', $ctx, "Konteks '{$name}' tidak punya modul.");
 
             $this->assertDirectoryExists(
-                dirname(__DIR__, 2) . '/app/Modules/' . $ctx['module'],
+                dirname(__DIR__, 2).'/app/Modules/'.$ctx['module'],
                 "Folder modul untuk konteks '{$name}' tidak ada."
             );
 
@@ -74,7 +74,7 @@ class ContextBoundaryTest extends TestCase
             }
         }
 
-        $this->assertSame([], $pelanggaran, "Migrasi menyeberang batas konteks:\n" . implode("\n", $pelanggaran));
+        $this->assertSame([], $pelanggaran, "Migrasi menyeberang batas konteks:\n".implode("\n", $pelanggaran));
     }
 
     #[Test]
@@ -110,9 +110,9 @@ class ContextBoundaryTest extends TestCase
         $this->assertSame(
             [],
             $pelanggaran,
-            "Kode menyeberang batas konteks. Pakai service konteks pemiliknya, "
-            . "atau terbitkan view lewat 'publishes' di config/contexts.php:\n"
-            . implode("\n", $pelanggaran)
+            'Kode menyeberang batas konteks. Pakai service konteks pemiliknya, '
+            ."atau terbitkan view lewat 'publishes' di config/contexts.php:\n"
+            .implode("\n", $pelanggaran)
         );
     }
 
@@ -161,7 +161,7 @@ class ContextBoundaryTest extends TestCase
                         continue;
                     }
 
-                    $rujukan = $hit[1] . '\\Models\\' . $hit[2];
+                    $rujukan = $hit[1].'\\Models\\'.$hit[2];
 
                     if (in_array($rujukan, $dikecualikan, true)) {
                         continue;
@@ -178,8 +178,8 @@ class ContextBoundaryTest extends TestCase
         $this->assertSame(
             [],
             $pelanggaran,
-            "Modul mengimpor model konteks lain. Baca lewat view yang diterbitkan "
-            . "konteks pemiliknya, bukan lewat model-nya:\n" . implode("\n", $pelanggaran)
+            'Modul mengimpor model konteks lain. Baca lewat view yang diterbitkan '
+            ."konteks pemiliknya, bukan lewat model-nya:\n".implode("\n", $pelanggaran)
         );
     }
 
@@ -222,6 +222,50 @@ class ContextBoundaryTest extends TestCase
         }
     }
 
+    #[Test]
+    public function aturan_unique_dan_exists_menunjuk_kelas_model_bukan_schema(): void
+    {
+        /*
+         * MENGAPA UJI INI ADA. Di seluruh sistem ini nama tabel selalu
+         * ditulis lengkap dengan schema-nya — kecuali di satu tempat, dan di
+         * tempat itu kebiasaan yang benar justru MERUSAK: Laravel mengurai
+         * titik pada aturan `unique:`/`exists:` sebagai NAMA KONEKSI, bukan
+         * schema. `unique:retail.members,member_number` berarti "koneksi
+         * retail", dan karena koneksi itu tidak ada, formulirnya melempar
+         * "Database connection [retail] not configured" begitu dikirim.
+         *
+         * Cacatnya tidak terlihat sampai ada yang menekan tombol Simpan:
+         * layarnya terbuka normal, penyapu layar pun lolos karena ia hanya
+         * membuka halaman (GET). Ditemukan 2026-09-09 sudah menjangkiti 57
+         * aturan di lima konteks — seluruhnya diperbaiki dengan menunjuk
+         * kelas modelnya, yang membawa nama tabel lengkap DAN nama
+         * koneksinya sendiri.
+         *
+         * Uji ini menjaga supaya bentuk yang salah itu tidak tumbuh kembali
+         * lewat kebiasaan yang di tempat lain benar.
+         */
+        $pelanggaran = [];
+
+        foreach (array_keys($this->contexts['active']) as $nama) {
+            $modul = $this->contexts['active'][$nama]['module'];
+
+            foreach ($this->berkasPhpModul($modul) as $berkas) {
+                $isi = (string) file_get_contents($berkas);
+
+                if (preg_match_all("/'(unique|exists):([a-z0-9_]+\.[a-z0-9_]+)/", $isi, $cocok, PREG_SET_ORDER)) {
+                    foreach ($cocok as $c) {
+                        $pelanggaran[] = basename($berkas).': '.$c[1].':'.$c[2];
+                    }
+                }
+            }
+        }
+
+        $this->assertSame([], $pelanggaran,
+            "Aturan berikut memakai schema.tabel, yang diurai Laravel sebagai nama KONEKSI dan\n"
+            ."melempar galat begitu formulirnya dikirim. Tunjuk kelas modelnya, mis.\n"
+            ."'exists:App\\Modules\\Retail\\Models\\Product,id':\n".implode("\n", $pelanggaran));
+    }
+
     /** @return list<string> */
     private function schemaKonteksLain(string $milik): array
     {
@@ -244,7 +288,7 @@ class ContextBoundaryTest extends TestCase
             }
 
             foreach (array_keys($ctx['publishes'] ?? []) as $view) {
-                $diizinkan[] = $ctx['schema'] . '.' . $view;
+                $diizinkan[] = $ctx['schema'].'.'.$view;
             }
         }
 
@@ -254,13 +298,13 @@ class ContextBoundaryTest extends TestCase
     /** @return list<string> */
     private function berkasMigrasi(string $modul): array
     {
-        return $this->berkasPhp(dirname(__DIR__, 2) . "/app/Modules/{$modul}/Database/Migrations");
+        return $this->berkasPhp(dirname(__DIR__, 2)."/app/Modules/{$modul}/Database/Migrations");
     }
 
     /** @return list<string> */
     private function berkasPhpModul(string $modul): array
     {
-        $dir = dirname(__DIR__, 2) . "/app/Modules/{$modul}";
+        $dir = dirname(__DIR__, 2)."/app/Modules/{$modul}";
 
         // Migrasi memang harus menyebut schema-nya sendiri; yang diperiksa di
         // sini adalah kode aplikasi.

@@ -56,11 +56,11 @@ class IcraController
             'control_measures' => ['nullable', 'string', 'max:2000'],
             'valid_until' => ['nullable', 'date'],
 
-            'activity_type_id' => ['required', 'integer', 'exists:quality.icra_activity_types,id'],
-            'area_id' => ['required', 'integer', 'exists:quality.icra_areas,id'],
+            'activity_type_id' => ['required', 'integer', 'exists:App\Modules\Quality\Models\IcraActivityType,id'],
+            'area_id' => ['required', 'integer', 'exists:App\Modules\Quality\Models\IcraArea,id'],
 
             // Hanya dipakai bila sel matriksnya memberi rentang.
-            'chosen_class_id' => ['nullable', 'integer', 'exists:quality.icra_precaution_classes,id'],
+            'chosen_class_id' => ['nullable', 'integer', 'exists:App\Modules\Quality\Models\IcraPrecautionClass,id'],
             'class_decided_by' => ['nullable', 'string', 'max:150'],
             'class_decision_reason' => ['nullable', 'string', 'max:2000'],
         ], [], [
@@ -188,9 +188,9 @@ class IcraController
     public function storeArea(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'code' => ['required', 'string', 'max:20', 'unique:quality.icra_areas,code'],
+            'code' => ['required', 'string', 'max:20', 'unique:App\Modules\Quality\Models\IcraArea,code'],
             'name' => ['required', 'string', 'max:150'],
-            'risk_group_id' => ['required', 'integer', 'exists:quality.icra_risk_groups,id'],
+            'risk_group_id' => ['required', 'integer', 'exists:App\Modules\Quality\Models\IcraRiskGroup,id'],
             'unit_id' => ['nullable', 'integer'],
             'note' => ['nullable', 'string', 'max:1000'],
         ], [], ['code' => 'kode area', 'name' => 'nama area', 'risk_group_id' => 'kelompok risiko']);
@@ -203,9 +203,9 @@ class IcraController
     public function storeControlMeasure(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'code' => ['required', 'string', 'max:20', 'unique:quality.icra_control_measures,code'],
+            'code' => ['required', 'string', 'max:20', 'unique:App\Modules\Quality\Models\IcraControlMeasure,code'],
             'name' => ['required', 'string', 'max:200'],
-            'precaution_class_id' => ['nullable', 'integer', 'exists:quality.icra_precaution_classes,id'],
+            'precaution_class_id' => ['nullable', 'integer', 'exists:App\Modules\Quality\Models\IcraPrecautionClass,id'],
         ], [], ['code' => 'kode', 'name' => 'tindakan pengendalian', 'precaution_class_id' => 'kelas terendah']);
 
         IcraControlMeasure::query()->create($data + ['is_active' => true]);
@@ -216,7 +216,7 @@ class IcraController
     public function storeRequirement(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'precaution_class_id' => ['required', 'integer', 'exists:quality.icra_precaution_classes,id'],
+            'precaution_class_id' => ['required', 'integer', 'exists:App\Modules\Quality\Models\IcraPrecautionClass,id'],
             'requirement' => ['required', 'string', 'max:2000'],
         ], [], ['precaution_class_id' => 'kelas pencegahan', 'requirement' => 'persyaratan']);
 
@@ -232,8 +232,8 @@ class IcraController
     public function updateMatrix(Request $request, IcraMatrixCell $sel): RedirectResponse
     {
         $data = $request->validate([
-            'min_class_id' => ['required', 'integer', 'exists:quality.icra_precaution_classes,id'],
-            'max_class_id' => ['nullable', 'integer', 'exists:quality.icra_precaution_classes,id'],
+            'min_class_id' => ['required', 'integer', 'exists:App\Modules\Quality\Models\IcraPrecautionClass,id'],
+            'max_class_id' => ['nullable', 'integer', 'exists:App\Modules\Quality\Models\IcraPrecautionClass,id'],
         ], [], ['min_class_id' => 'kelas minimum', 'max_class_id' => 'kelas maksimum']);
 
         /*

@@ -40,7 +40,7 @@ class LetterArchiveController
             'level' => ['required', Rule::in(LetterLocation::JENJANG)],
             'code' => ['required', 'string', 'max:20'],
             'name' => ['required', 'string', 'max:100'],
-            'parent_id' => ['nullable', 'integer', 'exists:correspondence.letter_locations,id'],
+            'parent_id' => ['nullable', 'integer', 'exists:App\Modules\Correspondence\Models\LetterLocation,id'],
         ], [], ['level' => 'jenjang', 'code' => 'kode', 'name' => 'nama', 'parent_id' => 'induk']);
 
         try {
@@ -60,9 +60,9 @@ class LetterArchiveController
     public function storeClassification(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'code' => ['required', 'string', 'max:20', 'unique:correspondence.letter_classifications,code'],
+            'code' => ['required', 'string', 'max:20', 'unique:App\Modules\Correspondence\Models\LetterClassification,code'],
             'name' => ['required', 'string', 'max:150'],
-            'parent_id' => ['nullable', 'integer', 'exists:correspondence.letter_classifications,id'],
+            'parent_id' => ['nullable', 'integer', 'exists:App\Modules\Correspondence\Models\LetterClassification,id'],
         ], [], ['code' => 'kode klasifikasi', 'name' => 'nama', 'parent_id' => 'induk']);
 
         try {
@@ -81,7 +81,7 @@ class LetterArchiveController
     public function storeIndexTerm(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'code' => ['required', 'string', 'max:20', 'unique:correspondence.letter_index_terms,code'],
+            'code' => ['required', 'string', 'max:20', 'unique:App\Modules\Correspondence\Models\LetterIndexTerm,code'],
             'name' => ['required', 'string', 'max:100'],
         ], [], ['code' => 'kode indeks', 'name' => 'nama indeks']);
 

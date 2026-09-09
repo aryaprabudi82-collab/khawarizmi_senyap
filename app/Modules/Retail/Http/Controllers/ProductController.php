@@ -41,9 +41,9 @@ class ProductController
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'code' => ['required', 'string', 'max:40', 'unique:retail.products,code'],
+            'code' => ['required', 'string', 'max:40', 'unique:App\Modules\Retail\Models\Product,code'],
             'name' => ['required', 'string', 'max:150'],
-            'category_id' => ['nullable', 'integer', 'exists:retail.categories,id'],
+            'category_id' => ['nullable', 'integer', 'exists:App\Modules\Retail\Models\Category,id'],
             'unit' => ['required', 'string', 'max:30'],
             'base_cost' => ['required', 'numeric', 'min:0'],
             'minimum_stock' => ['nullable', 'integer', 'min:0'],
@@ -90,7 +90,7 @@ class ProductController
     public function setPrice(Request $request, Product $barang): RedirectResponse
     {
         $data = $request->validate([
-            'price_tier_id' => ['required', 'integer', 'exists:retail.price_tiers,id'],
+            'price_tier_id' => ['required', 'integer', 'exists:App\Modules\Retail\Models\PriceTier,id'],
             'price' => ['required', 'numeric', 'min:0'],
         ], [], ['price_tier_id' => 'tingkat harga', 'price' => 'harga jual']);
 
@@ -110,7 +110,7 @@ class ProductController
     public function setPricingPolicy(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'price_tier_id' => ['required', 'integer', 'exists:retail.price_tiers,id'],
+            'price_tier_id' => ['required', 'integer', 'exists:App\Modules\Retail\Models\PriceTier,id'],
             'markup_percent' => ['required', 'numeric', 'min:0', 'max:9999'],
         ], [], ['price_tier_id' => 'tingkat harga', 'markup_percent' => 'marjin']);
 

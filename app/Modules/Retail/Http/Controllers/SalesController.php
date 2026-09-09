@@ -51,12 +51,12 @@ class SalesController
     public function storeMember(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'member_number' => ['required', 'string', 'max:20', 'unique:retail.members,member_number'],
+            'member_number' => ['required', 'string', 'max:20', 'unique:App\Modules\Retail\Models\Member,member_number'],
             'name' => ['required', 'string', 'max:150'],
             'sex' => ['nullable', 'in:L,P'],
             'phone' => ['nullable', 'string', 'max:30'],
             'address' => ['nullable', 'string', 'max:200'],
-            'default_price_tier_id' => ['nullable', 'integer', 'exists:retail.price_tiers,id'],
+            'default_price_tier_id' => ['nullable', 'integer', 'exists:App\Modules\Retail\Models\PriceTier,id'],
         ], [], ['member_number' => 'nomor member', 'name' => 'nama', 'default_price_tier_id' => 'tingkat harga']);
 
         Member::query()->create($data + ['joined_on' => now()->toDateString(), 'is_active' => true]);
@@ -68,15 +68,15 @@ class SalesController
     {
         $data = $request->validate([
             'payment_type' => ['required', 'in:tunai,piutang'],
-            'member_id' => ['nullable', 'integer', 'exists:retail.members,id'],
-            'price_tier_id' => ['nullable', 'integer', 'exists:retail.price_tiers,id'],
+            'member_id' => ['nullable', 'integer', 'exists:App\Modules\Retail\Models\Member,id'],
+            'price_tier_id' => ['nullable', 'integer', 'exists:App\Modules\Retail\Models\PriceTier,id'],
             'buyer_name' => ['nullable', 'string', 'max:150'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'down_payment' => ['nullable', 'numeric', 'min:0'],
             'due_on' => ['nullable', 'date'],
             'note' => ['nullable', 'string', 'max:500'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'integer', 'exists:retail.products,id'],
+            'items.*.product_id' => ['required', 'integer', 'exists:App\Modules\Retail\Models\Product,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
         ], [], [
             'payment_type' => 'cara bayar', 'items' => 'barang',
@@ -134,7 +134,7 @@ class SalesController
         $data = $request->validate([
             'reason' => ['required', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'integer', 'exists:retail.products,id'],
+            'items.*.product_id' => ['required', 'integer', 'exists:App\Modules\Retail\Models\Product,id'],
             'items.*.quantity' => ['required', 'integer', 'min:0'],
         ], [], ['reason' => 'alasan retur', 'items' => 'barang']);
 

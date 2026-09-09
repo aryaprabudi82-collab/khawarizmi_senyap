@@ -54,7 +54,7 @@ class LetterController
             'security' => ['required', Rule::in(IncomingLetter::SIFAT)],
             'urgency' => ['required', Rule::in(IncomingLetter::DERAJAT)],
 
-            'classification_id' => ['nullable', 'integer', 'exists:correspondence.letter_classifications,id'],
+            'classification_id' => ['nullable', 'integer', 'exists:App\Modules\Correspondence\Models\LetterClassification,id'],
             'received_at' => ['required', 'date'],
             'reply_status' => ['nullable', 'in:tidak-perlu,menunggu'],
             'reply_due_date' => ['nullable', 'date'],
@@ -90,7 +90,7 @@ class LetterController
             // memindahkan kertas.
             'instruction' => ['required', 'string', 'max:1000'],
             'due_date' => ['nullable', 'date'],
-            'index_term_id' => ['nullable', 'integer', 'exists:correspondence.letter_index_terms,id'],
+            'index_term_id' => ['nullable', 'integer', 'exists:App\Modules\Correspondence\Models\LetterIndexTerm,id'],
         ], [], [
             'to_name' => 'diteruskan ke', 'instruction' => 'isi disposisi',
             'due_date' => 'tenggat', 'index_term_id' => 'indeks',
@@ -125,7 +125,7 @@ class LetterController
     public function markReplied(Request $request, IncomingLetter $surat): RedirectResponse
     {
         $data = $request->validate([
-            'reply_letter_id' => ['required', 'integer', 'exists:correspondence.outgoing_letters,id'],
+            'reply_letter_id' => ['required', 'integer', 'exists:App\Modules\Correspondence\Models\OutgoingLetter,id'],
         ], [], ['reply_letter_id' => 'surat balasan']);
 
         try {
@@ -143,7 +143,7 @@ class LetterController
     public function archiveIncoming(Request $request, IncomingLetter $surat): RedirectResponse
     {
         $data = $request->validate([
-            'location_id' => ['nullable', 'integer', 'exists:correspondence.letter_locations,id'],
+            'location_id' => ['nullable', 'integer', 'exists:App\Modules\Correspondence\Models\LetterLocation,id'],
         ], [], ['location_id' => 'lokasi arsip']);
 
         try {
@@ -165,7 +165,7 @@ class LetterController
             'subject' => ['required', 'string', 'max:255'],
             'security' => ['required', Rule::in(OutgoingLetter::SIFAT)],
             'urgency' => ['required', Rule::in(OutgoingLetter::DERAJAT)],
-            'classification_id' => ['nullable', 'integer', 'exists:correspondence.letter_classifications,id'],
+            'classification_id' => ['nullable', 'integer', 'exists:App\Modules\Correspondence\Models\LetterClassification,id'],
             'attachment_note' => ['nullable', 'string', 'max:300'],
             'copy_to' => ['nullable', 'string', 'max:300'],
             'notes' => ['nullable', 'string', 'max:1000'],

@@ -97,7 +97,7 @@ class ConsentTemplateController
     public function storeReason(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'code' => ['required', 'string', 'max:10', 'unique:correspondence.medical_advice_refusal_reasons,code'],
+            'code' => ['required', 'string', 'max:10', 'unique:App\Modules\Correspondence\Models\RefusalReason,code'],
             'name' => ['required', 'string', 'max:100'],
         ], [], ['code' => 'kode alasan', 'name' => 'nama alasan']);
 

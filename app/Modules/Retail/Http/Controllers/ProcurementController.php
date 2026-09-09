@@ -47,7 +47,7 @@ class ProcurementController
             'requested_by_name' => ['required', 'string', 'max:150'],
             'purpose' => ['nullable', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'integer', 'exists:retail.products,id'],
+            'items.*.product_id' => ['required', 'integer', 'exists:App\Modules\Retail\Models\Product,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
         ], [], ['requested_by_name' => 'pemohon', 'items' => 'barang']);
 
@@ -87,12 +87,12 @@ class ProcurementController
     public function storeOrder(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'supplier_id' => ['required', 'integer', 'exists:retail.suppliers,id'],
-            'requisition_id' => ['nullable', 'integer', 'exists:retail.requisitions,id'],
+            'supplier_id' => ['required', 'integer', 'exists:App\Modules\Retail\Models\Supplier,id'],
+            'requisition_id' => ['nullable', 'integer', 'exists:App\Modules\Retail\Models\Requisition,id'],
             'expected_on' => ['nullable', 'date'],
             'note' => ['nullable', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'integer', 'exists:retail.products,id'],
+            'items.*.product_id' => ['required', 'integer', 'exists:App\Modules\Retail\Models\Product,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.unit_cost' => ['required', 'numeric', 'min:0'],
         ], [], ['supplier_id' => 'suplier', 'items' => 'barang']);
@@ -129,7 +129,7 @@ class ProcurementController
             'due_on' => ['nullable', 'date'],
             'note' => ['nullable', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'integer', 'exists:retail.products,id'],
+            'items.*.product_id' => ['required', 'integer', 'exists:App\Modules\Retail\Models\Product,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
         ], [], ['items' => 'barang diterima', 'due_on' => 'jatuh tempo']);
 
@@ -168,11 +168,11 @@ class ProcurementController
     public function storeReturn(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'supplier_id' => ['required', 'integer', 'exists:retail.suppliers,id'],
-            'receipt_id' => ['nullable', 'integer', 'exists:retail.goods_receipts,id'],
+            'supplier_id' => ['required', 'integer', 'exists:App\Modules\Retail\Models\Supplier,id'],
+            'receipt_id' => ['nullable', 'integer', 'exists:App\Modules\Retail\Models\GoodsReceipt,id'],
             'reason' => ['required', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'integer', 'exists:retail.products,id'],
+            'items.*.product_id' => ['required', 'integer', 'exists:App\Modules\Retail\Models\Product,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
         ], [], ['supplier_id' => 'suplier', 'reason' => 'alasan retur', 'items' => 'barang']);
 

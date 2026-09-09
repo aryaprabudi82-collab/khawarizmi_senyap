@@ -43,20 +43,20 @@ class CatalogController
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'code' => ['required', 'string', 'max:20', 'unique:library.collections,code'],
+            'code' => ['required', 'string', 'max:20', 'unique:App\Modules\Library\Models\Collection,code'],
             'title' => ['required', 'string', 'max:250'],
             'medium' => ['required', Rule::in(LibraryCollection::MEDIUM)],
-            'publisher_id' => ['nullable', 'integer', 'exists:library.publishers,id'],
-            'category_id' => ['nullable', 'integer', 'exists:library.categories,id'],
-            'collection_type_id' => ['nullable', 'integer', 'exists:library.collection_types,id'],
+            'publisher_id' => ['nullable', 'integer', 'exists:App\Modules\Library\Models\Publisher,id'],
+            'category_id' => ['nullable', 'integer', 'exists:App\Modules\Library\Models\Category,id'],
+            'collection_type_id' => ['nullable', 'integer', 'exists:App\Modules\Library\Models\CollectionType,id'],
             'publication_year' => ['nullable', 'integer', 'between:1400,2200'],
             'page_count' => ['nullable', 'integer', 'min:1'],
             'edition' => ['nullable', 'string', 'max:40'],
-            'isbn' => ['nullable', 'string', 'max:20', 'unique:library.collections,isbn'],
+            'isbn' => ['nullable', 'string', 'max:20', 'unique:App\Modules\Library\Models\Collection,isbn'],
             'file_path' => ['nullable', 'string', 'max:500'],
             'abstract' => ['nullable', 'string', 'max:4000'],
             'authors' => ['nullable', 'array'],
-            'authors.*' => ['integer', 'exists:library.authors,id'],
+            'authors.*' => ['integer', 'exists:App\Modules\Library\Models\Author,id'],
         ], [], [
             'code' => 'nomor panggil', 'title' => 'judul', 'medium' => 'medium',
             'isbn' => 'ISBN', 'file_path' => 'berkas ebook', 'authors' => 'pengarang',

@@ -109,7 +109,7 @@ class PatientRequestController
     {
         $data = $request->validate([
             'arah' => ['required', 'in:dititipkan,diserahkan'],
-            'settles_handover_id' => ['nullable', 'integer', 'exists:correspondence.property_handovers,id'],
+            'settles_handover_id' => ['nullable', 'integer', 'exists:App\Modules\Correspondence\Models\PropertyHandover,id'],
             'kind' => ['required', Rule::in(PropertyHandover::JENIS)],
             'registration_id' => ['nullable', 'integer'],
             'patient_id' => ['nullable', 'integer'],

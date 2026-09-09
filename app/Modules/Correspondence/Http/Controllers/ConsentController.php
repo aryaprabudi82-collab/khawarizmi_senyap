@@ -49,7 +49,7 @@ class ConsentController
 
             'explained_by' => ['nullable', 'integer'],
             'explained_by_name' => ['nullable', 'string', 'max:150'],
-            'refusal_reason_id' => ['nullable', 'integer', 'exists:correspondence.medical_advice_refusal_reasons,id'],
+            'refusal_reason_id' => ['nullable', 'integer', 'exists:App\Modules\Correspondence\Models\RefusalReason,id'],
             'refusal_risk_explained' => ['nullable', 'string', 'max:1000'],
             'chosen_practitioner_id' => ['nullable', 'integer'],
             'chosen_practitioner_name' => ['nullable', 'string', 'max:150'],
@@ -82,7 +82,7 @@ class ConsentController
     public function storeFromTemplate(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'template_id' => ['required', 'integer', 'exists:correspondence.consent_templates,id'],
+            'template_id' => ['required', 'integer', 'exists:App\Modules\Correspondence\Models\ConsentTemplate,id'],
             'registration_id' => ['nullable', 'integer'],
             'patient_id' => ['nullable', 'integer'],
             'patient_name' => ['required', 'string', 'max:150'],

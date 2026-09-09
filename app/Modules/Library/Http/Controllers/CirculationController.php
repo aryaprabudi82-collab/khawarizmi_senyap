@@ -42,14 +42,14 @@ class CirculationController
     public function storeItem(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'inventory_number' => ['required', 'string', 'max:30', 'unique:library.items,inventory_number'],
-            'collection_id' => ['required', 'integer', 'exists:library.collections,id'],
+            'inventory_number' => ['required', 'string', 'max:30', 'unique:App\Modules\Library\Models\Item,inventory_number'],
+            'collection_id' => ['required', 'integer', 'exists:App\Modules\Library\Models\Collection,id'],
             'acquisition' => ['required', Rule::in(Item::ASAL)],
             'acquired_at' => ['nullable', 'date'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'condition' => ['required', Rule::in(Item::KONDISI)],
             'condition_note' => ['nullable', 'string', 'max:1000'],
-            'room_id' => ['nullable', 'integer', 'exists:library.rooms,id'],
+            'room_id' => ['nullable', 'integer', 'exists:App\Modules\Library\Models\Room,id'],
             'shelf_no' => ['nullable', 'string', 'max:10'],
             'box_no' => ['nullable', 'string', 'max:10'],
         ], [], [
@@ -97,7 +97,7 @@ class CirculationController
     public function storeMember(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'member_number' => ['required', 'string', 'max:20', 'unique:library.members,member_number'],
+            'member_number' => ['required', 'string', 'max:20', 'unique:App\Modules\Library\Models\Member,member_number'],
             'name' => ['required', 'string', 'max:150'],
             'member_type' => ['required', Rule::in(Member::JENIS)],
             'person_ref' => ['nullable', 'string', 'max:30'],
@@ -144,8 +144,8 @@ class CirculationController
     public function borrow(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'member_id' => ['required', 'integer', 'exists:library.members,id'],
-            'item_id' => ['required', 'integer', 'exists:library.items,id'],
+            'member_id' => ['required', 'integer', 'exists:App\Modules\Library\Models\Member,id'],
+            'item_id' => ['required', 'integer', 'exists:App\Modules\Library\Models\Item,id'],
         ], [], ['member_id' => 'anggota', 'item_id' => 'eksemplar']);
 
         try {
@@ -232,7 +232,7 @@ class CirculationController
     public function storeFineType(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'code' => ['required', 'string', 'max:20', 'unique:library.fine_types,code'],
+            'code' => ['required', 'string', 'max:20', 'unique:App\Modules\Library\Models\FineType,code'],
             'name' => ['required', 'string', 'max:100'],
             'amount' => ['required', 'numeric', 'min:0'],
         ], [], ['code' => 'kode', 'name' => 'jenis denda', 'amount' => 'besaran']);
