@@ -5,6 +5,8 @@ namespace App\Modules\Quality\Http\Controllers;
 use App\Modules\Quality\Models\IcraActivityType;
 use App\Modules\Quality\Models\IcraArea;
 use App\Modules\Quality\Models\IcraAssessment;
+use App\Modules\Quality\Models\IcraAssessmentRequirement;
+use App\Modules\Quality\Models\IcraAssessmentRisk;
 use App\Modules\Quality\Models\IcraClassRequirement;
 use App\Modules\Quality\Models\IcraControlMeasure;
 use App\Modules\Quality\Models\IcraMatrixCell;
@@ -27,7 +29,9 @@ class IcraController
     public function index(): View
     {
         return view('quality::icra.index', [
-            'kajian' => IcraAssessment::query()->latest('assessed_at')->limit(50)->get(),
+            'kajian' => IcraAssessment::query()
+                ->with(['risks', 'requirements', 'precautionClass'])
+                ->latest('assessed_at')->limit(50)->get(),
             'unit' => $this->organization->units(),
             'aktivitas' => IcraActivityType::query()->where('is_active', true)->orderBy('position')->get(),
             'area' => IcraArea::query()->with('riskGroup')->where('is_active', true)->orderBy('name')->get(),
@@ -86,7 +90,61 @@ class IcraController
             return back()->withInput()->with('galat', $e->getMessage());
         }
 
+        // Daftar periksa dan persyaratan disiapkan langsung: kajian tanpa
+        // keduanya adalah kesimpulan tanpa dasar, dan menunda pembuatannya
+        // sampai ada yang membuka layar rincian berarti sebagian kajian
+        // tidak akan pernah punya dasar sama sekali.
+        $this->icra->prepareChecklist($kajian);
+
         return back()->with('sukses', "Kajian {$kajian->assessment_number} tersimpan, kelas pencegahan {$kajian->risk_class}.");
+    }
+
+    // ------------------------------------------- daftar periksa risiko
+
+    public function markRisk(Request $request, IcraAssessmentRisk $butir): RedirectResponse
+    {
+        $data = $request->validate([
+            // 'belum' mengembalikan butir ke keadaan belum diperiksa; ia
+            // BUKAN sinonim "risikonya tidak ada".
+            'present' => ['required', 'in:ada,tidak,belum'],
+            'note' => ['nullable', 'string', 'max:1000'],
+        ], [], ['present' => 'hasil pemeriksaan', 'note' => 'keterangan']);
+
+        $nilai = match ($data['present']) {
+            'ada' => true,
+            'tidak' => false,
+            default => null,
+        };
+
+        try {
+            $this->icra->markRisk($butir, $nilai, $data['note'] ?? null);
+        } catch (QualityException $e) {
+            return back()->with('galat', $e->getMessage());
+        }
+
+        return back()->with('sukses', 'Butir risiko diperbarui.');
+    }
+
+    public function markRequirement(Request $request, IcraAssessmentRequirement $syarat): RedirectResponse
+    {
+        $data = $request->validate([
+            'fulfilled' => ['required', 'in:ya,tidak,belum'],
+            'note' => ['nullable', 'string', 'max:1000'],
+        ], [], ['fulfilled' => 'pemenuhan', 'note' => 'keterangan']);
+
+        $nilai = match ($data['fulfilled']) {
+            'ya' => true,
+            'tidak' => false,
+            default => null,
+        };
+
+        try {
+            $this->icra->markRequirement($syarat, $nilai, $data['note'] ?? null, $request->user()->name);
+        } catch (QualityException $e) {
+            return back()->with('galat', $e->getMessage());
+        }
+
+        return back()->with('sukses', 'Persyaratan diperbarui.');
     }
 
     public function complete(IcraAssessment $kajian): RedirectResponse

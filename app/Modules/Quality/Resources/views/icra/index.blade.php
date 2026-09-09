@@ -116,6 +116,71 @@
               @endif
             </td>
           </tr>
+
+          @if ($k->status === 'aktif' && ($k->risks->isNotEmpty() || $k->requirements->isNotEmpty()))
+            <tr>
+              <td colspan="6" class="bg-light">
+                @if ($k->kategoriTanpaBukti() !== [])
+                  {{--
+                    Daftar kejujuran, bukan penghalang: kesimpulan tanpa dasar
+                    yang BISA DILIHAT lebih berguna daripada kesimpulan yang
+                    tampak beres.
+                  --}}
+                  <div class="alert alert-warning py-2 small mb-2">
+                    Tingkat risiko sudah disimpulkan, tapi daftar periksanya belum disentuh sama sekali
+                    untuk kategori: <b>{{ implode(', ', $k->kategoriTanpaBukti()) }}</b>.
+                  </div>
+                @endif
+
+                @if ($k->risks->isNotEmpty())
+                  <div class="small text-secondary mb-1">
+                    Identifikasi risiko &mdash; <b>belum diperiksa</b> berbeda dari <b>tidak ada</b>:
+                    yang pertama berarti belum ada yang melihatnya.
+                  </div>
+                  @foreach ($k->risks as $butir)
+                    <form method="POST" action="{{ route('quality.icra.risiko.tandai', $butir) }}" class="row g-1 align-items-end mb-1">
+                      @csrf
+                      <div class="col-12 col-md-5">
+                        <span class="badge bg-blue-lt">{{ $butir->category }}</span>
+                        <span class="small">{{ $butir->label }}</span>
+                      </div>
+                      <div class="col-4 col-md-2">
+                        <select name="present" class="form-select form-select-sm">
+                          <option value="belum" @selected($butir->present === null)>Belum diperiksa</option>
+                          <option value="ada" @selected($butir->present === true)>Ada</option>
+                          <option value="tidak" @selected($butir->present === false)>Diperiksa, tidak ada</option>
+                        </select>
+                      </div>
+                      <div class="col-6 col-md-4"><input type="text" name="note" class="form-control form-control-sm" value="{{ $butir->note }}" placeholder="Keterangan"></div>
+                      <div class="col-2 col-md-1"><button class="btn btn-sm btn-outline-primary w-100">Simpan</button></div>
+                    </form>
+                  @endforeach
+                @endif
+
+                @if ($k->requirements->isNotEmpty())
+                  <div class="small text-secondary mt-2 mb-1">
+                    Persyaratan Kelas {{ $k->precautionClass?->code }} &mdash; disalin saat kelas ditetapkan.
+                    Penyimpangan boleh, asal berketerangan; yang <b>belum dijawab</b> menahan penutupan.
+                  </div>
+                  @foreach ($k->requirements as $syarat)
+                    <form method="POST" action="{{ route('quality.icra.persyaratan.tandai', $syarat) }}" class="row g-1 align-items-end mb-1">
+                      @csrf
+                      <div class="col-12 col-md-5"><span class="small">{{ $syarat->position }}. {{ $syarat->requirement }}</span></div>
+                      <div class="col-4 col-md-2">
+                        <select name="fulfilled" class="form-select form-select-sm">
+                          <option value="belum" @selected($syarat->fulfilled === null)>Belum dijawab</option>
+                          <option value="ya" @selected($syarat->fulfilled === true)>Dipenuhi</option>
+                          <option value="tidak" @selected($syarat->fulfilled === false)>Tidak dipenuhi</option>
+                        </select>
+                      </div>
+                      <div class="col-6 col-md-4"><input type="text" name="note" class="form-control form-control-sm" value="{{ $syarat->note }}" placeholder="Wajib bila tidak dipenuhi"></div>
+                      <div class="col-2 col-md-1"><button class="btn btn-sm btn-outline-primary w-100">Simpan</button></div>
+                    </form>
+                  @endforeach
+                @endif
+              </td>
+            </tr>
+          @endif
         @empty
           <tr><td colspan="6" class="text-center text-secondary py-3">Belum ada kajian ICRA.</td></tr>
         @endforelse

@@ -25,6 +25,8 @@ Route::middleware(['web', 'auth'])
             Route::post('/', [IcraController::class, 'store'])->name('simpan');
             Route::post('/{kajian}/selesai', [IcraController::class, 'complete'])->name('selesai');
             Route::post('/{kajian}/batal', [IcraController::class, 'cancel'])->name('batal');
+            Route::post('/risiko/{butir}', [IcraController::class, 'markRisk'])->name('risiko.tandai');
+            Route::post('/persyaratan/{syarat}', [IcraController::class, 'markRequirement'])->name('persyaratan.tandai');
 
             /*
              * Master ICRA: area & kelompok risikonya, matriks, tindakan
