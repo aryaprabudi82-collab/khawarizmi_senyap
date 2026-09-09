@@ -450,7 +450,8 @@
         "extra_permissions": [
             "toko_barang",
             "stok_opname_toko",
-            "toko_pengadaan_barang"
+            "toko_pengadaan_barang",
+            "toko_penjualan"
         ]
     }
 ]

@@ -2,6 +2,7 @@
 
 use App\Modules\Retail\Http\Controllers\ProcurementController;
 use App\Modules\Retail\Http\Controllers\ProductController;
+use App\Modules\Retail\Http\Controllers\SalesController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth'])
@@ -58,6 +59,23 @@ Route::middleware(['web', 'auth'])
             Route::post('/pesanan/{pesanan}/terima', [ProcurementController::class, 'receive'])->name('pesanan.terima');
             Route::post('/penerimaan/{penerimaan}/bayar', [ProcurementController::class, 'pay'])->name('penerimaan.bayar');
             Route::post('/retur', [ProcurementController::class, 'storeReturn'])->name('retur.simpan');
+        });
+
+        /*
+         * Kasir & piutang. `toko_penjualan` menggerbangi layarnya dan
+         * menaungi `toko_member`, `toko_retur_jual`, `toko_piutang`,
+         * `toko_retur_piutang`, `toko_bayar_piutang`, serta empat kode rekap
+         * (pendapatan harian, penjualan harian, piutang harian, keuntungan
+         * barang). Keempat rekap itu membaca data yang sama dari sudut
+         * berbeda — empat layar berarti empat tempat yang bisa berbeda
+         * jawabannya untuk hari yang sama.
+         */
+        Route::middleware('can:toko_penjualan')->prefix('penjualan')->name('penjualan.')->group(function () {
+            Route::get('/', [SalesController::class, 'index'])->name('index');
+            Route::post('/', [SalesController::class, 'store'])->name('simpan');
+            Route::post('/member', [SalesController::class, 'storeMember'])->name('member.simpan');
+            Route::post('/{penjualan}/bayar', [SalesController::class, 'pay'])->name('bayar');
+            Route::post('/{penjualan}/retur', [SalesController::class, 'storeReturn'])->name('retur');
         });
 
     });
