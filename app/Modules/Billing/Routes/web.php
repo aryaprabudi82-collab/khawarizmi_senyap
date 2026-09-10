@@ -1,11 +1,12 @@
 <?php
 
 use App\Modules\Billing\Http\Controllers\BillingRecapController;
+use App\Modules\Billing\Http\Controllers\CashierClosingController;
 use App\Modules\Billing\Http\Controllers\InvoiceController;
 use App\Modules\Billing\Http\Controllers\MedicalFeeController;
-use App\Modules\Billing\Http\Controllers\ReceivableController;
-use App\Modules\Billing\Http\Controllers\ReceivableCollectionController;
 use App\Modules\Billing\Http\Controllers\PaymentChannelController;
+use App\Modules\Billing\Http\Controllers\ReceivableCollectionController;
+use App\Modules\Billing\Http\Controllers\ReceivableController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,10 +34,39 @@ Route::middleware(['web', 'auth'])->group(function () {
 
         Route::post('/pembayaran/{pembayaran}/batal', [InvoiceController::class, 'voidPayment'])->name('pembayaran.batal');
 
-        // tambahan_biaya & potongan_biaya — dua kode Khanza, satu aksi,
-        // dibedakan kolom kind pada billing.manual_adjustments.
-        Route::post('/{tagihan}/penyesuaian', [InvoiceController::class, 'addAdjustment'])->name('penyesuaian.simpan');
-        Route::post('/penyesuaian/{penyesuaian}/batal', [InvoiceController::class, 'voidAdjustment'])->name('penyesuaian.batal');
+        /*
+         * tambahan_biaya & potongan_biaya — dua kode Khanza, satu aksi,
+         * dibedakan kolom kind pada billing.manual_adjustments.
+         *
+         * GERBANGNYA SENDIRI, TIDAK IKUT GERBANG KASIR. Ditemukan saat
+         * verifikasi domain I: kedua kode ini bisa dicentang di layar Kelola
+         * Peran tapi tidak menggerbangi apa pun — jadi siapa pun yang boleh
+         * MENERIMA pembayaran otomatis juga boleh MEMOTONG tagihan.
+         *
+         * Itu pemisahan tugas yang penting: menerima uang sesuai tagihan dan
+         * mengubah besar tagihannya adalah dua kewenangan yang berbeda, dan
+         * menggabungkannya membuka jalan paling mudah menutupi selisih kas —
+         * potong tagihannya sebesar uang yang kurang, lalu lacinya cocok.
+         */
+        Route::post('/{tagihan}/penyesuaian', [InvoiceController::class, 'addAdjustment'])
+            ->middleware('can:tambahan_biaya')->name('penyesuaian.simpan');
+
+        Route::post('/penyesuaian/{penyesuaian}/batal', [InvoiceController::class, 'voidAdjustment'])
+            ->middleware('can:potongan_biaya')->name('penyesuaian.batal');
+    });
+
+    /*
+     * Penutupan shift kasir (Khanza `closing_kasir`, domain U).
+     *
+     * DITEMUKAN SAAT VERIFIKASI: mesinnya sudah dibangun lengkap berikut
+     * sepuluh ujinya, tapi LAYARNYA tidak pernah dibuat — jadi kasir tidak
+     * punya jalan menutup shift. Ujinya tetap hijau karena uji memanggil
+     * service langsung; yang tidak diuji siapa pun adalah apakah ada jalan
+     * bagi manusia menjalankannya.
+     */
+    Route::middleware('can:closing_kasir')->prefix('kasir/penutupan')->name('kasir.penutupan.')->group(function () {
+        Route::get('/', [CashierClosingController::class, 'index'])->name('index');
+        Route::post('/', [CashierClosingController::class, 'store'])->name('simpan');
     });
 
     // Domain I item D: hampir seluruh kode laporannya ternyata pengelompokan

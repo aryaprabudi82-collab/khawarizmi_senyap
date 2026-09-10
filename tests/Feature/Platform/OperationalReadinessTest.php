@@ -37,6 +37,60 @@ class OperationalReadinessTest extends TestCase
         $this->siap = app(OperationalReadiness::class);
     }
 
+    /**
+     * Mengisi seadanya penghalang isi klinis, supaya yang tersisa cuma
+     * peringatan.
+     *
+     * Ditemukan saat verifikasi domain M: master keperawatan kosong, template
+     * asesmen medis & skrining kosong, dan kamus ICD-10 cuma berisi contoh
+     * pengembangan. Ketiganya penghalang sungguhan — jadi untuk menguji bahwa
+     * PERINGATAN tidak menggagalkan perintah, ketiganya harus benar-benar
+     * dipenuhi lebih dulu, bukan dikecualikan dari pemeriksaan.
+     */
+    private function penuhiPenghalangKlinis(): void
+    {
+        $masalahId = DB::table('catalog.nursing_problems')->insertGetId([
+            'code' => 'UJI-01', 'name' => 'Nyeri akut', 'specialty' => 'umum',
+            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        DB::table('catalog.nursing_care_plans')->insert([
+            'nursing_problem_id' => $masalahId, 'code' => 'UJI-R1',
+            'plan' => 'Manajemen nyeri', 'is_active' => true,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        foreach (['asesmen-medis', 'skrining'] as $kategori) {
+            DB::table('catalog.form_templates')->insert([
+                'code' => 'uji-'.$kategori, 'name' => 'Uji '.$kategori,
+                'category' => $kategori, 'version' => 1, 'is_active' => true,
+                'sections' => json_encode([]),
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+
+        /*
+         * Kamus ICD-10 diisi tepat sampai ambangnya. Angka itulah batas yang
+         * hendak diuji: di bawahnya kamus dianggap contoh pengembangan, di
+         * atasnya dianggap kamus sungguhan.
+         */
+        $baris = [];
+
+        for ($i = 0; $i < 500; $i++) {
+            $baris[] = [
+                'code' => 'Z'.str_pad((string) $i, 4, '0', STR_PAD_LEFT),
+                'display' => 'Kode uji '.$i,
+                'transmission' => 'tidak-menular',
+                'is_active' => true,
+                'created_at' => now(), 'updated_at' => now(),
+            ];
+        }
+
+        foreach (array_chunk($baris, 200) as $bagian) {
+            DB::table('clinical.diagnosis_codes')->insert($bagian);
+        }
+    }
+
     /** @return array<string, array{judul: string, status: string, akibat: string}> */
     private function hasil(): array
     {
@@ -320,6 +374,8 @@ class OperationalReadinessTest extends TestCase
         // Cron juga penghalang, dan itu memang benar: sistem yang perawatan
         // terjadwalnya belum pernah berjalan belum siap digelar.
         app(ScheduledTaskLog::class)->record(ScheduledTaskLog::PARTISI, 'uji');
+
+        $this->penuhiPenghalangKlinis();
 
         /*
          * Peringatan TIDAK menggagalkan. Kalau ia menggagalkan, RSP UI tidak

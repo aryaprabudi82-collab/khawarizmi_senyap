@@ -4,7 +4,23 @@ use App\Modules\Clinical\Http\Controllers\ClinicalRecordController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth'])->group(function () {
-    Route::prefix('rme')->name('rme.')->group(function () {
+    /*
+     * GERBANGNYA DIPASANG SEBELUM group(), BUKAN SESUDAH.
+     *
+     * Sebelumnya baris ini ditutup dengan `})->middleware("can:...")` di
+     * ujung grup — dan middleware itu TIDAK PERNAH BERLAKU. `group()` sudah
+     * mendaftarkan seluruh rutenya lebih dulu, jadi memasang middleware
+     * setelahnya tidak menyentuh rute yang sudah terdaftar. Tidak ada galat,
+     * tidak ada peringatan; rutenya cuma berjalan dengan `web | auth` saja.
+     *
+     * Akibatnya: SETIAP pengguna terautentikasi — kasir, petugas parkir,
+     * pustakawan, petugas toko — bisa membuka rekam medis pasien, menulis
+     * asesmen, menegakkan dan menghapus diagnosis. Ditemukan lewat uji
+     * `setiap_kode_terkelola_benar_benar_menggerbangi_sesuatu`, yang
+     * membandingkan daftar kode terkelola dengan sapuan middleware yang
+     * SUNGGUH terpasang — bukan dengan yang tertulis di berkas rute.
+     */
+    Route::middleware('can:penilaian_awal_medis_ralan')->prefix('rme')->name('rme.')->group(function () {
         Route::get('/', [ClinicalRecordController::class, 'index'])->name('index');
         Route::get('/kunjungan/{registrasi}', [ClinicalRecordController::class, 'edit'])->name('edit');
 
@@ -36,5 +52,5 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::delete('/diagnosis/{diagnosis}', [ClinicalRecordController::class, 'destroyDiagnosis'])->name('diagnosis.hapus');
 
         Route::get('/kode-diagnosis', [ClinicalRecordController::class, 'searchDiagnosisCodes'])->name('kode-diagnosis');
-    })->middleware("can:penilaian_awal_medis_ralan");
+    });
 });
