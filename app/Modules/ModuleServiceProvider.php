@@ -16,9 +16,33 @@ abstract class ModuleServiceProvider extends ServiceProvider
     /** Nama konteks sebagaimana terdaftar di config/contexts.php */
     abstract protected function context(): string;
 
+    /** Tag container tempat seluruh pemeriksaan kesiapan konteks dikumpulkan. */
+    public const READINESS_TAG = 'kesiapan-konteks';
+
     public function register(): void
     {
-        //
+        $this->registerReadinessCheck();
+    }
+
+    /**
+     * Mendaftarkan pemeriksaan kesiapan milik konteks ini, bila ada.
+     *
+     * Konvensi, bukan konfigurasi: kelas bernama
+     * `App\Modules\{Modul}\Services\{Modul}Readiness` yang mengimplementasikan
+     * ReadinessCheck otomatis ikut terkumpul. Daftar terpusat di satu berkas
+     * akan benar hari ini dan diam-diam tertinggal saat konteks berikutnya
+     * menambah syarat kesiapannya sendiri.
+     */
+    private function registerReadinessCheck(): void
+    {
+        $kelas = 'App\\Modules\\'.$this->moduleName().'\\Services\\'.$this->moduleName().'Readiness';
+
+        if (! class_exists($kelas) || ! is_a($kelas, ReadinessCheck::class, true)) {
+            return;
+        }
+
+        $this->app->singleton($kelas);
+        $this->app->tag([$kelas], self::READINESS_TAG);
     }
 
     public function boot(): void

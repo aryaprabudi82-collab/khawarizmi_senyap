@@ -35,6 +35,10 @@ class OrderController
         $status = $request->query('status');
 
         $daftar = LabRadiologyOrder::query()
+            // Lihat catatan yang sama di PrescriptionController: menghitung
+            // baris anak di dalam perulangan blade berarti satu kueri COUNT
+            // per baris daftar.
+            ->withCount('items')
             ->where('category', $kategori)
             ->whereOnDate('requested_at', $tanggal->toDateString())
             ->when($status, fn ($q) => $q->where('status', $status))

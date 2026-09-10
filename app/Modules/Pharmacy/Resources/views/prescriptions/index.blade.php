@@ -96,7 +96,7 @@
             </td>
             <td>{{ $r->unit_name ?? '—' }}</td>
             <td>{{ $r->prescriber_name ?? '—' }}</td>
-            <td class="text-center">{{ $r->items()->count() }}</td>
+            <td class="text-center">{{ $r->items_count }}</td>
             <td class="text-end">Rp {{ number_format((float) $r->total_amount, 0, ',', '.') }}</td>
             <td>
               @php

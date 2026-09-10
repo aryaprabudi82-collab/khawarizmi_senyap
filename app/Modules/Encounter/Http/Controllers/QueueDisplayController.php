@@ -34,9 +34,33 @@ class QueueDisplayController
         $unitId = $request->integer('unit') ?: null;
         $tanggal = now()->toDateString();
 
+        /*
+         * YANG DITAMPILKAN HANYA YANG BELUM SELESAI — dan itu perbaikan
+         * kebenaran sekaligus skala.
+         *
+         * Kebenaran: layar antrean yang menampilkan pasien yang sudah
+         * selesai dilayani bukan layar antrean; ia daftar kunjungan. Yang
+         * menunggu di ruang tunggu menanyakan satu hal — nomor berapa
+         * sekarang — dan nama yang sudah pulang cuma mendorong nomor yang
+         * sedang menunggu keluar layar.
+         *
+         * Skala: pada 2.000 pasien sehari, menyaring "seluruh kunjungan hari
+         * ini" berarti memuat dua ribu baris penuh ke memori setiap kali
+         * halaman disegarkan — dan halaman ini menyegarkan diri setiap dua
+         * puluh detik, sepanjang jam layanan. Yang benar-benar menunggu pada
+         * satu saat cuma puluhan.
+         *
+         * Kolomnya juga dipilih, bukan `select *`: baris registrasi lebar
+         * (hampir 3 KB), dan layar ini cuma butuh empat kolom.
+         */
         $antrean = Registration::query()
+            ->select(['id', 'unit_name', 'queue_number', 'patient_name'])
             ->whereDate('service_date', $tanggal)
-            ->where('status', '!=', Registration::STATUS_BATAL)
+            ->whereIn('status', [
+                Registration::STATUS_TERDAFTAR,
+                Registration::STATUS_DIPANGGIL,
+                Registration::STATUS_DILAYANI,
+            ])
             ->when($unitId, fn ($q) => $q->where('unit_id', $unitId))
             ->orderBy('unit_name')
             ->orderBy('queue_number')

@@ -36,6 +36,14 @@ class PrescriptionController
         $kind = $request->query('kind');
 
         $daftar = Prescription::query()
+            /*
+             * withCount, bukan $r->items()->count() di dalam perulangan
+             * blade. Yang kedua menjalankan satu kueri COUNT untuk TIAP
+             * baris — lima puluh baris jadi lima puluh satu perjalanan ke
+             * basis data untuk satu halaman, dan tak satu pun terlihat
+             * sebagai galat.
+             */
+            ->withCount('items')
             ->whereOnDate('prescribed_at', $tanggal->toDateString())
             ->when($status, fn ($q) => $q->where('status', $status))
             ->when($kind, fn ($q) => $q->where('kind', $kind))

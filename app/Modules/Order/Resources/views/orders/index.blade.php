@@ -70,7 +70,7 @@
             </td>
             <td>{{ $o->unit_name ?? '—' }}</td>
             <td>{{ $o->requesting_practitioner_name ?? '—' }}</td>
-            <td class="text-center">{{ $o->items()->count() }}</td>
+            <td class="text-center">{{ $o->items_count }}</td>
             <td>
               @php
                 $rona = match ($o->status) {
