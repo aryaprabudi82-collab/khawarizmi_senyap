@@ -6,7 +6,9 @@ use App\Modules\Organization\Models\OperatingRoom;
 use App\Modules\Organization\Models\PracticeSchedule;
 use App\Modules\Organization\Models\Practitioner;
 use App\Modules\Organization\Models\Unit;
+use App\Modules\Organization\Models\UnitSupervisor;
 use App\Modules\Organization\Services\OrganizationAdminService;
+use App\Modules\Organization\Services\OrganizationDirectory;
 use App\Modules\Organization\Services\OrganizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,7 +17,10 @@ use Illuminate\View\View;
 
 class MasterDataController
 {
-    public function __construct(private readonly OrganizationAdminService $admin) {}
+    public function __construct(
+        private readonly OrganizationAdminService $admin,
+        private readonly OrganizationDirectory $directory,
+    ) {}
 
     public function index(): View
     {
@@ -136,6 +141,56 @@ class MasterDataController
         $this->admin->removeSchedule($jadwal);
 
         return back()->with('sukses', 'Jadwal praktik dihapus.');
+    }
+
+    /**
+     * Penanggung jawab unit penunjang (Khanza `setup_pjlab`, domain U).
+     */
+    public function supervisors(): View
+    {
+        return view('organization::master.penanggung-jawab', [
+            'penugasan' => UnitSupervisor::query()->with(['unit', 'practitioner'])
+                ->orderBy('unit_id')->orderByDesc('start_date')->get()->groupBy('unit_id'),
+
+            'unitPenunjang' => Unit::query()->where('is_active', true)
+                ->whereIn('kind', ['penunjang', 'penunjang-medis'])->orderBy('name')->get(),
+
+            'praktisi' => Practitioner::query()->orderBy('name')->get(),
+
+            // Daftar kejujuran: unit penunjang tanpa penanggung jawab bukan
+            // keadaan yang sah menurut akreditasi, dan lebih baik ia terlihat
+            // sebagai pekerjaan daripada baru ketahuan saat diperiksa.
+            'tanpaPj' => $this->directory->unitsWithoutSupervisor(),
+        ]);
+    }
+
+    public function storeSupervisor(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'unit_id' => ['required', 'integer', Rule::exists(Unit::class, 'id')],
+            'practitioner_id' => ['required', 'integer', Rule::exists(Practitioner::class, 'id')],
+            'start_date' => ['required', 'date'],
+            'decree_number' => ['nullable', 'string', 'max:60'],
+            'note' => ['nullable', 'string', 'max:255'],
+        ], [], [
+            'unit_id' => 'unit', 'practitioner_id' => 'penanggung jawab',
+            'start_date' => 'mulai menjabat', 'decree_number' => 'nomor SK',
+        ]);
+
+        $unit = Unit::query()->findOrFail($data['unit_id']);
+        $praktisi = Practitioner::query()->findOrFail($data['practitioner_id']);
+
+        try {
+            $this->directory->assignSupervisor(
+                $unit, $praktisi, $data['start_date'],
+                $data['decree_number'] ?? null, $data['note'] ?? null,
+            );
+        } catch (OrganizationException $e) {
+            return back()->withInput()->with('galat', $e->getMessage());
+        }
+
+        return back()->with('sukses',
+            "{$praktisi->name} ditetapkan sebagai penanggung jawab {$unit->name}.");
     }
 
     /**

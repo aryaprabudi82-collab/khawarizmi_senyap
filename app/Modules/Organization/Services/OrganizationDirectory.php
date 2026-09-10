@@ -6,8 +6,11 @@ use App\Modules\Organization\Models\OperatingRoom;
 use App\Modules\Organization\Models\PracticeSchedule;
 use App\Modules\Organization\Models\Practitioner;
 use App\Modules\Organization\Models\Unit;
+use App\Modules\Organization\Models\UnitSupervisor;
 use DateTimeInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Pintu masuk konteks organization.
@@ -40,6 +43,92 @@ class OrganizationDirectory
     public function findPractitioner(int $id): ?Practitioner
     {
         return Practitioner::query()->find($id);
+    }
+
+    /**
+     * Menetapkan penanggung jawab sebuah unit penunjang.
+     *
+     * Penugasan yang masih terbuka DITUTUP dulu — otomatis, dan pada hari
+     * sebelum yang baru mulai. Kalau tidak, dua orang tercatat menjabat
+     * bersamaan, dan itu bukan kelonggaran administratif: ia berarti tidak
+     * ada yang tahu tanda tangan siapa yang sah pada hasil pemeriksaan.
+     *
+     * Berbeda dari `set_pjlab` Khanza yang menimpa satu baris, penugasan
+     * lama TIDAK hilang — hasil pemeriksaan lama harus tetap bisa
+     * menemukan penanggung jawabnya pada tanggal pemeriksaan itu.
+     */
+    public function assignSupervisor(
+        Unit $unit,
+        Practitioner $practitioner,
+        string $startDate,
+        ?string $decreeNumber = null,
+        ?string $note = null,
+    ): UnitSupervisor {
+        return DB::transaction(function () use ($unit, $practitioner, $startDate, $decreeNumber, $note) {
+            $berjalan = UnitSupervisor::query()
+                ->where('unit_id', $unit->getKey())
+                ->whereNull('end_date')
+                ->first();
+
+            if ($berjalan !== null) {
+                if ($berjalan->start_date->toDateString() > $startDate) {
+                    throw new OrganizationException(
+                        'Penanggung jawab baru tidak bisa mulai sebelum penugasan yang sedang berjalan.'
+                    );
+                }
+
+                $berjalan->update([
+                    'end_date' => Carbon::parse($startDate)->subDay()->toDateString(),
+                ]);
+            }
+
+            return UnitSupervisor::query()->create([
+                'unit_id' => $unit->getKey(),
+                'practitioner_id' => $practitioner->getKey(),
+                'start_date' => $startDate,
+                'decree_number' => $decreeNumber,
+                'note' => $note,
+            ]);
+        });
+    }
+
+    /**
+     * Penanggung jawab sebuah unit pada satu tanggal.
+     *
+     * Menerima tanggal, bukan mengembalikan yang menjabat sekarang: yang
+     * mencetak ulang hasil pemeriksaan lama butuh penanggung jawab pada
+     * tanggal pemeriksaan itu. Inilah pertanyaan yang `set_pjlab` Khanza
+     * tidak bisa jawab sama sekali.
+     */
+    public function supervisorOn(int $unitId, string $date): ?UnitSupervisor
+    {
+        return UnitSupervisor::query()
+            ->with('practitioner')
+            ->where('unit_id', $unitId)
+            ->whereDate('start_date', '<=', $date)
+            ->where(fn ($q) => $q->whereNull('end_date')->orWhereDate('end_date', '>=', $date))
+            ->first();
+    }
+
+    /**
+     * Unit penunjang aktif yang BELUM punya penanggung jawab.
+     *
+     * Daftar kejujuran: unit penunjang tanpa penanggung jawab bukan
+     * keadaan yang sah menurut akreditasi, dan lebih baik ia terlihat
+     * sebagai daftar pekerjaan daripada baru ketahuan saat diperiksa.
+     *
+     * @return Collection<int, Unit>
+     */
+    public function unitsWithoutSupervisor(): Collection
+    {
+        $sudah = UnitSupervisor::query()->whereNull('end_date')->pluck('unit_id');
+
+        return Unit::query()
+            ->where('is_active', true)
+            ->whereIn('kind', ['penunjang', 'penunjang-medis'])
+            ->whereNotIn('id', $sudah)
+            ->orderBy('name')
+            ->get();
     }
 
     /**

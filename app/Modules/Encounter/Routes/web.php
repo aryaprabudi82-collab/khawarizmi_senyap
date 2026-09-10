@@ -5,6 +5,7 @@ use App\Modules\Encounter\Http\Controllers\CorporateMcuBookingController;
 use App\Modules\Encounter\Http\Controllers\IgdController;
 use App\Modules\Encounter\Http\Controllers\KfrProgramRequestController;
 use App\Modules\Encounter\Http\Controllers\OperationBookingController;
+use App\Modules\Encounter\Http\Controllers\QueueDisplayController;
 use App\Modules\Encounter\Http\Controllers\ReferralController;
 use App\Modules\Encounter\Http\Controllers\RegistrationController;
 use Illuminate\Support\Facades\Route;
@@ -69,3 +70,25 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::post('/{permintaan}/batal', [KfrProgramRequestController::class, 'cancel'])->name('batal');
     });
 });
+
+/*
+ * Layar antrean pendaftaran & poliklinik (Khanza `display`, domain U).
+ *
+ * DI LUAR grup layar kerja: ini halaman yang menghadap ruang tunggu, dipasang
+ * di TV dan tidak ada yang menekan tombol di depannya. Tata letaknya pun
+ * berbeda sepenuhnya — layout `display`, bukan `app`.
+ *
+ * TIDAK ADA TABEL BARU untuk kode ini. Nomor antrean dan statusnya sudah
+ * tercatat pada encounter.registrations sejak konteks ini dibangun; membuat
+ * tabel antrean terpisah akan melahirkan dua sumber kebenaran yang bisa
+ * berbeda tentang siapa yang sedang dipanggil.
+ *
+ * TETAP DIGERBANGI. Kios yang menampilkannya memakai akunnya sendiri dengan
+ * satu kapabilitas ini saja: layar yang bisa dibuka tanpa masuk berarti
+ * daftar pasien hari ini bisa dibaca siapa pun yang menebak alamatnya, dan
+ * penyamaran nama tidak menutup itu — nomor antrean berikut nama poliklinik
+ * sudah cukup untuk mencocokkan orang yang terlihat masuk.
+ */
+Route::middleware(['web', 'auth', 'can:display'])
+    ->get('/antrean/display', [QueueDisplayController::class, 'index'])
+    ->name('antrean.display');

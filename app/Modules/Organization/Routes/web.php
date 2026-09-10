@@ -19,6 +19,18 @@ Route::middleware(['web', 'auth', 'can:tarif_ralan'])->prefix('master')->name('m
 });
 
 /*
+ * Penanggung jawab unit penunjang (Khanza `setup_pjlab`, domain U).
+ *
+ * Gerbangnya sendiri: penetapan penanggung jawab unit penunjang adalah
+ * keputusan struktural yang bersandar SK direktur, bukan pengelolaan data
+ * master sehari-hari.
+ */
+Route::middleware(['web', 'auth', 'can:setup_pjlab'])->prefix('master')->name('master.')->group(function () {
+    Route::get('/penanggung-jawab', [MasterDataController::class, 'supervisors'])->name('penanggung-jawab');
+    Route::post('/penanggung-jawab', [MasterDataController::class, 'storeSupervisor'])->name('penanggung-jawab.simpan');
+});
+
+/*
  * Master ruang operasi (Khanza `ruang_ok`, domain U).
  *
  * Gerbangnya sendiri, TIDAK dilebur ke `tarif_ralan` seperti master

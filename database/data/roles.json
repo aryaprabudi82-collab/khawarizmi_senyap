@@ -23,6 +23,7 @@
         ],
         "extra_permissions": [
             "pasien",
+            "display",
             "barcoderalan",
             "barcoderanap",
             "sensus_harian_ralan"
@@ -72,7 +73,8 @@
         "contexts": [],
         "extra_permissions": [
             "tarif_ralan",
-            "ruang_ok"
+            "ruang_ok",
+            "setup_pjlab"
         ],
         "_catatan_ruang_ok": "ruang_ok (domain U) dipegang gerbangnya sendiri, TIDAK dilebur ke tarif_ralan: yang menyusun daftar kamar operasi adalah instalasi bedah, bukan orang yang menetapkan tarif rawat jalan — dan Khanza pun memberinya kode tersendiri. Diberikan ke admin-master untuk Wave 1 karena belum ada peran instalasi bedah; layak ditinjau ulang kalau peran itu dibuat. Master ini menutup cacat yang SUDAH merusak laporan wajib: nama ruang operasi sebelumnya teks bebas di clinical.operations DAN encounter.operation_bookings, sementara StatutoryReportService mengelompokkan laporan RL berdasarkan teks itu — dua ejaan memecah satu ruang jadi dua baris."
     },
@@ -144,7 +146,8 @@
         ],
         "extra_permissions": [
             "beri_obat",
-            "resep_obat"
+            "resep_obat",
+            "display_apotek"
         ]
     },
     {
@@ -159,7 +162,8 @@
             "tambahan_biaya",
             "potongan_biaya",
             "piutang_pasien",
-            "rekap_pembayaran_ralan"
+            "rekap_pembayaran_ralan",
+            "closing_kasir"
         ]
     },
     {

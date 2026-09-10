@@ -8,6 +8,7 @@ use App\Modules\Pharmacy\Http\Controllers\GoodsReceiptController;
 use App\Modules\Pharmacy\Http\Controllers\MasterDataController;
 use App\Modules\Pharmacy\Http\Controllers\PatientDrugReturnController;
 use App\Modules\Pharmacy\Http\Controllers\PatientStockRequestController;
+use App\Modules\Pharmacy\Http\Controllers\PharmacyQueueDisplayController;
 use App\Modules\Pharmacy\Http\Controllers\PharmacyRecapController;
 use App\Modules\Pharmacy\Http\Controllers\PrescriptionController;
 use App\Modules\Pharmacy\Http\Controllers\ProcedureBhpUsageController;
@@ -180,3 +181,18 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::post('/{resep}/batal', [PrescriptionController::class, 'cancel'])->name('batal');
     });
 });
+
+/*
+ * Layar antrean apotek (Khanza `display_apotek`, domain U).
+ *
+ * TIDAK ADA TABEL BARU: status resep sudah tercatat pada
+ * pharmacy.prescriptions sejak konteks ini dibangun.
+ *
+ * Di luar grup layar kerja — ini halaman yang menghadap ruang tunggu apotek
+ * dan memakai layout `display`, bukan `app`. Gerbangnya sendiri (`display_apotek`,
+ * bukan `resep_obat`): kios di ruang tunggu tidak boleh memegang kapabilitas
+ * yang bisa mengubah resep.
+ */
+Route::middleware(['web', 'auth', 'can:display_apotek'])
+    ->get('/apotek/antrean/display', [PharmacyQueueDisplayController::class, 'index'])
+    ->name('apotek.antrean.display');

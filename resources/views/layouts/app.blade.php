@@ -120,7 +120,7 @@
           </li>
         @endcanany
 
-        @canany(['tarif_ralan', 'pasien', 'ruang_ok'])
+        @canany(['tarif_ralan', 'pasien', 'ruang_ok', 'setup_pjlab'])
           <li class="nav-item dropdown {{ request()->routeIs(['master.*', 'pasien.*']) ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Data Master</a>
             <div class="dropdown-menu">
@@ -130,6 +130,9 @@
               @endcan
               @can('ruang_ok')
                 <a class="dropdown-item" href="{{ route('master.ruang-operasi') }}">Ruang Operasi</a>
+              @endcan
+              @can('setup_pjlab')
+                <a class="dropdown-item" href="{{ route('master.penanggung-jawab') }}">Penanggung Jawab Unit</a>
               @endcan
               @can('pasien')
                 <a class="dropdown-item" href="{{ route('pasien.index') }}">Pasien</a>

@@ -104,6 +104,13 @@ return [
                     .'Dibaca clinical dan encounter, yang keduanya sebelumnya menyimpan nama ruang '
                     .'sebagai teks bebas — dan laporan RL mengelompokkan berdasarkan teks itu, '
                     .'sehingga dua ejaan memecah satu ruang jadi dua baris pada laporan wajib.',
+                'v_unit_supervisor' => 'Penanggung jawab unit penunjang BERIKUT PERIODENYA. '
+                    .'`set_pjlab` Khanza menaruh enam dokter PJ dalam satu baris dengan primary key '
+                    .'gabungan dari tiga di antaranya dan tanpa riwayat sama sekali, sehingga '
+                    .'"siapa PJ laboratorium bulan Maret" — pertanyaan yang justru ditanyakan saat '
+                    .'hasil dipersoalkan atau insiden ditelusuri — tidak punya jawaban. View ini '
+                    .'menyertakan tanggal supaya pencetakan ulang hasil lama menemukan PJ pada '
+                    .'tanggal pemeriksaannya, bukan PJ hari ini.',
             ],
         ],
 
@@ -479,6 +486,11 @@ return [
                 .'integrasi SIRANAP (domain L) belum digarap.',
             'domains' => ['A', 'K'],
             'publishes' => [
+                'v_room_daily_charge' => 'Biaya harian tambahan yang menempel pada sebuah kamar (Khanza '
+                    .'`biaya_harian`, domain U) — asuhan keperawatan, oksigen sentral, laundry. Berkode, '
+                    .'BUKAN berkunci nama seperti Khanza: dengan nama sebagai bagian primary key, '
+                    .'memperbaiki ejaan sebuah pos biaya bukan mengoreksi baris melainkan membuat baris '
+                    .'kedua, dan yang salah eja tinggal ikut tertagih.',
                 'v_room_class_rate' => 'Tarif kamar rata-rata per kelas (kamar nonaktif tidak dihitung). '
                     .'Dipakai finance untuk perkiraan_biaya_ranap tanpa menyentuh inpatient.rooms langsung.',
                 'v_room_charge' => 'Biaya kamar satu baris per hari menginap (domain I item A). Dipakai billing '
@@ -533,6 +545,11 @@ return [
                                     .'— domain K item B, dipakai finance menyusun hutang vendor lintas empat rantai pengadaan. '
                                     .'Nomor faktur dan status bayar sengaja TIDAK ikut: hutang dan pelunasannya milik finance, '
                                     .'dan memaparkannya dari sini melahirkan dua sumber kebenaran yang bisa berbeda.',
+                'v_meal_time' => 'Slot waktu makan pasien (Khanza `jam_diet_pasien`, domain U). BARIS, bukan '
+                                    .'enum: Khanza mengunci dua belas slot di dalam tipe kolom, jadi menambah yang '
+                                    .'ketiga belas berarti mengubah tipe kolom — dan "Pagi2" bukan nama yang berarti '
+                                    .'apa pun bagi petugas gizi. Rumahnya di dapur karena yang menetapkan jam makan '
+                                    .'adalah yang harus memasaknya tepat waktu; order diet menunjuk ke sini.',
             ],
         ],
 
