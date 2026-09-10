@@ -50,7 +50,10 @@ class OperationalReadiness
 
     public const BERES = ReadinessCheck::BERES;
 
-    public function __construct(private readonly PartitionManager $partisi) {}
+    public function __construct(
+        private readonly PartitionManager $partisi,
+        private readonly ScheduledTaskLog $jejak,
+    ) {}
 
     /**
      * @return list<array{judul: string, status: string, akibat: string}>
@@ -62,6 +65,7 @@ class OperationalReadiness
             $this->dariKonteksLain(),
             $this->periksaPengaturan(),
             $this->periksaPartisi(),
+            $this->periksaPerawatanTerjadwal(),
             $this->periksaKeamananProduksi(),
         );
     }
@@ -181,6 +185,58 @@ class OperationalReadiness
                 : 'Runway tinggal '.$runwayTerpendek.' bulan. Kalau habis, baris baru jatuh '
                   .'ke partisi DEFAULT dan sistem melambat tanpa galat apa pun. Ini juga '
                   .'pertanda perawatan terjadwal (`schedule:run` di cron) TIDAK berjalan.',
+        ]];
+    }
+
+    /**
+     * Apakah cron `schedule:run` benar-benar berjalan.
+     *
+     * INILAH KETERGANTUNGAN PALING SENYAP DI SELURUH SISTEM. Perawatan
+     * partisi — dan apa pun yang dijadwalkan sesudahnya — menggantung pada
+     * SATU baris cron di server aplikasi. Kalau baris itu tidak dipasang,
+     * atau hilang saat server dipindah, TIDAK ADA GALAT APA PUN yang muncul.
+     * Aplikasi tetap melayani pasien seperti biasa; yang berhenti cuma
+     * perawatannya, dan akibatnya baru terasa berbulan-bulan kemudian.
+     *
+     * Runway partisi yang menipis menandakan hal yang sama, tapi ia baru
+     * berbunyi setelah hampir dua tahun. Ini berbunyi dalam dua hari.
+     *
+     * BELUM PERNAH JALAN dibedakan dari SUDAH LAMA TIDAK JALAN: yang pertama
+     * berarti cronnya belum dipasang, yang kedua berarti pernah dipasang
+     * lalu berhenti. Keduanya menuntut tindakan berbeda, dan pesan yang
+     * menyamakannya membuat orang mencari di tempat yang salah.
+     *
+     * @return list<array{judul: string, status: string, akibat: string}>
+     */
+    private function periksaPerawatanTerjadwal(): array
+    {
+        $terakhir = $this->jejak->lastRun(ScheduledTaskLog::PARTISI);
+
+        if ($terakhir === null) {
+            return [[
+                'judul' => 'Perawatan terjadwal (cron)',
+                'status' => self::MENGHALANGI,
+                'akibat' => 'Perawatan terjadwal BELUM PERNAH berjalan sama sekali — '
+                    .'pertanda barisnya belum dipasang di cron server aplikasi. Tanpa itu '
+                    .'partisi tidak pernah diperpanjang, dan dalam dua tahun seluruh baris '
+                    .'baru jatuh ke partisi DEFAULT tanpa satu pun galat muncul. Pasang '
+                    .'satu baris: setiap menit, jalankan `php artisan schedule:run` dari '
+                    .'direktori aplikasi.',
+            ]];
+        }
+
+        $segar = $this->jejak->isFresh(ScheduledTaskLog::PARTISI);
+
+        return [[
+            'judul' => 'Perawatan terjadwal (cron)',
+            'status' => $segar ? self::BERES : self::MENGHALANGI,
+            'akibat' => $segar
+                ? 'Terakhir berjalan '.$terakhir->diffForHumans().'.'
+                : 'Terakhir berjalan '.$terakhir->diffForHumans().', lewat dari batas wajar '
+                  .'tugas harian. Cron PERNAH dipasang lalu berhenti — periksa apakah '
+                  .'barisnya masih ada dan penggunanya masih bisa menjalankan artisan. '
+                  .'Selama berhenti, partisi tidak diperpanjang dan tidak ada galat apa pun '
+                  .'yang akan memberitahu.',
         ]];
     }
 

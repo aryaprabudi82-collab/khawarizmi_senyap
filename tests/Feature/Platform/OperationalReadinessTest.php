@@ -5,6 +5,7 @@ namespace Tests\Feature\Platform;
 use App\Modules\Billing\Models\CashierShift;
 use App\Modules\Platform\Models\Institution;
 use App\Modules\Platform\Services\OperationalReadiness;
+use App\Modules\Platform\Services\ScheduledTaskLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
@@ -219,6 +220,91 @@ class OperationalReadinessTest extends TestCase
     }
 
     #[Test]
+    public function cron_yang_belum_pernah_dipasang_terdeteksi_sebagai_penghalang(): void
+    {
+        /*
+         * KETERGANTUNGAN PALING SENYAP DI SELURUH SISTEM. Perawatan partisi
+         * menggantung pada satu baris cron di server aplikasi, dan kalau
+         * baris itu tidak dipasang TIDAK ADA GALAT APA PUN yang muncul —
+         * aplikasi tetap melayani pasien seperti biasa. Yang berhenti cuma
+         * perawatannya, dan akibatnya baru terasa dua tahun kemudian sebagai
+         * partisi yang habis.
+         */
+        $butir = $this->hasil()['Perawatan terjadwal (cron)'];
+
+        $this->assertSame(OperationalReadiness::MENGHALANGI, $butir['status']);
+        $this->assertStringContainsString('BELUM PERNAH', $butir['akibat']);
+
+        // Dan cara memperbaikinya disebut, bukan cuma keluhannya.
+        $this->assertStringContainsString('schedule:run', $butir['akibat']);
+    }
+
+    #[Test]
+    public function cron_yang_pernah_jalan_lalu_berhenti_dibedakan_dari_yang_belum_pernah(): void
+    {
+        $jejak = app(ScheduledTaskLog::class);
+
+        $jejak->record(ScheduledTaskLog::PARTISI, 'uji');
+
+        $this->assertSame(OperationalReadiness::BERES,
+            $this->hasil()['Perawatan terjadwal (cron)']['status']);
+
+        /*
+         * Dua hari kemudian tanpa jalan lagi: cron PERNAH dipasang lalu
+         * berhenti. Itu tindakan yang berbeda dari "belum dipasang" — yang
+         * satu memasang baris baru, yang lain mencari kenapa yang ada
+         * berhenti — dan pesan yang menyamakannya membuat orang mencari di
+         * tempat yang salah.
+         */
+        $this->travelTo(now()->addHours(ScheduledTaskLog::BATAS_JAM + 1));
+
+        $butir = $this->hasil()['Perawatan terjadwal (cron)'];
+
+        $this->assertSame(OperationalReadiness::MENGHALANGI, $butir['status']);
+        $this->assertStringContainsString('PERNAH dipasang lalu berhenti', $butir['akibat']);
+        $this->assertStringNotContainsString('BELUM PERNAH', $butir['akibat']);
+    }
+
+    #[Test]
+    public function satu_malam_terlewat_belum_dianggap_cron_mati(): void
+    {
+        app(ScheduledTaskLog::class)->record(ScheduledTaskLog::PARTISI, 'uji');
+
+        /*
+         * Batasnya dua hari, bukan satu. Tugas harian yang gagal sekali —
+         * server dinyalakan ulang tepat pada jam jadwalnya, pemeliharaan
+         * singkat — belum berarti cronnya mati. Peringatan yang berbunyi
+         * karena satu malam terlewat akan cepat diabaikan orang, dan
+         * peringatan yang diabaikan sama saja dengan tidak ada.
+         */
+        $this->travelTo(now()->addHours(25));
+
+        $this->assertSame(OperationalReadiness::BERES,
+            $this->hasil()['Perawatan terjadwal (cron)']['status']);
+    }
+
+    #[Test]
+    public function perawatan_mencatat_jejaknya_walau_tidak_ada_partisi_baru(): void
+    {
+        $jejak = app(ScheduledTaskLog::class);
+
+        $this->assertNull($jejak->lastRun(ScheduledTaskLog::PARTISI));
+
+        $this->artisan('partisi:pastikan')->assertSuccessful();
+
+        /*
+         * DICATAT WALAU TIDAK ADA YANG DIBUAT. Yang hendak dibuktikan
+         * catatan ini adalah cron masih berjalan — dan hari-hari saat tidak
+         * ada partisi yang perlu dibuat justru mayoritasnya. Mencatat hanya
+         * saat ada perubahan berarti cron yang sehat tampak mati selama
+         * berbulan-bulan.
+         */
+        $this->assertNotNull($jejak->lastRun(ScheduledTaskLog::PARTISI));
+        $this->assertStringContainsString('Runway sudah cukup',
+            (string) $jejak->summary(ScheduledTaskLog::PARTISI));
+    }
+
+    #[Test]
     public function perintah_keluar_dengan_kode_gagal_saat_ada_penghalang(): void
     {
         // Supaya bisa dipasang sebagai gerbang sebelum penggelaran: yang
@@ -230,6 +316,10 @@ class OperationalReadinessTest extends TestCase
             'code' => 'PAGI', 'name' => 'Pagi', 'start_time' => '07:00', 'end_time' => '14:00',
             'crosses_midnight' => false, 'is_active' => true,
         ]);
+
+        // Cron juga penghalang, dan itu memang benar: sistem yang perawatan
+        // terjadwalnya belum pernah berjalan belum siap digelar.
+        app(ScheduledTaskLog::class)->record(ScheduledTaskLog::PARTISI, 'uji');
 
         /*
          * Peringatan TIDAK menggagalkan. Kalau ia menggagalkan, RSP UI tidak

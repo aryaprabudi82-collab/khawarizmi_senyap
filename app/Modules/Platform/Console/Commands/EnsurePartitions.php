@@ -3,6 +3,7 @@
 namespace App\Modules\Platform\Console\Commands;
 
 use App\Modules\Platform\Services\PartitionManager;
+use App\Modules\Platform\Services\ScheduledTaskLog;
 use Illuminate\Console\Command;
 
 /**
@@ -19,7 +20,7 @@ class EnsurePartitions extends Command
 
     protected $description = 'Memastikan tabel berpartisi punya partisi bulan-bulan berikutnya';
 
-    public function handle(PartitionManager $partisi): int
+    public function handle(PartitionManager $partisi, ScheduledTaskLog $jejak): int
     {
         $bulan = (int) ($this->option('bulan') ?: PartitionManager::RUNWAY_BULAN);
 
@@ -41,6 +42,19 @@ class EnsurePartitions extends Command
         }
 
         $dibuat = $partisi->ensureRunway($bulan);
+
+        /*
+         * DICATAT SETIAP KALI BERHASIL, bukan hanya saat ada partisi baru.
+         * Yang hendak dibuktikan catatan ini adalah bahwa cron `schedule:run`
+         * masih berjalan — dan hari-hari saat tidak ada yang perlu dibuat
+         * justru mayoritasnya. Mencatat hanya saat ada perubahan berarti
+         * cron yang sehat tampak mati selama berbulan-bulan.
+         */
+        $jejak->record(
+            ScheduledTaskLog::PARTISI,
+            $dibuat === [] ? 'Runway sudah cukup, tidak ada partisi baru.'
+                           : count($dibuat).' partisi dibuat: '.implode(', ', $dibuat)
+        );
 
         if ($dibuat === []) {
             $this->info('Runway sudah cukup. Tidak ada partisi baru yang perlu dibuat.');
