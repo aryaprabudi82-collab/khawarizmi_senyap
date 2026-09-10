@@ -27,7 +27,7 @@ class InvoiceController
 
         $daftar = Invoice::query()
             ->whereIn('care_type', $jenisBoleh)
-            ->whereDate('opened_at', $tanggal->toDateString())
+            ->whereOnDate('opened_at', $tanggal->toDateString())
             ->when($status, fn ($q) => $q->where('status', $status))
             ->orderByRaw("CASE status WHEN 'terbuka' THEN 1 ELSE 2 END")
             ->orderByDesc('opened_at')
@@ -36,7 +36,7 @@ class InvoiceController
 
         $ringkasan = Invoice::query()
             ->whereIn('care_type', $jenisBoleh)
-            ->whereDate('opened_at', $tanggal->toDateString())
+            ->whereOnDate('opened_at', $tanggal->toDateString())
             ->selectRaw('status, count(*) as jumlah, coalesce(sum(total_amount - paid_amount), 0) as sisa')
             ->groupBy('status')
             ->get()
@@ -185,6 +185,7 @@ class InvoiceController
         return redirect()->route('tagihan.show', $penyesuaian->invoice_id)
             ->with('sukses', 'Penyesuaian dibatalkan.');
     }
+
     public function voidInvoice(Request $request, Invoice $tagihan): RedirectResponse
     {
         $this->assertAccess($request, $tagihan);

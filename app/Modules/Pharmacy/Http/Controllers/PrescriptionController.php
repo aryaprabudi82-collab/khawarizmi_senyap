@@ -36,7 +36,7 @@ class PrescriptionController
         $kind = $request->query('kind');
 
         $daftar = Prescription::query()
-            ->whereDate('prescribed_at', $tanggal->toDateString())
+            ->whereOnDate('prescribed_at', $tanggal->toDateString())
             ->when($status, fn ($q) => $q->where('status', $status))
             ->when($kind, fn ($q) => $q->where('kind', $kind))
             ->orderByRaw("CASE status
@@ -49,7 +49,7 @@ class PrescriptionController
             ->withQueryString();
 
         $ringkasan = Prescription::query()
-            ->whereDate('prescribed_at', $tanggal->toDateString())
+            ->whereOnDate('prescribed_at', $tanggal->toDateString())
             ->selectRaw('status, count(*) as jumlah')
             ->groupBy('status')
             ->pluck('jumlah', 'status');
@@ -167,7 +167,7 @@ class PrescriptionController
             return back()->withInput()->with('galat', $e->getMessage());
         }
 
-        return back()->with('sukses', 'Telaah tersimpan: resep ' . $data['outcome'] . '.');
+        return back()->with('sukses', 'Telaah tersimpan: resep '.$data['outcome'].'.');
     }
 
     public function dispense(Request $request, Prescription $resep): RedirectResponse

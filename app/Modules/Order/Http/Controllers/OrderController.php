@@ -36,7 +36,7 @@ class OrderController
 
         $daftar = LabRadiologyOrder::query()
             ->where('category', $kategori)
-            ->whereDate('requested_at', $tanggal->toDateString())
+            ->whereOnDate('requested_at', $tanggal->toDateString())
             ->when($status, fn ($q) => $q->where('status', $status))
             ->orderByRaw("CASE status
                 WHEN 'diproses' THEN 1
@@ -49,7 +49,7 @@ class OrderController
 
         $ringkasan = LabRadiologyOrder::query()
             ->where('category', $kategori)
-            ->whereDate('requested_at', $tanggal->toDateString())
+            ->whereOnDate('requested_at', $tanggal->toDateString())
             ->selectRaw('status, count(*) as jumlah')
             ->groupBy('status')
             ->pluck('jumlah', 'status');
@@ -212,7 +212,7 @@ class OrderController
             ->get()
             ->map(fn (TestCatalog $t) => [
                 'id' => $t->id,
-                'label' => $t->code . ' — ' . $t->name,
+                'label' => $t->code.' — '.$t->name,
                 'price' => (float) $t->price,
             ]);
     }

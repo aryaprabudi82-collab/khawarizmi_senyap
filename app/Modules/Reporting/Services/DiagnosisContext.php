@@ -17,6 +17,6 @@ class DiagnosisContext
 
     public function forDate(CarbonInterface $date): Collection
     {
-        return DB::table(self::VIEW)->whereDate('diagnosed_at', $date->toDateString())->get();
+        return DB::table(self::VIEW)->whereOnDate('diagnosed_at', $date->toDateString())->get();
     }
 }

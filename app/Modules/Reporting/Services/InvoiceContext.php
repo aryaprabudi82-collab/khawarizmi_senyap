@@ -18,6 +18,6 @@ class InvoiceContext
 
     public function forDate(CarbonInterface $date): Collection
     {
-        return DB::table(self::VIEW)->whereDate('closed_at', $date->toDateString())->get();
+        return DB::table(self::VIEW)->whereOnDate('closed_at', $date->toDateString())->get();
     }
 }

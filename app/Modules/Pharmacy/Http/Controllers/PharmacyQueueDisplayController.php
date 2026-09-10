@@ -27,10 +27,24 @@ class PharmacyQueueDisplayController
 {
     public function index(): View
     {
+        /*
+         * `prescribed_at`, bukan `created_at` — dan rentang, bukan
+         * whereDate. Dua alasan yang keduanya penting pada layar ini:
+         *
+         *  1. `prescribed_at` adalah waktu resep DITULIS dokter, yang
+         *     memang jadi urutan antrean; `created_at` cuma kapan barisnya
+         *     masuk basis data, dan keduanya berbeda pada resep yang
+         *     dicatat susulan.
+         *  2. Indeksnya ada di (status, prescribed_at). `whereDate`
+         *     membungkus kolom dalam cast dan mematikan indeks itu —
+         *     diukur dengan EXPLAIN: Seq Scan. Layar ini menyegarkan diri
+         *     setiap dua puluh detik, jadi sekali pindai penuh atas jutaan
+         *     baris resep berlipat jadi ribuan kali sehari.
+         */
         $hariIni = Prescription::query()
-            ->whereDate('created_at', now()->toDateString())
+            ->whereOnDate('prescribed_at', now())
             ->whereNotIn('status', ['batal', 'ditolak'])
-            ->orderBy('created_at')
+            ->orderBy('prescribed_at')
             ->get();
 
         return view('pharmacy::display.antrean', [

@@ -32,6 +32,60 @@ abstract class ModuleServiceProvider extends ServiceProvider
         if (is_file($routes = $this->modulePath('Routes/web.php'))) {
             $this->loadRoutesFrom($routes);
         }
+
+        $this->loadCommands();
+    }
+
+    /**
+     * Perintah artisan milik konteks ini.
+     *
+     * Didaftarkan dari dalam modulnya, sejalan dengan migrasi dan rute:
+     * sebuah konteks harus bisa dibaca, dipindah, atau dicabut sebagai satu
+     * unit, dan perintah yang terdaftar di luar akan tertinggal saat
+     * modulnya dicabut lalu gagal memuat kelas yang sudah tidak ada.
+     *
+     * Hanya saat berjalan di konsol: memindai direktori pada setiap request
+     * web adalah biaya yang tidak menghasilkan apa pun.
+     */
+    private function loadCommands(): void
+    {
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
+        $dir = $this->modulePath('Console/Commands');
+
+        if (! is_dir($dir)) {
+            return;
+        }
+
+        $kelas = [];
+
+        foreach (glob($dir.'/*.php') ?: [] as $berkas) {
+            $nama = 'App\\Modules\\'.$this->moduleName().'\\Console\\Commands\\'.basename($berkas, '.php');
+
+            if (class_exists($nama)) {
+                $kelas[] = $nama;
+            }
+        }
+
+        if ($kelas !== []) {
+            $this->commands($kelas);
+        }
+    }
+
+    /** Nama folder modul, mis. "Platform". */
+    private function moduleName(): string
+    {
+        $module = config("contexts.active.{$this->context()}.module");
+
+        if (! is_string($module) || $module === '') {
+            throw new \RuntimeException(
+                "Konteks '{$this->context()}' belum punya 'module' di config/contexts.php."
+            );
+        }
+
+        return $module;
     }
 
     /** Schema PostgreSQL milik konteks ini. */
@@ -52,6 +106,6 @@ abstract class ModuleServiceProvider extends ServiceProvider
     {
         $module = str($this->context())->studly()->value();
 
-        return rtrim(app_path("Modules/{$module}/" . $relative), '/');
+        return rtrim(app_path("Modules/{$module}/".$relative), '/');
     }
 }
