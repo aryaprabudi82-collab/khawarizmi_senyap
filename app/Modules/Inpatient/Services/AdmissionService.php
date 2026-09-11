@@ -5,7 +5,6 @@ namespace App\Modules\Inpatient\Services;
 use App\Modules\Inpatient\Models\Admission;
 use App\Modules\Inpatient\Models\Bed;
 use App\Modules\Inpatient\Models\DietOrder;
-use App\Modules\Inpatient\Models\DpjpHistory;
 use Illuminate\Support\Facades\DB;
 
 class AdmissionService
@@ -14,6 +13,7 @@ class AdmissionService
         private readonly NumberAllocator $numbers,
         private readonly EncounterContext $encounter,
         private readonly OrganizationContext $organization,
+        private readonly PatientContext $patients,
     ) {}
 
     /**
@@ -51,6 +51,16 @@ class AdmissionService
                 'admitted_at' => now(),
                 'status' => Admission::STATUS_DIRAWAT,
                 'admitted_by' => $actorId,
+
+                /*
+                 * DIBEKUKAN, BUKAN DIRUJUK. Kategori pasien boleh diubah
+                 * kapan saja lewat layar pasien; kalau laporan membacanya
+                 * dari sana, rekap klasifikasi bulan lalu ikut berubah
+                 * setiap kali seorang pasien dikategorikan ulang — dan
+                 * angkanya tetap terlihat wajar, karena yang berubah cuma
+                 * pembagiannya.
+                 */
+                'patient_category' => $this->patients->category((int) $registrasi->patient_id),
             ]);
 
             // Baris penempatan bed pertama. Riwayat ini yang membuat biaya
@@ -166,6 +176,7 @@ class AdmissionService
             return $admission->refresh();
         });
     }
+
     /**
      * @throws InpatientException
      */

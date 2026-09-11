@@ -171,22 +171,110 @@
   </div>
 </div>
 
+<div class="card mb-3">
+  <div class="card-header">
+    <h3 class="card-title">Kepatuhan Daftar Tilik Keselamatan Bedah</h3>
+    <div class="card-subtitle">{{ $dari }} s.d. {{ $sampai }} &mdash; KARS Sasaran Keselamatan Pasien IV</div>
+  </div>
+  <div class="card-body">
+    @if ($keselamatanBedah->operasi === 0)
+      <p class="text-secondary mb-0">Tidak ada operasi pada rentang ini, jadi kepatuhannya belum terukur.
+         Ini <b>bukan</b> 0% dan bukan 100%.</p>
+    @else
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <div class="text-secondary small">Operasi</div>
+          <div class="h2 mb-0">{{ $keselamatanBedah->operasi }}</div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="text-secondary small">Ketiga fase lengkap</div>
+          <div class="h2 mb-0">{{ $keselamatanBedah->lengkap }}</div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="text-secondary small">Kepatuhan</div>
+          <div class="h2 mb-0">{{ $keselamatanBedah->persen }}%</div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="text-secondary small">Tanpa daftar tilik sama sekali</div>
+          <div class="h2 mb-0 {{ $keselamatanBedah->tanpa_daftar_tilik > 0 ? 'text-danger' : '' }}">
+            {{ $keselamatanBedah->tanpa_daftar_tilik }}
+          </div>
+        </div>
+      </div>
+
+      <table class="table table-sm mt-3 mb-2">
+        <tbody>
+          <tr><td>Tanpa Sign In (sebelum induksi anestesi)</td>
+              <td class="text-end">{{ $keselamatanBedah->tanpa_sign_in }}</td></tr>
+          <tr><td>Tanpa Time Out (sebelum insisi kulit)</td>
+              <td class="text-end">{{ $keselamatanBedah->tanpa_time_out }}</td></tr>
+          <tr><td>Tanpa Sign Out (sebelum menutup luka)</td>
+              <td class="text-end">{{ $keselamatanBedah->tanpa_sign_out }}</td></tr>
+          <tr><td>Daftar tilik yang menyimpan temuan</td>
+              <td class="text-end">{{ $keselamatanBedah->bertemuan }}</td></tr>
+        </tbody>
+      </table>
+
+      <p class="text-secondary small mb-0">
+        Penyebutnya <b>seluruh</b> operasi pada rentang ini, termasuk yang daftar tiliknya tidak pernah diisi.
+        Menghitung hanya dari operasi yang sudah punya daftar tilik akan membuat angka ini mendekati 100% justru
+        saat pengisiannya paling jarang. Daftar tilik yang lengkap sepanjang tahun tapi tidak pernah menemukan
+        apa pun juga perlu ditanyakan &mdash; itu tanda pengisiannya formalitas.
+      </p>
+    @endif
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header">
+    <h3 class="card-title">Penolakan Anjuran Medis {{ $tahun }}</h3>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0">
+      <thead><tr><th>Bulan</th><th>Jenis surat</th><th class="text-end">Penolakan</th><th class="text-end">Pasien</th></tr></thead>
+      <tbody>
+        @forelse ($penolakan as $p)
+          <tr>
+            <td>{{ $p->bulan }}</td>
+            <td>{{ str_replace('-', ' ', $p->consent_type) }}</td>
+            <td class="text-end">{{ $p->penolakan }}</td>
+            <td class="text-end">{{ $p->pasien }}</td>
+          </tr>
+        @empty
+          <tr><td colspan="4" class="text-center text-secondary py-3">Tidak ada penolakan tercatat pada {{ $tahun }}.</td></tr>
+        @endforelse
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer text-secondary small">
+    Yang dihitung adalah <b>keputusannya</b> &mdash; setiap surat persetujuan yang berakhir "menolak" &mdash; bukan
+    hanya surat berjenis penolakan anjuran medis. Pasien yang menolak tindakan yang ditawarkan dan yang pulang atas
+    permintaan sendiri sama-sama menolak anjuran medis. Surat yang dibatalkan tidak ikut.
+  </div>
+</div>
+
 <div class="card">
   <div class="card-header"><h3 class="card-title">Yang belum bisa dilaporkan di sini</h3></div>
   <div class="card-body">
-    <p class="mb-2">Lima kode domain J sengaja tidak dibuatkan angka karena pencatatannya memang belum ada. Ketiga yang pertama
-       adalah kewajiban regulasi, jadi layak dibangun lebih dulu daripada dikarang:</p>
+    <p class="mb-2">Empat kode domain J sengaja tidak dibuatkan angka karena pencatatannya memang belum ada. Kedua
+       yang pertama adalah kewajiban regulasi, jadi layak dibangun lebih dulu daripada dikarang:</p>
     <ul class="mb-0">
       <li><b>Dosis Radiologi</b> &mdash; dosis paparan radiasi per pemeriksaan tidak tercatat. Ini kewajiban proteksi radiasi
           (BAPETEN); butuh kolom dosis pada permintaan radiologi.</li>
-      <li><b>Kepatuhan Kelengkapan Keselamatan Bedah</b> &mdash; ceklis keselamatan bedah WHO (sign in / time out / sign out)
-          belum dicatat sama sekali. Ini persyaratan akreditasi.</li>
       <li><b>Sisa Diet Pasien</b> &mdash; sisa makanan yang tidak dihabiskan tidak dicatat; yang ada baru permintaan dietnya.
-          Ini indikator mutu gizi.</li>
+          Ini indikator mutu gizi (SPM Kemenkes).</li>
+      <li><b>Pemeriksaan Fisik Ralan Per Penyakit</b> &mdash; pemeriksaan fisik dicatat sebagai narasi pada bagian
+          Objektif SOAP, bukan butir terstruktur. Menabulasikannya per penyakit akan menghasilkan kumpulan
+          paragraf, bukan laporan. Butuh butir pemeriksaan fisik terstruktur lebih dulu.</li>
       <li><b>Rekap Mutasi Berkas</b> dan <b>Status Data RM</b> &mdash; keduanya melacak perpindahan berkas rekam medis
           <b>kertas</b> antar unit. Rekam medis di sini elektronik sejak awal mengikuti Permenkes 24/2022, jadi tidak ada
           berkas yang berpindah. Alasan yang sama seperti Lama Penyiapan RM pada layar indikator mutu.</li>
     </ul>
+    <p class="text-secondary small mt-3 mb-0">
+      <b>Kepatuhan Kelengkapan Keselamatan Bedah</b> dulu ada di daftar ini dengan alasan "belum dicatat sama
+      sekali". Alasan itu benar saat ditulis dan berhenti benar ketika daftar tilik keselamatan bedah dibangun;
+      angkanya sekarang ada di atas. Hal yang sama berlaku untuk <b>Penolakan Anjuran Medis</b>.
+    </p>
   </div>
 </div>
 

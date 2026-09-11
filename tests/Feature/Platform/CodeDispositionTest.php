@@ -38,7 +38,16 @@ class CodeDispositionTest extends TestCase
      * tanpa ada yang sadar — misalnya saat katalog Khanza diperbarui dan
      * puluhan kode baru masuk tanpa satu pun diperiksa.
      */
-    private const BATAS_BELUM_DIVERIFIKASI = 763;
+    /**
+     * NOL, dan angka ini tidak boleh naik lagi.
+     *
+     * Seluruh 1.183 kode katalog Khanza sudah ditelusuri satu per satu dan
+     * punya disposisi berikut alasannya. Batas nol berarti kode Khanza yang
+     * baru masuk ke katalog WAJIB diperiksa sebelum uji ini bisa hijau —
+     * yang memang inti gunanya: bukan menyatakan pekerjaan selesai,
+     * melainkan menahan utang baru masuk tanpa ada yang melihatnya.
+     */
+    private const BATAS_BELUM_DIVERIFIKASI = 0;
 
     private CodeDispositionRegistry $registri;
 
@@ -202,6 +211,16 @@ class CodeDispositionTest extends TestCase
              * karena rutenya sendiri boleh dibuka semua petugas loket.
              */
             'permintaan_ranap' => 'RegistrationController::store() lewat Rule::in()',
+
+            /*
+             * Gerbang satu BAGIAN layar morbiditas, bukan layarnya. Seluruh
+             * isi layar itu agregat dan tidak menyebut nama; Kartu Indeks
+             * Penyakit satu-satunya yang menyebut siapa. Menumpangkannya
+             * pada gerbang layar akan membuat setiap orang yang boleh
+             * melihat statistik penyakit otomatis boleh menarik daftar nama
+             * pengidapnya.
+             */
+            'kip_pasien_ralan' => 'MorbidityReportController::index() — bagian Kartu Indeks Penyakit',
         ];
 
         $ref = new \ReflectionClass(ManagedPermissionCatalog::class);

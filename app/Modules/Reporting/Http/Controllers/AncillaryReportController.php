@@ -43,6 +43,8 @@ class AncillaryReportController
             'skrining' => $this->penunjang->respiratoryScreening($tahun),
             'klasifikasi' => $this->penunjang->inpatientClass($kelompok, $dari, $sampai),
             'sasaran' => $this->penunjang->ageTargets($dari, $sampai),
+            'keselamatanBedah' => $this->penunjang->surgicalSafetyCompliance($dari, $sampai),
+            'penolakan' => $this->penunjang->advisoryRefusalYearly($tahun),
         ]);
     }
 }

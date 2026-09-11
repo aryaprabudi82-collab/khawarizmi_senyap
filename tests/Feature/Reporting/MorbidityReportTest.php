@@ -32,7 +32,9 @@ class MorbidityReportTest extends TestCase
     use RefreshDatabase;
 
     private MorbidityReportService $morbiditas;
+
     private RegistrationService $registrations;
+
     private User $manajemen;
 
     protected function setUp(): void
@@ -213,6 +215,88 @@ class MorbidityReportTest extends TestCase
             ->assertSee('J06.9');
     }
 
+    // --------------------------------------------- Kartu Indeks Penyakit (KIP)
+
+    /**
+     * Indeks penyakit menjawab kebalikan dari frekuensi: bukan berapa
+     * banyak, tapi SIAPA. Satu pasien muncul sekali meski didiagnosis
+     * berkali-kali — indeks yang menampilkan orang yang sama belasan kali
+     * bukan indeks, cuma daftar kejadian yang sudah ada di tempat lain.
+     */
+    #[Test]
+    public function kip_menampilkan_satu_baris_per_pasien_berikut_jumlah_kejadiannya(): void
+    {
+        /*
+         * Dua KUNJUNGAN pasien yang sama, bukan dua diagnosis pada satu
+         * kunjungan — clinical.diagnoses menolak diagnosis utama kedua
+         * pada kunjungan yang sama, dan memang begitu seharusnya. Pasien
+         * yang kembali dengan keluhan yang sama justru bentuk paling
+         * lazim dari kasus berulang yang dicari indeks ini.
+         */
+        $pertama = $this->daftarkan('ralan', 'UMUM');
+        $this->simpanDiagnosis($pertama, 'J06.9', 'ISPA');
+        $this->simpanDiagnosis($this->daftarkanUlang($pertama->patient_id), 'J06.9', 'ISPA');
+
+        $this->diagnosa('J06.9');   // pasien lain
+        $this->diagnosa('I10');     // penyakit lain, tidak boleh ikut
+
+        $hariIni = now()->toDateString();
+        $kip = $this->morbiditas->patientsForDiagnosis('J06.9', $hariIni, $hariIni);
+
+        $this->assertCount(2, $kip);
+        $this->assertSame(
+            [1, 2],
+            $kip->pluck('kejadian')->map(fn ($n) => (int) $n)->sort()->values()->all()
+        );
+    }
+
+    #[Test]
+    public function kip_bisa_dipisahkan_menurut_jenis_rawat(): void
+    {
+        $this->diagnosa('J06.9', 'ralan');
+        $this->diagnosa('J06.9', 'ranap');
+
+        $hariIni = now()->toDateString();
+
+        $this->assertCount(1, $this->morbiditas->patientsForDiagnosis('J06.9', $hariIni, $hariIni, 'ralan'));
+        $this->assertCount(2, $this->morbiditas->patientsForDiagnosis('J06.9', $hariIni, $hariIni));
+    }
+
+    /**
+     * GERBANG TERSENDIRI, DAN INI POKOKNYA. Seluruh isi layar morbiditas
+     * agregat dan tidak menyebut satu pun nama; KIP satu-satunya yang
+     * menyebut nomor rekam medis, nama, dan tanggal lahir. Manajemen boleh
+     * melihat statistik penyakit tanpa otomatis boleh menarik daftar nama
+     * pengidapnya.
+     */
+    #[Test]
+    public function daftar_nama_pengidap_hanya_untuk_pemegang_kip(): void
+    {
+        $registrasi = $this->daftarkan('ralan', 'UMUM');
+        $this->simpanDiagnosis($registrasi, 'J06.9', 'ISPA');
+
+        $nama = DB::table('identity.patients')->where('id', $registrasi->patient_id)->value('name');
+        $penyaring = ['kode' => 'J06.9', 'dari' => now()->toDateString(), 'sampai' => now()->toDateString()];
+
+        // Manajemen memegang penyakit_ralan, tapi bukan kip_pasien_ralan.
+        $this->actingAs($this->manajemen)
+            ->get(route('reporting.morbiditas', $penyaring))
+            ->assertOk()
+            ->assertDontSee('Kartu Indeks Penyakit')
+            ->assertDontSee($nama);
+
+        $mutu = User::query()->create([
+            'username' => 'uji-mutu-kip', 'name' => 'Admin Mutu', 'password' => 'password', 'is_active' => true,
+        ]);
+        $mutu->roles()->attach(Role::query()->where('code', 'admin-mutu')->firstOrFail());
+
+        $this->actingAs($mutu)
+            ->get(route('reporting.morbiditas', $penyaring))
+            ->assertOk()
+            ->assertSee('Kartu Indeks Penyakit')
+            ->assertSee($nama);
+    }
+
     // ------------------------------------------------------------------ bantu
 
     /**
@@ -258,7 +342,7 @@ class MorbidityReportTest extends TestCase
         $urut++;
 
         $pasien = app(PatientRegistry::class)->register([
-            'name' => 'Pasien Morbid ' . $urut, 'sex' => 'L', 'birth_date' => '1990-01-01',
+            'name' => 'Pasien Morbid '.$urut, 'sex' => 'L', 'birth_date' => '1990-01-01',
         ]);
 
         return $this->registrations->register(
@@ -267,6 +351,24 @@ class MorbidityReportTest extends TestCase
             payerId: Payer::query()->where('code', $penjamin)->value('id'),
             practitionerId: Practitioner::query()->where('is_active', true)->value('id'),
             extra: $careType === 'ranap' ? ['care_type' => 'ranap'] : [],
+        );
+    }
+
+    /**
+     * Kunjungan berikutnya untuk pasien yang sudah terdaftar.
+     *
+     * UNIT LAIN, karena pendaftaran menolak pasien yang sama di unit yang
+     * sama pada hari yang sama — dan itu aturan yang benar, bukan
+     * penghalang yang perlu diakali. Pasien yang hari itu juga dirujuk ke
+     * poli lain adalah kejadian sehari-hari.
+     */
+    private function daftarkanUlang(int $patientId): Registration
+    {
+        return $this->registrations->register(
+            patientId: $patientId,
+            unitId: Unit::query()->where('code', '<>', 'POL-UMUM')->orderBy('id')->firstOrFail()->id,
+            payerId: Payer::query()->where('code', 'UMUM')->value('id'),
+            practitionerId: Practitioner::query()->where('is_active', true)->value('id'),
         );
     }
 }

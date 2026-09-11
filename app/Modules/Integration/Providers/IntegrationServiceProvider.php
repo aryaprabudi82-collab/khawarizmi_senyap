@@ -2,46 +2,46 @@
 
 namespace App\Modules\Integration\Providers;
 
-use App\Modules\Integration\Services\Bpjs\BpjsClient;
-use App\Modules\Integration\Services\Bpjs\BpjsVclaimClient;
 use App\Modules\Integration\Services\Bpjs\AplicaresClient;
-use App\Modules\Integration\Services\Bpjs\BpjsClaimClient;
-use App\Modules\Integration\Services\Bpjs\BpjsQueueClient;
-use App\Modules\Integration\Services\Bpjs\ClaimClient;
-use App\Modules\Integration\Services\Bpjs\QueueClient;
-use App\Modules\Integration\Services\Bpjs\BpjsAplicaresClient;
 use App\Modules\Integration\Services\Bpjs\BpjsAccidentClient;
 use App\Modules\Integration\Services\Bpjs\BpjsAdmissionClient;
+use App\Modules\Integration\Services\Bpjs\BpjsAplicaresClient;
 use App\Modules\Integration\Services\Bpjs\BpjsApolApotekClient;
 use App\Modules\Integration\Services\Bpjs\BpjsApotekClient;
+use App\Modules\Integration\Services\Bpjs\BpjsClaimClient;
+use App\Modules\Integration\Services\Bpjs\BpjsClient;
 use App\Modules\Integration\Services\Bpjs\BpjsFhirSmartClaimClient;
-use App\Modules\Integration\Services\Bpjs\BpjsSmartClaimClient;
 use App\Modules\Integration\Services\Bpjs\BpjsMemberClient;
+use App\Modules\Integration\Services\Bpjs\BpjsQueueClient;
 use App\Modules\Integration\Services\Bpjs\BpjsReferralClient;
+use App\Modules\Integration\Services\Bpjs\BpjsSmartClaimClient;
 use App\Modules\Integration\Services\Bpjs\BpjsVclaimAccidentClient;
 use App\Modules\Integration\Services\Bpjs\BpjsVclaimAdmissionClient;
+use App\Modules\Integration\Services\Bpjs\BpjsVclaimClient;
 use App\Modules\Integration\Services\Bpjs\BpjsVclaimMemberClient;
 use App\Modules\Integration\Services\Bpjs\BpjsVclaimReferralClient;
+use App\Modules\Integration\Services\Bpjs\ClaimClient;
 use App\Modules\Integration\Services\Bpjs\FakeAplicaresClient;
-use App\Modules\Integration\Services\Bpjs\FakeClaimClient;
-use App\Modules\Integration\Services\Bpjs\FakeQueueClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsAccidentClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsAdmissionClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsApotekClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsClient;
-use App\Modules\Integration\Services\Bpjs\FakeBpjsSmartClaimClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsMemberClient;
 use App\Modules\Integration\Services\Bpjs\FakeBpjsReferralClient;
+use App\Modules\Integration\Services\Bpjs\FakeBpjsSmartClaimClient;
+use App\Modules\Integration\Services\Bpjs\FakeClaimClient;
+use App\Modules\Integration\Services\Bpjs\FakeQueueClient;
+use App\Modules\Integration\Services\Bpjs\QueueClient;
 use App\Modules\Integration\Services\CredentialStore;
 use App\Modules\Integration\Services\Inhealth\FakeInhealthClient;
 use App\Modules\Integration\Services\Inhealth\HttpInhealthClient;
 use App\Modules\Integration\Services\Inhealth\InhealthClient;
 use App\Modules\Integration\Services\Satusehat\FakeSatusehatClient;
+use App\Modules\Integration\Services\Satusehat\SatusehatClient;
+use App\Modules\Integration\Services\Satusehat\SatusehatFhirClient;
 use App\Modules\Integration\Services\Sisrute\FakeSisruteClient;
 use App\Modules\Integration\Services\Sisrute\HttpSisruteClient;
 use App\Modules\Integration\Services\Sisrute\SisruteClient;
-use App\Modules\Integration\Services\Satusehat\SatusehatClient;
-use App\Modules\Integration\Services\Satusehat\SatusehatFhirClient;
 use App\Modules\ModuleServiceProvider;
 
 class IntegrationServiceProvider extends ModuleServiceProvider
@@ -51,7 +51,7 @@ class IntegrationServiceProvider extends ModuleServiceProvider
         return 'integration';
     }
 
-    public function register(): void
+    protected function registerBindings(): void
     {
         /*
          * PEMILIHAN ADAPTER ASLI ATAU PALSU DIPUTUSKAN DI SINI, dan sejak
@@ -77,7 +77,7 @@ class IntegrationServiceProvider extends ModuleServiceProvider
         $this->app->singleton(CredentialStore::class);
         $this->app->singleton(BpjsClient::class, function () {
             if (! $this->kredensial()->isReady('bpjs')) {
-                return new FakeBpjsClient();
+                return new FakeBpjsClient;
             }
 
             return new BpjsVclaimClient(
@@ -97,7 +97,7 @@ class IntegrationServiceProvider extends ModuleServiceProvider
          */
         $this->app->singleton(BpjsReferralClient::class, function () {
             if (! $this->kredensial()->isReady('bpjs')) {
-                return new FakeBpjsReferralClient();
+                return new FakeBpjsReferralClient;
             }
 
             return new BpjsVclaimReferralClient(
@@ -114,7 +114,7 @@ class IntegrationServiceProvider extends ModuleServiceProvider
          */
         $this->app->singleton(BpjsMemberClient::class, function () {
             if (! $this->kredensial()->isReady('bpjs')) {
-                return new FakeBpjsMemberClient();
+                return new FakeBpjsMemberClient;
             }
 
             return new BpjsVclaimMemberClient(
@@ -130,7 +130,7 @@ class IntegrationServiceProvider extends ModuleServiceProvider
          */
         $this->app->singleton(BpjsAccidentClient::class, function () {
             if (! $this->kredensial()->isReady('bpjs')) {
-                return new FakeBpjsAccidentClient();
+                return new FakeBpjsAccidentClient;
             }
 
             return new BpjsVclaimAccidentClient(
@@ -146,7 +146,7 @@ class IntegrationServiceProvider extends ModuleServiceProvider
          */
         $this->app->singleton(BpjsAdmissionClient::class, function () {
             if (! $this->kredensial()->isReady('bpjs')) {
-                return new FakeBpjsAdmissionClient();
+                return new FakeBpjsAdmissionClient;
             }
 
             return new BpjsVclaimAdmissionClient(
@@ -162,7 +162,7 @@ class IntegrationServiceProvider extends ModuleServiceProvider
          */
         $this->app->singleton(BpjsApotekClient::class, function () {
             if (! $this->kredensial()->isReady('bpjs')) {
-                return new FakeBpjsApotekClient();
+                return new FakeBpjsApotekClient;
             }
 
             return new BpjsApolApotekClient(
@@ -178,7 +178,7 @@ class IntegrationServiceProvider extends ModuleServiceProvider
          */
         $this->app->singleton(BpjsSmartClaimClient::class, function () {
             if (! $this->kredensial()->isReady('bpjs')) {
-                return new FakeBpjsSmartClaimClient();
+                return new FakeBpjsSmartClaimClient;
             }
 
             return new BpjsFhirSmartClaimClient(
@@ -197,7 +197,7 @@ class IntegrationServiceProvider extends ModuleServiceProvider
          */
         $this->app->singleton(SisruteClient::class, function () {
             if (! $this->kredensial()->isReady('sisrute')) {
-                return new FakeSisruteClient();
+                return new FakeSisruteClient;
             }
 
             return new HttpSisruteClient(
@@ -213,7 +213,7 @@ class IntegrationServiceProvider extends ModuleServiceProvider
          */
         $this->app->singleton(InhealthClient::class, function () {
             if (! $this->kredensial()->isReady('inhealth')) {
-                return new FakeInhealthClient();
+                return new FakeInhealthClient;
             }
 
             return new HttpInhealthClient(
@@ -226,7 +226,7 @@ class IntegrationServiceProvider extends ModuleServiceProvider
 
         $this->app->singleton(AplicaresClient::class, function () {
             if (! $this->kredensial()->isReady('bpjs')) {
-                return new FakeAplicaresClient();
+                return new FakeAplicaresClient;
             }
 
             return new BpjsAplicaresClient(
@@ -245,7 +245,7 @@ class IntegrationServiceProvider extends ModuleServiceProvider
          */
         $this->app->singleton(ClaimClient::class, function () {
             if (! $this->kredensial()->isReady('bpjs')) {
-                return new FakeClaimClient();
+                return new FakeClaimClient;
             }
 
             return new BpjsClaimClient(
@@ -259,7 +259,7 @@ class IntegrationServiceProvider extends ModuleServiceProvider
 
         $this->app->singleton(QueueClient::class, function () {
             if (! $this->kredensial()->isReady('bpjs')) {
-                return new FakeQueueClient();
+                return new FakeQueueClient;
             }
 
             return new BpjsQueueClient(
@@ -272,7 +272,7 @@ class IntegrationServiceProvider extends ModuleServiceProvider
 
         $this->app->singleton(SatusehatClient::class, function () {
             if (! $this->kredensial()->isReady('satusehat')) {
-                return new FakeSatusehatClient();
+                return new FakeSatusehatClient;
             }
 
             return new SatusehatFhirClient(

@@ -194,6 +194,13 @@ return [
                 'v_operation_summary' => 'Kegiatan pembedahan berikut jenis anestesi, kamar operasi, dan operatornya '
                     .'(domain J item C, untuk RL 3.6). Terpisah dari v_operation_charge yang berbentuk penagihan '
                     .'dan tidak membawa rincian kegiatan ini.',
+                'v_surgical_safety_compliance' => 'Kepatuhan daftar tilik keselamatan bedah WHO per operasi: '
+                    .'berapa dari tiga fase tercatat, dan berapa yang menyimpan temuan (domain J — '
+                    .'kepatuhan_kelengkapan_keselamatan_bedah, butir akreditasi KARS SKP IV). Dibangun dari '
+                    .'operations LEFT JOIN daftar tiliknya, sehingga operasi yang daftar tiliknya TIDAK PERNAH '
+                    .'diisi tetap muncul sebagai nol fase — JOIN biasa akan membuat kepatuhan mendekati 100% '
+                    .'justru di tempat yang paling jarang mengisinya. Jawaban butir per butir tidak ikut: itu '
+                    .'isi rekam medis, dan pelaporan cuma butuh hitungannya.',
                 'v_diagnosis_code' => 'Kamus ICD-10 berikut bab, sifat penularan, dan kelompok DTD-nya '
                     .'— daftar kodenya, bukan diagnosis pasien. Dipakai reporting untuk menyatakan apakah DTD '
                     .'sudah diimpor sebelum RL 4A/4B dikirim.',
@@ -435,7 +442,17 @@ return [
                 .'serah terima barang, cuti pasien, skdp_bpjs, dan metadata filing fisik surat_rak/surat_map/dst.) '
                 .'belum digarap — bentuknya beda dari consent/certificate atau murni arsip kertas Khanza.',
             'domains' => ['P'],
-            'publishes' => [],
+            'publishes' => [
+                'v_advisory_refusal' => 'Penolakan anjuran medis: surat persetujuan yang keputusannya '
+                    .'"menolak" dan belum dibatalkan, berikut jenis dan waktunya (domain J — '
+                    .'laporan_tahunan_penolakan_anjuran_medis). Yang dihitung penolakan adalah KEPUTUSANNYA, '
+                    .'bukan jenis suratnya: pasien yang menolak tindakan yang ditawarkan dan yang pulang atas '
+                    .'permintaan sendiri sama-sama menolak anjuran medis, dan menghitung hanya jenis '
+                    .'"penolakan-anjuran-medis" akan menghasilkan angka tahunan yang terlalu kecil sehingga '
+                    .'terbaca sebagai kabar baik. Uraian tindakan, nama pasien, dan nama saksi SENGAJA tidak '
+                    .'ikut — laporan tahunan menanyakan berapa banyak, bukan apa yang dibicarakan dokter dan '
+                    .'pasiennya.',
+            ],
         ],
 
         'asset' => [

@@ -32,7 +32,7 @@ class ManagedPermissionCatalog
      */
     private const MANAGED_CODES = [
         'audit_kepatuhan_apd', 'barcoderalan', 'barcoderanap', 'bayar_pemesanan_obat', 'bayar_piutang', 'beri_obat', 'booking_mcu_perusahaan', 'booking_operasi', 'bpjs_cek_kartu', 'bpjs_sep', 'dapur_barang', 'dapur_opname', 'dapur_pemesanan', 'dapur_pembelian', 'dapur_returbeli', 'dapur_riwayat_barang', 'deposit_pasien', 'diet_pasien', 'hibah_dapur',
-        'igd', 'insiden_keselamatan_pasien', 'inventaris_inventaris', 'inventaris_sirkulasi', 'ipsrs_barang', 'ipsrs_pengadaan_barang', 'ipsrs_rekap_pengadaan', 'ipsrs_returbeli', 'ipsrs_riwayat_barang', 'jadwal_pegawai', 'jenis_cidera_k3rstahun', 'layanan_program_kfr', 'limbah_b3_medis',
+        'igd', 'insiden_keselamatan_pasien', 'inventaris_inventaris', 'inventaris_sirkulasi', 'ipsrs_barang', 'kip_pasien_ralan', 'ipsrs_pengadaan_barang', 'ipsrs_rekap_pengadaan', 'ipsrs_returbeli', 'ipsrs_riwayat_barang', 'jadwal_pegawai', 'jenis_cidera_k3rstahun', 'layanan_program_kfr', 'limbah_b3_medis',
         'hibah_aset_inventaris', 'hibah_non_medis', 'hibah_obat_bhp', 'keuntungan_penjualan', 'mapping_poli_bpjs', 'mutasi_barang', 'obat', 'operasi', 'pasien', 'pcra_icra_pengkajian_risiko_prakonstruksi', 'pegawai_user',
         'pelanggan_lab_kesehatan_lingkungan', 'pemesanan_obat', 'penugasan_pengujian_sampel_lab_kesehatan_lingkungan',
         'permintaan_pengujian_sampel_lab_kesehatan_lingkungan', 'hasil_pengujian_sampel_lab_kesehatan_lingkungan',

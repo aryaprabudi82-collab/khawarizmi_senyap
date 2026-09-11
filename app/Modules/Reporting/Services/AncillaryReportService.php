@@ -17,6 +17,17 @@ use Illuminate\Support\Facades\DB;
  *   respiratoryScreening-> skrining_ralan_pernapasan_pertahun
  *   inpatientClass      -> harian/bulanan/perbangsal klasifikasi_pasien_ranap
  *   ageTargets          -> data_sasaran_usiaproduktif, data_sasaran_usialansia
+ *   surgicalSafety-     -> kepatuhan_kelengkapan_keselamatan_bedah
+ *     Compliance
+ *   advisoryRefusal-    -> laporan_tahunan_penolakan_anjuran_medis
+ *     Yearly
+ *
+ * DUA YANG TERAKHIR DITAMBAHKAN SAAT VERIFIKASI DOMAIN J, dan keduanya
+ * berasal dari kesalahan yang sama: layar ini menyatakan keduanya "belum
+ * ada pencatatannya", dan kedua pernyataan itu sudah berhenti benar —
+ * daftar tilik keselamatan bedah dibangun pada domain M item C, surat
+ * penolakan pada domain P. Alasan yang benar saat ditulis tidak
+ * memperbarui dirinya sendiri; yang membacanya berhenti mencari.
  *
  * Porsi gizi dihitung sebagai HARI-DIET, bukan jumlah baris permintaan.
  * Satu permintaan diet lima hari adalah lima hari pemberian; menghitungnya
@@ -26,12 +37,22 @@ use Illuminate\Support\Facades\DB;
 class AncillaryReportService
 {
     private const ORDER = 'orders.v_order_summary';
+
     private const REGISTRASI = 'encounter.v_registration_summary';
+
     private const PASIEN = 'identity.v_patient_summary';
+
     private const OPERASI = 'clinical.v_operation_summary';
+
     private const DIET = 'inpatient.v_diet_order';
+
     private const ADMISI = 'inpatient.v_admission_summary';
+
     private const SKRINING = 'clinical.v_screening_summary';
+
+    private const KESELAMATAN_BEDAH = 'clinical.v_surgical_safety_compliance';
+
+    private const PENOLAKAN = 'correspondence.v_advisory_refusal';
 
     // ------------------------------------------------------------- penunjang
 
@@ -151,12 +172,22 @@ class AncillaryReportService
             default => "to_char(a.admitted_at, 'YYYY-MM')",
         };
 
-        return DB::table(self::ADMISI . ' as a')
-            ->join(self::PASIEN . ' as p', 'p.id', '=', 'a.patient_id')
+        /*
+         * DIBACA DARI ADMISINYA, BUKAN DARI PASIENNYA. Sampai verifikasi
+         * domain M, method ini menggabungkan admisi dengan
+         * identity.v_patient_summary dan mengelompokkan menurut
+         * `inpatient_classification` di sana — atribut pasien yang bisa
+         * diubah kapan saja. Akibatnya rekap bulan lalu berubah sendiri
+         * setiap kali seorang pasien dikategorikan ulang, dan tidak ada
+         * yang terlihat salah: tidak ada baris yang hilang, totalnya tetap
+         * cocok, cuma pembagiannya bergeser. Sekarang kategorinya dibekukan
+         * pada admisi saat pasien masuk.
+         */
+        return DB::table(self::ADMISI.' as a')
             ->whereRaw('a.admitted_at::date BETWEEN ?::date AND ?::date', [$from, $until])
-            ->groupBy(DB::raw($kolom), 'p.inpatient_classification')
+            ->groupBy(DB::raw($kolom), 'a.patient_category')
             ->selectRaw("{$kolom} AS kelompok,
-                         coalesce(nullif(p.inpatient_classification, ''), '(belum diklasifikasi)') AS klasifikasi,
+                         coalesce(nullif(a.patient_category, ''), '(belum diklasifikasi)') AS klasifikasi,
                          count(*) AS jumlah")
             ->orderBy('kelompok')
             ->orderBy('klasifikasi')
@@ -174,8 +205,8 @@ class AncillaryReportService
     {
         $umur = "date_part('year', age(r.service_date::timestamp, p.birth_date))";
 
-        return DB::table(self::REGISTRASI . ' as r')
-            ->join(self::PASIEN . ' as p', 'p.id', '=', 'r.patient_id')
+        return DB::table(self::REGISTRASI.' as r')
+            ->join(self::PASIEN.' as p', 'p.id', '=', 'r.patient_id')
             ->whereBetween('r.service_date', [$from, $until])
             ->groupBy(DB::raw("CASE WHEN {$umur} BETWEEN 15 AND 59 THEN 'usia-produktif'
                                     WHEN {$umur} >= 60 THEN 'lansia'
@@ -188,6 +219,80 @@ class AncillaryReportService
                          count(distinct r.patient_id) AS pasien")
             ->orderBy('sasaran')
             ->orderBy('p.sex')
+            ->get();
+    }
+
+    // ----------------------------------------------- keselamatan & penolakan
+
+    /**
+     * kepatuhan_kelengkapan_keselamatan_bedah — berapa persen operasi yang
+     * daftar tilik keselamatan bedahnya lengkap ketiga fasenya.
+     *
+     * DITAMBAHKAN SAAT VERIFIKASI DOMAIN J. Kode ini semula dinyatakan
+     * "belum ada pencatatannya" di layar, dan pernyataan itu benar sampai
+     * domain M item C membangun clinical.surgical_safety_checklists.
+     * Pernyataan yang basi membuat orang berhenti mencari.
+     *
+     * PENYEBUTNYA SELURUH OPERASI, bukan operasi yang punya daftar tilik.
+     * Kepatuhan yang dihitung dari yang sudah diisi saja selalu mendekati
+     * 100% dan tidak pernah menunjukkan masalah yang sebenarnya dicari
+     * indikator ini: operasi yang daftar tiliknya tidak diisi sama sekali.
+     *
+     * "Bertemuan" ikut dilaporkan karena daftar tilik yang lengkap tapi
+     * tidak pernah menemukan apa pun sepanjang tahun bukan kabar baik
+     * melainkan tanda pengisiannya sekadar formalitas.
+     */
+    public function surgicalSafetyCompliance(string $from, string $until): object
+    {
+        $row = DB::table(self::KESELAMATAN_BEDAH)
+            ->whereBetween(DB::raw('performed_at::date'), [$from, $until])
+            ->selectRaw('count(*) AS operasi,
+                         count(*) FILTER (WHERE fase_tercatat = 3) AS lengkap,
+                         count(*) FILTER (WHERE fase_tercatat = 0) AS tanpa_daftar_tilik,
+                         count(*) FILTER (WHERE sign_in = 0) AS tanpa_sign_in,
+                         count(*) FILTER (WHERE time_out = 0) AS tanpa_time_out,
+                         count(*) FILTER (WHERE sign_out = 0) AS tanpa_sign_out,
+                         count(*) FILTER (WHERE fase_bertemuan > 0) AS bertemuan')
+            ->first();
+
+        $operasi = (int) ($row->operasi ?? 0);
+        $lengkap = (int) ($row->lengkap ?? 0);
+
+        return (object) [
+            'operasi' => $operasi,
+            'lengkap' => $lengkap,
+            /*
+             * Nol operasi berarti persentasenya TIDAK ADA, bukan nol
+             * persen dan bukan seratus persen. Keduanya adalah pernyataan
+             * tentang kepatuhan yang tidak pernah diukur.
+             */
+            'persen' => $operasi > 0 ? round($lengkap * 100 / $operasi, 1) : null,
+            'tanpa_daftar_tilik' => (int) ($row->tanpa_daftar_tilik ?? 0),
+            'tanpa_sign_in' => (int) ($row->tanpa_sign_in ?? 0),
+            'tanpa_time_out' => (int) ($row->tanpa_time_out ?? 0),
+            'tanpa_sign_out' => (int) ($row->tanpa_sign_out ?? 0),
+            'bertemuan' => (int) ($row->bertemuan ?? 0),
+        ];
+    }
+
+    /**
+     * laporan_tahunan_penolakan_anjuran_medis — penolakan per bulan dalam
+     * satu tahun, dipisah jenis suratnya.
+     *
+     * DITAMBAHKAN SAAT VERIFIKASI DOMAIN J. Datanya sudah ada sejak domain
+     * P; yang belum ada cuma pembacanya.
+     */
+    public function advisoryRefusalYearly(int $year): Collection
+    {
+        return DB::table(self::PENOLAKAN)
+            ->whereRaw('extract(year from signed_at) = ?', [$year])
+            ->groupBy(DB::raw("to_char(signed_at, 'YYYY-MM')"), 'consent_type')
+            ->selectRaw("to_char(signed_at, 'YYYY-MM') AS bulan,
+                         consent_type,
+                         count(*) AS penolakan,
+                         count(distinct patient_id) AS pasien")
+            ->orderBy('bulan')
+            ->orderBy('consent_type')
             ->get();
     }
 }

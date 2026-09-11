@@ -19,6 +19,13 @@ use Illuminate\Support\Facades\DB;
  *                       surveilans_ralan/ranap, kemenkes_sitt (TB)
  *   byPayer          -> penyakit_ranap_cara_bayar
  *   drugsForDisease  -> obat_penyakit
+ *   patientsFor-     -> kip_pasien_ralan, kip_pasien_ranap (Kartu Indeks
+ *     Diagnosis         Penyakit) — ditambahkan saat verifikasi domain J
+ *
+ * KIP menjawab kebalikan dari frequency(): bukan "penyakit apa yang paling
+ * banyak" melainkan "siapa saja yang kena". Kelas ini semula hanya bisa
+ * menjawab yang pertama, dan pertanyaan kedua yang justru muncul saat ada
+ * kejadian luar biasa.
  *
  * Dua kode TNI/POLRI (laporan_penyakit_tni, laporan_penyakit_polri)
  * sengaja tidak digarap — lihat catatan roles.json.
@@ -31,9 +38,14 @@ use Illuminate\Support\Facades\DB;
 class MorbidityReportService
 {
     private const DIAGNOSIS = 'clinical.v_encounter_diagnosis';
+
     private const REGISTRASI = 'encounter.v_registration_summary';
+
     private const SURVEILANS = 'clinical.v_diagnosis_surveillance_group';
+
     private const RESEP = 'pharmacy.v_prescription_charge';
+
+    private const PASIEN = 'identity.v_patient_summary';
 
     /** penyakit_ralan / penyakit_ranap — frekuensi penyakit terbanyak. */
     public function frequency(string $from, string $until, ?string $careType = null, int $limit = 50): Collection
@@ -116,13 +128,47 @@ class MorbidityReportService
      */
     public function drugsForDisease(string $code, string $from, string $until, int $limit = 30): Collection
     {
-        return DB::table(self::DIAGNOSIS . ' as d')
-            ->join(self::RESEP . ' as p', 'p.registration_id', '=', 'd.registration_id')
+        return DB::table(self::DIAGNOSIS.' as d')
+            ->join(self::RESEP.' as p', 'p.registration_id', '=', 'd.registration_id')
             ->whereBetween(DB::raw('d.diagnosed_at::date'), [$from, $until])
             ->where('d.code', $code)
             ->groupBy('p.drug_name')
             ->selectRaw('p.drug_name, count(*) as jumlah, sum(p.dispensed_quantity) as jumlah_unit')
             ->orderByDesc('jumlah')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * kip_pasien_ralan / kip_pasien_ranap — Kartu Indeks Penyakit: daftar
+     * PASIEN yang pernah didiagnosis satu kode tertentu.
+     *
+     * DITAMBAHKAN SAAT VERIFIKASI DOMAIN J. Kelas ini sudah bisa menjawab
+     * "penyakit apa yang paling banyak" (frequency) sejak awal, tapi tidak
+     * pernah bisa menjawab kebalikannya — "siapa saja yang kena". Indeks
+     * penyakit adalah salah satu indeks rekam medis yang diminta Permenkes
+     * 24/2022, dan pertanyaan itu yang muncul saat ada kejadian luar biasa:
+     * bukan berapa banyak, tapi siapa, supaya bisa ditelusuri.
+     *
+     * DUA KODE KHANZA (ralan & ranap) DILAYANI SATU METHOD dengan penyaring
+     * jenis rawat — indeksnya satu hal yang sama.
+     *
+     * Satu pasien muncul SEKALI meski didiagnosis berkali-kali, berikut
+     * kapan pertama dan terakhir. Indeks yang menampilkan orang yang sama
+     * belasan kali bukan indeks, cuma daftar kejadian yang sudah ada di
+     * tempat lain.
+     */
+    public function patientsForDiagnosis(string $code, string $from, string $until, ?string $careType = null, int $limit = 500): Collection
+    {
+        return $this->diagnosisQuery($from, $until, $careType)
+            ->join(self::PASIEN.' as pt', 'pt.id', '=', 'd.patient_id')
+            ->where('d.code', $code)
+            ->groupBy('pt.id', 'pt.medical_record_number', 'pt.name', 'pt.sex', 'pt.birth_date')
+            ->selectRaw('pt.id, pt.medical_record_number, pt.name, pt.sex, pt.birth_date,
+                         count(*) as kejadian,
+                         min(d.diagnosed_at) as pertama,
+                         max(d.diagnosed_at) as terakhir')
+            ->orderBy('pt.name')
             ->limit($limit)
             ->get();
     }
@@ -139,11 +185,11 @@ class MorbidityReportService
      */
     private function diagnosisQuery(string $from, string $until, ?string $careType, bool $joinRegistrasi = false): Builder
     {
-        $query = DB::table(self::DIAGNOSIS . ' as d')
+        $query = DB::table(self::DIAGNOSIS.' as d')
             ->whereBetween(DB::raw('d.diagnosed_at::date'), [$from, $until]);
 
         if ($careType !== null || $joinRegistrasi) {
-            $query->join(self::REGISTRASI . ' as r', 'r.id', '=', 'd.registration_id');
+            $query->join(self::REGISTRASI.' as r', 'r.id', '=', 'd.registration_id');
         }
 
         if ($careType !== null) {

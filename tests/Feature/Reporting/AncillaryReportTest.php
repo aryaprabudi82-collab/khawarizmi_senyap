@@ -7,6 +7,8 @@ use App\Modules\Encounter\Models\Registration;
 use App\Modules\Encounter\Services\RegistrationService;
 use App\Modules\Identity\Services\PatientRegistry;
 use App\Modules\Inpatient\Database\Seeders\InpatientSeeder;
+use App\Modules\Inpatient\Models\Bed;
+use App\Modules\Inpatient\Services\AdmissionService;
 use App\Modules\Organization\Models\Practitioner;
 use App\Modules\Organization\Models\Unit;
 use App\Modules\Platform\Database\Seeders\PermissionCatalogSeeder;
@@ -33,7 +35,9 @@ class AncillaryReportTest extends TestCase
     use RefreshDatabase;
 
     private AncillaryReportService $penunjang;
+
     private RegistrationService $registrations;
+
     private User $manajemen;
 
     protected function setUp(): void
@@ -188,6 +192,50 @@ class AncillaryReportTest extends TestCase
             'Kamar seeder belum tertaut unit organisasi — diberi label, bukan NULL');
     }
 
+    /**
+     * REKAP BULAN LALU TIDAK BERUBAH SAAT PASIENNYA DIKATEGORIKAN ULANG.
+     *
+     * DITEMUKAN SAAT VERIFIKASI DOMAIN M. Sampai saat itu method ini
+     * mengelompokkan menurut identity.patients.inpatient_classification —
+     * atribut pasien yang bisa diubah kapan saja lewat layar pasien.
+     * Akibatnya rekap klasifikasi bulan lalu bergeser setiap kali seorang
+     * pasien dikategorikan ulang, dan TIDAK ADA YANG TERLIHAT SALAH: tidak
+     * ada baris yang hilang, totalnya tetap cocok, cuma pembagiannya
+     * berubah — dan tidak ada yang menghafal pembagian bulan lalu.
+     *
+     * Uji ini menyalakan lampunya: ia gagal pada kode lama dan lulus pada
+     * kode yang membekukan kategorinya di admisi.
+     */
+    #[Test]
+    public function klasifikasi_dibekukan_saat_masuk_bukan_dibaca_ulang(): void
+    {
+        $registrasi = $this->daftarkan('ranap');
+
+        DB::table('identity.patients')->where('id', $registrasi->patient_id)
+            ->update(['inpatient_classification' => 'Umum']);
+
+        $admisi = app(AdmissionService::class)->admit(
+            $registrasi->id,
+            Bed::query()->firstOrFail(),
+        );
+
+        DB::table('inpatient.admissions')->where('id', $admisi->id)
+            ->update(['admitted_at' => now()->subDays(4)]);
+
+        $rentang = [now()->subDays(7)->toDateString(), now()->toDateString()];
+
+        $this->assertSame('Umum',
+            $this->penunjang->inpatientClass('bulanan', ...$rentang)->first()->klasifikasi);
+
+        // Pasien yang sama dikategorikan ulang setelah dirawat.
+        DB::table('identity.patients')->where('id', $registrasi->patient_id)
+            ->update(['inpatient_classification' => 'VIP']);
+
+        $this->assertSame('Umum',
+            $this->penunjang->inpatientClass('bulanan', ...$rentang)->first()->klasifikasi,
+            'Rekap klasifikasi yang sudah lewat tidak boleh ikut berubah');
+    }
+
     /** Umur dihitung pada tanggal kunjungan, bukan hari ini. */
     #[Test]
     public function sasaran_usia_dipisahkan_produktif_dan_lansia(): void
@@ -240,7 +288,7 @@ class AncillaryReportTest extends TestCase
         $urut++;
 
         $pasien = app(PatientRegistry::class)->register([
-            'name' => 'Pasien Penunjang ' . $urut, 'sex' => 'L', 'birth_date' => $lahir,
+            'name' => 'Pasien Penunjang '.$urut, 'sex' => 'L', 'birth_date' => $lahir,
         ]);
 
         return $this->registrations->register(
@@ -263,7 +311,7 @@ class AncillaryReportTest extends TestCase
         $urut++;
 
         DB::table('orders.orders')->insert([
-            'order_number' => strtoupper($kategori) . '-' . $urut,
+            'order_number' => strtoupper($kategori).'-'.$urut,
             'registration_id' => $r->id,
             'patient_id' => $r->patient_id,
             'registration_number' => $r->registration_number,
@@ -279,9 +327,9 @@ class AncillaryReportTest extends TestCase
 
     private function admisi(): int
     {
-        $admisi = app(\App\Modules\Inpatient\Services\AdmissionService::class)->admit(
+        $admisi = app(AdmissionService::class)->admit(
             $this->daftarkan('ranap')->id,
-            \App\Modules\Inpatient\Models\Bed::query()->firstOrFail(),
+            Bed::query()->firstOrFail(),
         );
 
         DB::table('inpatient.admissions')->where('id', $admisi->id)

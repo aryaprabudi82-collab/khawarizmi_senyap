@@ -12,7 +12,7 @@ class PlatformServiceProvider extends ModuleServiceProvider
         return 'platform';
     }
 
-    public function register(): void
+    protected function registerBindings(): void
     {
         $this->app->singleton(PermissionRegistry::class);
     }

@@ -208,4 +208,48 @@
   @endif
 </div>
 
+@if ($bolehKip)
+  <div class="card mt-3">
+    <div class="card-header">
+      <h3 class="card-title">Kartu Indeks Penyakit</h3>
+      <div class="card-subtitle">Pasien yang pernah didiagnosis kode yang sama</div>
+    </div>
+    @if ($kodeObat)
+      <div class="table-responsive" style="max-height:400px; overflow-y:auto;">
+        <table class="table table-vcenter card-table">
+          <thead>
+            <tr><th>No. RM</th><th>Nama</th><th>L/P</th><th>Tanggal lahir</th>
+                <th class="text-end">Kejadian</th><th>Pertama</th><th>Terakhir</th></tr>
+          </thead>
+          <tbody>
+            @forelse ($kip as $p)
+              <tr>
+                <td>{{ $p->medical_record_number }}</td>
+                <td>{{ $p->name }}</td>
+                <td>{{ $p->sex }}</td>
+                <td>{{ $p->birth_date }}</td>
+                <td class="text-end">{{ $p->kejadian }}</td>
+                <td>{{ \Illuminate\Support\Carbon::parse($p->pertama)->format('d/m/Y') }}</td>
+                <td>{{ \Illuminate\Support\Carbon::parse($p->terakhir)->format('d/m/Y') }}</td>
+              </tr>
+            @empty
+              <tr><td colspan="7" class="text-center text-secondary py-3">
+                Tidak ada pasien dengan diagnosis {{ $kodeObat }} pada rentang ini.
+              </td></tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer text-secondary small">
+        Satu pasien muncul sekali meski didiagnosis berkali-kali; kolom Kejadian menyebut berapa kali.
+        Daftar dibatasi 500 pasien &mdash; persempit rentang tanggalnya bila terpotong.
+      </div>
+    @else
+      <div class="card-body text-secondary">
+        Isi kode penyakit pada kotak di atas untuk melihat daftar pasiennya.
+      </div>
+    @endif
+  </div>
+@endif
+
 @endsection

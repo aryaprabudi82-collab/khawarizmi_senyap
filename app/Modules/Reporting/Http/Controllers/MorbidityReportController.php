@@ -34,6 +34,23 @@ class MorbidityReportController
 
         $kodeObat = trim((string) $request->query('kode', '')) ?: null;
 
+        /*
+         * KARTU INDEKS PENYAKIT DIGERBANGI SENDIRI, dan itu keputusan yang
+         * disengaja. Seluruh isi layar ini agregat — berapa banyak kasus,
+         * per penularan, per penjamin — dan tidak menyebut satu pun nama.
+         * KIP satu-satunya yang menyebut SIAPA: nomor rekam medis, nama,
+         * tanggal lahir. Menumpangkannya pada gerbang yang sama berarti
+         * setiap orang yang boleh melihat statistik penyakit otomatis
+         * boleh menarik daftar nama pengidapnya, dan itu pertanyaan yang
+         * berbeda — yang pertama untuk perencanaan, yang kedua untuk
+         * penelusuran kasus.
+         *
+         * Diperiksa imperatif, bukan middleware, karena yang digerbangi
+         * satu BAGIAN layar, bukan layarnya. Tercatat di
+         * CodeDispositionTest::$diperiksaImperatif.
+         */
+        $bolehKip = $request->user()?->can('kip_pasien_ralan') ?? false;
+
         return view('reporting::morbiditas.index', [
             'dari' => $dari,
             'sampai' => $sampai,
@@ -51,6 +68,11 @@ class MorbidityReportController
                 : collect(),
             'perPenjamin' => $this->morbiditas->byPayer($dari, $sampai, $jenisRawat),
             'obat' => $kodeObat ? $this->morbiditas->drugsForDisease($kodeObat, $dari, $sampai) : collect(),
+
+            'bolehKip' => $bolehKip,
+            'kip' => $bolehKip && $kodeObat
+                ? $this->morbiditas->patientsForDiagnosis($kodeObat, $dari, $sampai, $jenisRawat)
+                : collect(),
         ]);
     }
 }

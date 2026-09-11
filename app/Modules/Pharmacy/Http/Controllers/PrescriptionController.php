@@ -31,6 +31,8 @@ class PrescriptionController
      */
     public function index(Request $request): View
     {
+        $this->assertAccess($request);
+
         $tanggal = CarbonImmutable::parse($request->query('tanggal', now()->toDateString()))->startOfDay();
         $status = $request->query('status');
         $kind = $request->query('kind');
@@ -79,8 +81,10 @@ class PrescriptionController
      * membedakan apa yang muncul adalah status resep dan hak akses, bukan
      * dua layar terpisah yang isinya hampir sama.
      */
-    public function show(Prescription $resep): View
+    public function show(Request $request, Prescription $resep): View
     {
+        $this->assertAccess($request);
+
         return view('pharmacy::prescriptions.show', [
             'resep' => $resep->load(['items.drug', 'reviews']),
             'temuan' => $this->prescriptions->screen($resep),
@@ -195,6 +199,8 @@ class PrescriptionController
 
     public function cancel(Request $request, Prescription $resep): RedirectResponse
     {
+        $this->assertAccess($request);
+
         $data = $request->validate([
             'alasan' => ['required', 'string', 'min:5', 'max:255'],
         ], [], ['alasan' => 'alasan pembatalan']);
@@ -211,6 +217,8 @@ class PrescriptionController
     /** Pencarian obat untuk formulir peresepan. */
     public function searchDrugs(Request $request)
     {
+        $this->assertAccess($request);
+
         return Drug::query()
             ->search((string) $request->query('q', ''))
             ->orderBy('name')
@@ -242,5 +250,34 @@ class PrescriptionController
         }
 
         return $hasil;
+    }
+
+    /**
+     * Antrean & rincian resep boleh dibuka apoteker MAUPUN dokter penulis.
+     *
+     * DITEMUKAN SAAT VERIFIKASI DOMAIN I. Berkas rute menyatakan maksud itu
+     * dalam komentar — "apoteker maupun dokter penulis" — tapi tidak
+     * memasang gerbang apa pun, jadi yang berlaku bukan maksudnya melainkan
+     * ketiadaannya: SETIAP pengguna terautentikasi bisa membaca seluruh
+     * resep rumah sakit berikut nama pasien dan obatnya, dan bisa
+     * MEMBATALKAN resep siapa pun.
+     *
+     * Middleware `can:` hanya menerima SATU kode, sementara tiga peran yang
+     * berbeda sah membuka layar ini — dokter yang menulis, apoteker yang
+     * menelaah, dan apoteker yang menyerahkan. Karena itu diperiksa di sini,
+     * pola yang sama dengan OrderController::assertAccess() untuk
+     * lab/radiologi/PA dan InvoiceController untuk kasir ralan/ranap.
+     */
+    private function assertAccess(Request $request): void
+    {
+        $pengguna = $request->user();
+
+        $boleh = $pengguna !== null && (
+            $pengguna->can('resep_obat')      // dokter penulis
+            || $pengguna->can('telaah_resep')  // apoteker penelaah
+            || $pengguna->can('beri_obat')     // apoteker penyerah
+        );
+
+        abort_unless($boleh, 403);
     }
 }

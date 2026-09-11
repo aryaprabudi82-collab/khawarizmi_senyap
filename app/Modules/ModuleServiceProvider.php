@@ -19,9 +19,38 @@ abstract class ModuleServiceProvider extends ServiceProvider
     /** Tag container tempat seluruh pemeriksaan kesiapan konteks dikumpulkan. */
     public const READINESS_TAG = 'kesiapan-konteks';
 
-    public function register(): void
+    /**
+     * FINAL, DAN ITU HASIL SEBUAH CACAT NYATA.
+     *
+     * IntegrationServiceProvider menimpa register() tanpa memanggil
+     * parent::register(), sehingga IntegrationReadiness tidak pernah
+     * terdaftar — dan `siap:periksa` melaporkan sistem siap tanpa pernah
+     * menyebut bahwa enam belas mesin integrasi tidak punya layar. Tidak
+     * ada galat, tidak ada uji merah: butirnya cuma tidak muncul, dan
+     * laporan yang KEHILANGAN butir terbaca persis seperti laporan yang
+     * butirnya beres.
+     *
+     * Menambahkan uji "setiap provider wajib memanggil parent::register()"
+     * akan menangkap kejadian berikutnya. Membuat method ini final
+     * MENIADAKAN kejadian berikutnya: modul yang perlu mendaftarkan
+     * ikatannya sendiri menimpa registerBindings(), dan kesiapannya tidak
+     * mungkin ikut hilang.
+     */
+    final public function register(): void
     {
         $this->registerReadinessCheck();
+        $this->registerBindings();
+    }
+
+    /**
+     * Ikatan container milik modul ini.
+     *
+     * Ditimpa modul yang membutuhkannya; yang tidak, tidak perlu menulis
+     * apa pun.
+     */
+    protected function registerBindings(): void
+    {
+        //
     }
 
     /**

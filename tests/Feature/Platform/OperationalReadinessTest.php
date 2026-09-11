@@ -378,10 +378,46 @@ class OperationalReadinessTest extends TestCase
         $this->penuhiPenghalangKlinis();
 
         /*
-         * Peringatan TIDAK menggagalkan. Kalau ia menggagalkan, RSP UI tidak
-         * akan pernah bisa menggelar sistem sampai seluruh kosakata diskresi
-         * mereka selesai disusun — dan itu menahan pelayanan demi kerapian.
+         * SISA PENGHALANGNYA TEPAT SATU, DAN ITU BUKAN DATA.
+         *
+         * Semula uji ini berakhir dengan assertSuccessful(): seluruh
+         * penghalang bisa dibereskan dengan mengisi baris, jadi mengisinya
+         * cukup. Verifikasi domain L menambahkan penghalang yang TIDAK BISA
+         * dibereskan fixture — enam belas mesin integrasi tanpa layar adalah
+         * fakta tentang kode, bukan tentang isi tabel.
+         *
+         * Godaannya adalah menurunkan butir itu jadi peringatan supaya uji
+         * ini hijau lagi. Itu memperbaiki ujinya dengan merusak yang
+         * diukurnya: rumah sakit yang tidak bisa mengirim klaim, melaporkan
+         * tempat tidur, atau mengirim antrean Mobile JKN memang belum siap
+         * beroperasi, dan angka keluar yang mengatakan sebaliknya justru
+         * dipasang orang sebagai gerbang penggelaran.
+         *
+         * Jadi yang diperiksa sekarang bunyinya lebih tepat daripada
+         * sebelumnya: setelah seluruh penghalang DATA dibereskan, yang
+         * tersisa harus persis penghalang kode itu — membuktikan tidak ada
+         * peringatan yang diam-diam naik pangkat jadi penghalang.
          */
-        $this->artisan('siap:periksa')->assertSuccessful();
+        $penghalang = array_values(array_map(
+            fn (array $p) => $p['judul'],
+            array_filter($this->siap->check(),
+                fn (array $p) => $p['status'] === OperationalReadiness::MENGHALANGI)
+        ));
+
+        $this->assertSame(['Layar untuk mesin integrasi'], $penghalang);
+
+        /*
+         * Dan peringatan TIDAK menggagalkan. Kalau ia menggagalkan, RSP UI
+         * tidak akan pernah bisa menggelar sistem sampai seluruh kosakata
+         * diskresi mereka selesai disusun — dan itu menahan pelayanan demi
+         * kerapian. Dibuktikan dengan menunjukkan peringatannya memang ada
+         * dan tidak satu pun ikut terhitung sebagai penghalang di atas.
+         */
+        $peringatan = array_filter($this->siap->check(),
+            fn (array $p) => $p['status'] === OperationalReadiness::PERINGATAN);
+
+        $this->assertNotEmpty($peringatan,
+            'Tanpa peringatan yang tersisa, uji ini tidak membuktikan apa-apa '
+            .'tentang peringatan.');
     }
 }
