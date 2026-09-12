@@ -14,6 +14,7 @@ use App\Modules\Identity\Providers\IdentityServiceProvider;
 use App\Modules\Inpatient\Providers\InpatientServiceProvider;
 use App\Modules\Integration\Providers\IntegrationServiceProvider;
 use App\Modules\Inventory\Providers\InventoryServiceProvider;
+use App\Modules\Keuangan\MasterData\Providers\KeuanganMasterDataServiceProvider;
 use App\Modules\Kitchen\Providers\KitchenServiceProvider;
 use App\Modules\Library\Providers\LibraryServiceProvider;
 use App\Modules\Order\Providers\OrderServiceProvider;
@@ -47,6 +48,7 @@ return [
     HrServiceProvider::class,
     QualityServiceProvider::class,
     InventoryServiceProvider::class,
+    KeuanganMasterDataServiceProvider::class,
     BloodServiceProvider::class,
     CorrespondenceServiceProvider::class,
     AssetServiceProvider::class,

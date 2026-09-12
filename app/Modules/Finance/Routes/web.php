@@ -2,12 +2,13 @@
 
 use App\Modules\Finance\Http\Controllers\AccountingController;
 use App\Modules\Finance\Http\Controllers\CashController;
-use App\Modules\Finance\Http\Controllers\PayableController;
-use App\Modules\Finance\Http\Controllers\OtherReceivableController;
-use App\Modules\Finance\Http\Controllers\LedgerController;
-use App\Modules\Finance\Http\Controllers\ExpenseRequestController;
 use App\Modules\Finance\Http\Controllers\CostEstimateController;
 use App\Modules\Finance\Http\Controllers\DepositController;
+use App\Modules\Finance\Http\Controllers\ExpenseRequestController;
+use App\Modules\Finance\Http\Controllers\FinanceDashboardController;
+use App\Modules\Finance\Http\Controllers\LedgerController;
+use App\Modules\Finance\Http\Controllers\OtherReceivableController;
+use App\Modules\Finance\Http\Controllers\PayableController;
 use App\Modules\Finance\Http\Controllers\ReceivableController;
 use Illuminate\Support\Facades\Route;
 
@@ -170,3 +171,22 @@ Route::middleware(['web', 'auth', 'can:validasi_persetujuan_pengajuan_biaya'])->
     Route::post('/{pengajuan}/validasi', [ExpenseRequestController::class, 'validateApproval'])->name('validasi');
     Route::post('/{pengajuan}/cairkan', [ExpenseRequestController::class, 'disburse'])->name('cairkan');
 });
+
+/*
+| Pusat Keuangan — satu layar yang menyatukan konteks finance.
+|
+| DIGERBANGI pendapatan_per_akun, gerbang yang sama dengan layar
+| Akuntansi. Alasannya bukan kemudahan: layar ini menyajikan SELURUH
+| keadaan keuangan rumah sakit sekaligus — neraca, surplus/defisit,
+| umur hutang, umur piutang. Menggerbanginya dengan kode yang lebih
+| longgar (mis. pengeluaran, yang dipegang petugas kas harian) berarti
+| memberi setiap pencatat kas pemandangan penuh atas posisi keuangan
+| rumah sakit, dan itu kewenangan yang berbeda.
+|
+| Tidak dibuatkan kode permission baru: menambah kode berarti menambah
+| hak yang harus diberikan ulang satu per satu kepada orang yang sudah
+| memegang kewenangan yang sama isinya.
+*/
+Route::middleware(['web', 'auth', 'can:pendapatan_per_akun'])
+    ->get('/keuangan', [FinanceDashboardController::class, 'index'])
+    ->name('keuangan.index');

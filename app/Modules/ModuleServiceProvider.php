@@ -76,7 +76,23 @@ abstract class ModuleServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->loadMigrationsFrom($this->modulePath('Database/Migrations'));
+        /*
+         * DUA TATA LETAK MIGRASI, dan keduanya sah.
+         *
+         * Dua puluh lima konteks yang sudah ada memakai `Database/Migrations`.
+         * Sub-konteks domain keuangan memakai struktur DDD yang diminta
+         * BAGIAN 5 instruksi — `Infrastructure/Migrations`.
+         *
+         * Keduanya dimuat, bukan yang lama dipindahkan: memindahkan 500
+         * berkas migrasi demi keseragaman tata letak adalah perubahan
+         * besar yang tidak menambah satu pun kebenaran, dan setiap
+         * migrasi yang salah pindah berarti skema yang tidak terbentuk.
+         */
+        foreach (['Database/Migrations', 'Infrastructure/Migrations'] as $jalur) {
+            if (is_dir($dir = $this->modulePath($jalur))) {
+                $this->loadMigrationsFrom($dir);
+            }
+        }
 
         if (is_dir($views = $this->modulePath('Resources/views'))) {
             $this->loadViewsFrom($views, $this->context());
@@ -157,8 +173,23 @@ abstract class ModuleServiceProvider extends ServiceProvider
 
     protected function modulePath(string $relative = ''): string
     {
-        $module = str($this->context())->studly()->value();
+        return rtrim(app_path('Modules/'.$this->moduleDirectory().'/'.$relative), '/');
+    }
 
-        return rtrim(app_path("Modules/{$module}/".$relative), '/');
+    /**
+     * Direktori modul, relatif terhadap app/Modules.
+     *
+     * Bawaannya diturunkan dari nama konteks — `pharmacy` jadi `Pharmacy`.
+     * Sub-konteks domain keuangan MENIMPANYA karena letaknya bersarang:
+     * konteks `keuangan_master` tinggal di `Keuangan/MasterData`, bukan
+     * `KeuanganMaster`.
+     *
+     * Diturunkan begini, bukan ditulis di config/contexts.php, supaya
+     * manifes konteks tetap menjawab satu pertanyaan saja — batas dan
+     * kontrak antar konteks — dan tidak berubah jadi peta direktori.
+     */
+    protected function moduleDirectory(): string
+    {
+        return str($this->context())->studly()->value();
     }
 }

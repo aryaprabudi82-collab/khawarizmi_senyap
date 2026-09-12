@@ -100,21 +100,59 @@
           </li>
         @endcanany
 
-        @canany(['pembayaran_ralan', 'bayar_piutang', 'deposit_pasien', 'perkiraan_biaya_ranap'])
-          <li class="nav-item dropdown {{ request()->routeIs(['tagihan.*', 'piutang.*', 'deposit.*', 'estimasi-ranap.*']) ? 'active' : '' }}">
+        {{--
+          Menu Keuangan sempat memuat EMPAT layar saja, padahal konteks
+          finance punya sepuluh. Buku besar, kas harian, hutang vendor,
+          akuntansi, dan pengajuan biaya tidak punya jalan masuk dari menu
+          sama sekali — hanya bisa dibuka oleh yang hafal alamatnya.
+          Ditemukan saat menelusuri layar keuangan lewat browser.
+        --}}
+        @canany(['pendapatan_per_akun', 'pembayaran_ralan', 'bayar_piutang', 'deposit_pasien',
+                 'perkiraan_biaya_ranap', 'akun_rekening', 'pengeluaran', 'hutang_obat',
+                 'piutang_jasa_perusahaan', 'pengajuan_biaya'])
+          <li class="nav-item dropdown {{ request()->routeIs(['keuangan.*', 'tagihan.*', 'piutang.*', 'piutang-lain.*', 'deposit.*', 'estimasi-ranap.*', 'buku.*', 'kas.*', 'hutang.*', 'akuntansi.*', 'pengajuan-biaya.*']) ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Keuangan</a>
             <div class="dropdown-menu">
+              @can('pendapatan_per_akun')
+                <a class="dropdown-item fw-semibold" href="{{ route('keuangan.index') }}">Pusat Keuangan</a>
+                <div class="dropdown-divider"></div>
+              @endcan
+
               @can('pembayaran_ralan')
                 <a class="dropdown-item" href="{{ route('tagihan.index') }}">Kasir</a>
               @endcan
-              @can('bayar_piutang')
-                <a class="dropdown-item" href="{{ route('piutang.index') }}">Piutang</a>
+              @can('pengeluaran')
+                <a class="dropdown-item" href="{{ route('kas.index') }}">Kas Harian</a>
               @endcan
+              @can('akun_rekening')
+                <a class="dropdown-item" href="{{ route('buku.index') }}">Buku Besar</a>
+              @endcan
+              @can('pendapatan_per_akun')
+                <a class="dropdown-item" href="{{ route('akuntansi.index') }}">Akuntansi</a>
+              @endcan
+
+              <div class="dropdown-divider"></div>
+
+              @can('hutang_obat')
+                <a class="dropdown-item" href="{{ route('hutang.index') }}">Hutang Vendor</a>
+              @endcan
+              @can('bayar_piutang')
+                <a class="dropdown-item" href="{{ route('piutang.index') }}">Piutang Pasien</a>
+              @endcan
+              @can('piutang_jasa_perusahaan')
+                <a class="dropdown-item" href="{{ route('piutang-lain.index') }}">Piutang &amp; Hutang Lain</a>
+              @endcan
+
+              <div class="dropdown-divider"></div>
+
               @can('deposit_pasien')
                 <a class="dropdown-item" href="{{ route('deposit.index') }}">Deposit Pasien</a>
               @endcan
               @can('perkiraan_biaya_ranap')
                 <a class="dropdown-item" href="{{ route('estimasi-ranap.index') }}">Perkiraan Biaya Ranap</a>
+              @endcan
+              @can('pengajuan_biaya')
+                <a class="dropdown-item" href="{{ route('pengajuan-biaya.index') }}">Pengajuan Biaya</a>
               @endcan
             </div>
           </li>

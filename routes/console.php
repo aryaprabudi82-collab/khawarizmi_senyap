@@ -53,3 +53,18 @@ Schedule::command('partisi:pastikan')
 Schedule::command('partisi:periksa')
     ->dailyAt('01:20')
     ->onOneServer();
+
+/*
+| Membersihkan catatan idempotensi keuangan yang kedaluwarsa.
+|
+| Catatan penahan itu pelindung terhadap pengiriman ulang yang terjadi
+| dalam hitungan detik sampai jam — bukan jejak audit; jejaknya ada di
+| platform.audit_logs. Tanpa pembersihan, tabelnya tumbuh sebesar tabel
+| transaksinya sendiri tanpa menambah satu pun perlindungan.
+|
+| Dijadwalkan pada jam sepi, setelah perawatan partisi selesai.
+*/
+Schedule::command('keuangan:bersihkan-idempotensi')
+    ->dailyAt('01:30')
+    ->onOneServer()
+    ->withoutOverlapping();

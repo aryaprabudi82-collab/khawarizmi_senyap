@@ -327,7 +327,14 @@ return [
                 .'inpatient.v_room_class_rate. "Memakai" deposit (status terpakai) SENGAJA belum ada — itu '
                 .'kode Khanza terpisah, pengembalian_deposit_pasien, domain K, menyusul saat domain itu digarap.',
             'domains' => ['K', 'A'],
-            'publishes' => [],
+            'publishes' => [
+                'v_account' => 'Bagan akun: kode, nama, jenis, klasifikasi PSAK, induk, dan apakah '
+                    .'boleh dijurnalkan. Dipakai keuangan_master memastikan akun yang dipetakan ke item '
+                    .'CDM memang ada dan aktif. SALDO SENGAJA TIDAK IKUT: saldo adalah hasil hitungan '
+                    .'atas jurnal, bukan atribut akun, dan menerbitkannya di sini akan mengundang konteks '
+                    .'lain menghitung saldo sendiri-sendiri dengan cara masing-masing — lalu buku besar '
+                    .'punya dua sumber kebenaran.',
+            ],
         ],
 
         'integration' => [
@@ -667,6 +674,36 @@ return [
                 .'SENGAJA TIDAK DIBANGUN DI SINI: pembukuan dana ZIS — penerimaan dan saldonya '
                 .'transaksi keuangan dan sudah dipegang konteks finance.',
             'domains' => ['T'],
+            'publishes' => [],
+        ],
+
+        /*
+        |----------------------------------------------------------------
+        | DOMAIN KEUANGAN — sub-konteks
+        |----------------------------------------------------------------
+        |
+        | Keputusan KA-2: `keuangan` adalah DOMAIN berisi beberapa bounded
+        | context, bukan satu konteks raksasa berskema tunggal. Tiap
+        | sub-konteks punya skemanya sendiri supaya batasnya tetap
+        | ditegakkan ContextBoundaryTest — penjagaan yang sudah menangkap
+        | kesalahan nyata, dan yang paling tidak boleh dibuang justru di
+        | domain yang paling tidak boleh salah.
+        |
+        | Rincian alasannya di docs/keuangan/03-KEPUTUSAN-ARSITEKTUR.md.
+        */
+        'keuangan_master' => [
+            'schema' => 'keuangan_master',
+            'module' => 'Keuangan/MasterData',
+            'description' => 'Modul A domain keuangan — Charge Description Master (CDM), pemetaan item ke '
+                .'akun COA, dan (menyusul) COA multi-dimensi, master penjamin & kontrak, kalender '
+                .'periode akuntansi. CDM di sini adalah KATALOG PENAUT, bukan pengganti catalog.tariffs: '
+                .'tarif layanan klinis sudah bitemporal, berdimensi penjamin dan kelas, serta '
+                .'diresolusi per tanggal transaksi sejak awal — menggantinya berarti membuang '
+                .'mekanisme yang sudah bekerja. Yang benar-benar belum ada dan dibangun di sini adalah '
+                .'KODE ITEM GLOBAL lintas konteks dan PEMETAANNYA KE AKUN, dan justru ketiadaan '
+                .'pemetaan itulah yang membuat pendapatan tidak bisa dijurnalkan otomatis. Item tanpa '
+                .'akun pendapatan TIDAK BISA diaktifkan — ditegakkan CHECK, bukan hanya aplikasi.',
+            'domains' => ['K'],
             'publishes' => [],
         ],
 

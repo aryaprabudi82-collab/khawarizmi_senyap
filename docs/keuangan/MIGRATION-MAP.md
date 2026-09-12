@@ -1,7 +1,9 @@
 # Migration Map — Konsolidasi ke Domain `keuangan`
 
 **Tanggal dibuat:** 2026-09-12
-**Status keseluruhan:** RENCANA — belum ada satu pun pemindahan dieksekusi.
+**Status keseluruhan:** RENCANA — **belum ada satu pun pemindahan dieksekusi.**
+Yang sudah terpasang baru tiga fondasi yang tidak menggantikan apa pun
+(lihat bagian *Wave 1-pra* di bawah).
 
 Dokumen ini adalah **kontrak wajib** Aturan Konsolidasi (BAGIAN 2). Setiap
 pemindahan dicatat di sini, dan Definition of Done global menuntut seluruh entri
@@ -20,7 +22,7 @@ Kolom **Jenis**:
 
 | Lokasi Lama | Lokasi Baru | Jenis | Tabel Terdampak | Status | Risiko |
 |---|---|---|---|---|---|
-| `Catalog\*` (tarif layanan) | `keuangan/master-data` — CDM | merge | `catalog.tariffs`, `catalog.services` | Rencana | **TINGGI** — dipakai billing, clinical, reporting. Putus = tagihan berhenti terbentuk |
+| `Catalog\*` (tarif layanan) | `keuangan_master` — **ditaut CDM, TIDAK dipindah** | **extend** | `catalog.tariffs`, `catalog.services` | **Ditaut** | RENDAH — jenisnya berubah dari merge setelah koreksi §10 Discovery: tarif layanan SUDAH bitemporal, berdimensi penjamin & kelas, dan diresolusi per tanggal. Menggantinya berarti membuang mekanisme yang sudah bekerja |
 | `pharmacy.drug_markups` | `keuangan/master-data` — CDM (kategori obat) | merge | `pharmacy.drug_markups` | Rencana | SEDANG |
 | `retail.price_tiers`, `retail.product_prices` | `keuangan/master-data` — CDM (kategori retail) | merge | 2 tabel | Rencana | RENDAH — retail belum berisi data |
 | `parking.rates` | `keuangan/master-data` — CDM (kategori parkir) | merge | `parking.rates` | Rencana | RENDAH |
@@ -112,13 +114,32 @@ akan jadi dasar commitment accounting — dipindahkan ke `keuangan/budgeting-cos
 
 ---
 
+## Wave 1-pra — Fondasi yang sudah terpasang (2026-09-12)
+
+Bukan pemindahan, melainkan penambahan yang **tidak menggantikan apa pun** — jadi
+tidak melahirkan dual source of truth. Dicatat di sini supaya urutannya terlihat.
+
+| Yang ditambahkan | Menggantikan? | Status |
+|---|---|---|
+| Constraint trigger balance pada `finance.journal_entries`/`journal_lines` | Tidak — **melengkapi** pemeriksaan PHP di `LedgerService`, tidak menghapusnya. Dua lapis disengaja: PHP memberi pesan yang menolong, basis data menjamin | Selesai |
+| `finance.idempotency_records` + `IdempotencyGuard` | Tidak — belum ada apa pun sebelumnya | Selesai (belum terpasang di endpoint) |
+| `finance.document_number_series` + `document_numbers` + `GaplessNumberAllocator` | **Belum** — delapan `NumberAllocator` lama masih berjalan | Selesai (penggantian menyusul per modul) |
+
+**Penting untuk Definition of Done:** `GaplessNumberAllocator` berdampingan dengan
+delapan `NumberAllocator` lama. Itu **bukan** dual source of truth karena keduanya
+menomori dokumen yang berbeda — tapi ia **akan menjadi** dual source of truth bila
+ada dokumen yang dinomori keduanya. Penggantian per modul dicatat di baris
+`*.number_sequences` pada bagian Governance di bawah.
+
+---
+
 ## Cross-cutting — Governance (paralel sejak Wave 1)
 
 | Lokasi Lama | Lokasi Baru | Jenis | Tabel Terdampak | Status | Risiko |
 |---|---|---|---|---|---|
 | `platform.audit_logs` | — | **keep** + perluas | 1 tabel terpartisi | Keputusan | Audit adalah kebutuhan seluruh sistem, bukan hanya keuangan. Keuangan **menambah** hash chaining dan legal hold di atasnya |
 | `platform.permissions`, `roles` | — | **keep** | — | Keputusan | RBAC milik platform. Matriks SoD dibangun di `keuangan/governance` yang membaca RBAC |
-| `*.number_sequences` (tersebar 6 konteks) | `keuangan/governance` — gapless generator | merge | 6 tabel | Rencana | SEDANG |
+| `*.number_sequences` (tersebar 8 konteks) | `keuangan/governance` — `GaplessNumberAllocator` | merge | 8 tabel | **Generator siap; penggantian per modul menyusul** | SEDANG — hanya 4 jenis dokumen yang WAJIB gapless (faktur pajak, jurnal, bukti kas, kuitansi); sisanya tetap memakai penomoran lama, dan itu benar |
 
 ---
 

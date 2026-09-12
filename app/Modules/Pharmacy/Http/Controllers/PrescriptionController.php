@@ -12,6 +12,7 @@ use App\Modules\Pharmacy\Services\StockLedger;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class PrescriptionController
@@ -111,21 +112,49 @@ class PrescriptionController
 
     public function storeItem(Request $request, Prescription $resep): RedirectResponse
     {
+        /*
+         * drug_id TIDAK LAGI WAJIB, dan itu inti perbaikannya.
+         *
+         * Sebelumnya id obat wajib ada, padahal yang mengisinya JavaScript
+         * dengan mencocokkan teks kotak isian ke label hasil pencarian
+         * persis sama persis — dan pencocokan itu gagal justru pada kasus
+         * yang paling lazim: setelah petugas memilih dari daftar. Yang
+         * terlihat di layar adalah isian yang sudah benar lalu ditolak
+         * "obat wajib diisi", tanpa satu pun petunjuk tentang sebabnya.
+         *
+         * Sekarang teks yang diketik ikut diterima dan diselesaikan di
+         * server. Peramban tetap boleh mengirim id kalau punya — itu jalur
+         * tercepat dan paling pasti — tapi ketiadaannya bukan lagi
+         * kebuntuan.
+         */
         $data = $request->validate([
-            'drug_id' => ['required', 'integer'],
+            'drug_id' => ['nullable', 'integer'],
+            'obat' => ['nullable', 'string', 'max:200'],
             'quantity' => ['required', 'numeric', 'min:0.01'],
             'dosage_instruction' => ['required', 'string', 'max:200'],
             'note' => ['nullable', 'string', 'max:255'],
         ], [], [
-            'drug_id' => 'obat',
+            'obat' => 'obat',
             'quantity' => 'jumlah',
             'dosage_instruction' => 'aturan pakai',
         ]);
 
+        $obatId = $data['drug_id'] ?? null;
+
+        if ($obatId === null) {
+            $hasil = Drug::resolve((string) ($data['obat'] ?? ''));
+
+            if ($hasil['obat'] === null) {
+                return back()->withInput()->with('galat', $this->pesanObatTakTerpilih($hasil['kandidat']));
+            }
+
+            $obatId = $hasil['obat']->id;
+        }
+
         try {
             $this->prescriptions->addItem(
                 prescription: $resep,
-                drugId: $data['drug_id'],
+                drugId: $obatId,
                 quantity: (float) $data['quantity'],
                 dosageInstruction: $data['dosage_instruction'],
                 note: $data['note'] ?? null,
@@ -212,6 +241,29 @@ class PrescriptionController
         }
 
         return redirect()->route('resep.index')->with('sukses', 'Resep dibatalkan.');
+    }
+
+    /**
+     * Pesan saat obat tidak bisa ditentukan dari teks yang diketik.
+     *
+     * MENYEBUT APA YANG HARUS DILAKUKAN, bukan cuma menyatakan gagal.
+     * Galat yang hanya berbunyi "obat wajib diisi" pada kotak yang jelas
+     * terisi membuat petugas mencoba hal yang sama berulang-ulang — dan
+     * itulah yang sungguh terjadi sebelum perbaikan ini.
+     *
+     * @param  Collection<int, Drug>  $kandidat
+     */
+    private function pesanObatTakTerpilih($kandidat): string
+    {
+        if ($kandidat->isEmpty()) {
+            return 'Obat tidak ditemukan. Ketik sebagian nama atau kode obat '
+                .'(mis. "Parasetamol" atau "OBT-002"), lalu pilih dari daftar yang muncul.';
+        }
+
+        return 'Nama obat masih cocok dengan '.$kandidat->count().' sediaan: '
+            .$kandidat->take(5)->map(fn (Drug $d) => $d->label())->implode('; ')
+            .($kandidat->count() > 5 ? '; dan lainnya' : '')
+            .'. Pilih salah satu dari daftar supaya tidak ada yang menebak sediaan mana yang dimaksud.';
     }
 
     /** Pencarian obat untuk formulir peresepan. */

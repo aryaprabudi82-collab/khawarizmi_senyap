@@ -17,7 +17,7 @@ sembilan bounded context dan **belum tersambung ke buku besar**. Temuan terpenti
 | 1 | **Posting Engine baru menjurnal 1 dari ±15 jenis transaksi.** Dari 10 jurnal yang ada, 9 manual dan 1 dari invoice. Penjualan farmasi, HPP, persediaan, kasir, hutang, deposit, dan aset **tidak pernah masuk GL sama sekali**. | **KRITIS** |
 | 2 | **Tidak ada constraint balance di tingkat basis data.** `finance.journal_entries` hanya punya UNIQUE dan NOT NULL. Balance dijaga aplikasi saja — satu jalur tulis yang lupa memeriksa akan merusak seluruh neraca tanpa penahan. | **KRITIS** |
 | 3 | **Tidak ada idempotency sama sekali.** Nol kolom, nol tabel. Retry jaringan pada charge/payment akan menghasilkan baris ganda. | **KRITIS** |
-| 4 | **Tarif tersebar di 6 tabel** pada 5 konteks berbeda, dan **tidak bitemporal**. `catalog.tariffs` tidak punya `valid_from`/`valid_to`. | **TINGGI** |
+| 4 | **Tarif tersebar di 6 tabel** pada 5 konteks berbeda. ~~dan tidak bitemporal~~ — **DIKOREKSI, lihat §10** | SEDANG |
 | 5 | **Valuasi persediaan/HPP tersebar di 4 konteks** (pharmacy, retail, inventory, kitchen) dengan nama kolom berbeda (`cost_price` vs `unit_cost`) dan tidak satu pun menjurnal. | **TINGGI** |
 | 6 | **Posting GL bersifat sinkron** — `PostingService::syncFromBilling()` dipanggil langsung, tidak ada queue/outbox. | **TINGGI** |
 | 7 | Jenis akun COA **bercampur dua tingkatan** (`kas`/`piutang` disejajarkan dengan `aset`). Sudah ditambal lapisan golongan, tetapi akar masalahnya belum dibereskan. | SEDANG |
@@ -132,6 +132,12 @@ semuanya lewat `LedgerService::postManual()` yang memeriksanya di PHP.
 
 Inilah inti Aturan Konsolidasi. Semua yang di bawah lolos tes:
 *"apakah ini menghasilkan jurnal, mempengaruhi tagihan, atau mempengaruhi laporan keuangan?"*
+
+> **KOREKSI 2026-09-12 — lihat §10.** Pernyataan "tidak satu pun bitemporal" di
+> bawah ini **SALAH**. `catalog.tariffs` ternyata sudah punya `valid_from`/
+> `valid_until`, sudah berdimensi penjamin dan kelas, dan resolusinya per tanggal
+> transaksi sudah berjalan lewat `TariffLookup`. Dibiarkan tertulis di sini,
+> dicoret, supaya koreksinya terlihat.
 
 ### 4.1 Tarif — 6 tabel, 5 konteks
 
@@ -274,3 +280,67 @@ Rincian per modul ada di `01-GAP-ANALYSIS.md`.
 Rencana eksekusi per wave ada di `02-IMPLEMENTATION-PLAN.md`.
 Pemetaan lokasi lama → baru ada di `MIGRATION-MAP.md`.
 Pertanyaan yang **harus dijawab manusia sebelum Wave 1** ada di `OPEN-QUESTIONS.md`.
+
+---
+
+## 10. Koreksi Temuan (2026-09-12, saat memulai Wave 1)
+
+Discovery yang salah lebih berbahaya daripada discovery yang tidak lengkap: ia
+mengarahkan pekerjaan ke tempat yang keliru dan membuat orang membangun ulang
+sesuatu yang sudah ada. Karena itu koreksinya ditulis, bukan temuannya disunting
+diam-diam.
+
+### K-1 — `catalog.tariffs` SUDAH bitemporal (temuan #4 sebagian salah)
+
+**Yang saya tulis:** *"Tidak satu pun bitemporal. `catalog.tariffs` tidak punya
+`valid_from`/`valid_to`."*
+
+**Kenyataannya**, `catalog.tariffs` punya:
+
+| Kolom | Peran |
+|---|---|
+| `valid_from`, `valid_until` | masa berlaku tarif |
+| `payer_id` | tarif **per penjamin** |
+| `care_class` | tarif **per kelas perawatan** |
+| `amount`, `amount_returning` | tarif kunjungan baru vs kunjungan ulang |
+| `share_facility/bhp/doctor/paramedic/kso/management` | enam komponen jasa |
+
+Ditambah:
+
+- **`TariffLookup` sudah meresolusi tarif menurut TANGGAL TRANSAKSI** — bukan tanggal
+  hari ini.
+- **`TariffService` menutup tarif lama** (`valid_until` = sehari sebelum yang baru
+  berlaku) alih-alih menimpanya, dan menolak tarif baru yang mundur ke belakang.
+- **CHECK di basis data** menjamin keenam komponen jasa berjumlah sama dengan tarifnya.
+
+**Bagaimana saya bisa salah:** saya memeriksa keberadaan kolom bernama `valid_to`
+(nama yang disebut instruksi), sementara kolomnya bernama `valid_until`. Kueri
+pemeriksaannya menjawab dengan benar pertanyaan yang saya ajukan, dan pertanyaannya
+yang salah.
+
+### Akibatnya terhadap rencana Wave 1
+
+Rencana semula: **merge enam tabel tarif menjadi CDM baru**, `catalog.tariffs`
+dijadikan view. Itu sekarang **salah arah** — ia akan membuang mekanisme temporal yang
+sudah bekerja, sudah diuji, dan sudah dipakai billing setiap hari, lalu
+membangunnya ulang. Persis yang dilarang Aturan Konsolidasi.
+
+**Rencana yang benar:** `catalog.tariffs` adalah **implementasi CDM yang sudah ada
+untuk layanan klinis**. Yang dibutuhkan bukan menggantikannya, melainkan:
+
+1. **Memperluasnya** jadi kode item global yang juga menaungi obat, produk retail,
+   akomodasi, dan parkir — bukan hanya layanan klinis.
+2. Memberinya **pemetaan ke akun COA** (yang memang belum ada).
+3. `pharmacy.drug_markups`, `retail.product_prices`, `parking.rates`,
+   `inpatient.rooms.daily_rate` diarahkan ke mekanisme yang sama.
+
+`MIGRATION-MAP.md` diperbarui mengikuti ini: jenisnya berubah dari **merge** menjadi
+**extend** untuk `catalog.tariffs`, dan tetap **merge** untuk lima tabel tarif lainnya.
+
+### K-2 — Yang tetap benar dari temuan #4
+
+- Tarif memang masih **tersebar di 6 tabel pada 5 konteks**.
+- **Belum ada pemetaan tarif ke akun COA** — ini gap sungguhan, dan inilah yang
+  membuat pendapatan tidak bisa dijurnalkan otomatis.
+- Obat, produk retail, dan parkir **tidak** punya mekanisme temporal seperti
+  `catalog.tariffs`.

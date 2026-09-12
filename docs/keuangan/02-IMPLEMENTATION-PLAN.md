@@ -31,7 +31,44 @@ langsung.
 
 ## Wave 1 — Master Data + Shared + Kerangka Posting Engine
 
-**Blokir aktif:** Q1 (presisi uang), Q2 (bentuk domain), Q4 (bagan akun).
+**Blokir DIBUKA 2026-09-12.** Pengguna menyerahkan Q1, Q2, dan Q4 kepada penilaian
+saya setelah Q3 dijawab (PTN-BH). Keputusannya tercatat di
+`03-KEPUTUSAN-ARSITEKTUR.md` sebagai KA-1 sampai KA-5.
+
+### Kemajuan
+
+| # | Pekerjaan | Status |
+|---|---|---|
+| 1.1 | `Keuangan/Shared` — value object `Money` (KA-1), `KeuanganException` | ✅ Selesai — 19 uji |
+| 1.2 | Constraint balance jurnal di basis data | ✅ Selesai (Wave 1-pra) |
+| 1.3 | `idempotency_records` + `IdempotencyGuard` | ✅ Selesai (Wave 1-pra) |
+| 1.4 | COA multi-dimensi | Belum |
+| 1.5 | **Charge Description Master** | ✅ Selesai — 16 uji |
+| 1.6 | Versioning tarif | ✅ Sudah ada sebelumnya (koreksi §10 Discovery) |
+| 1.7 | Mapping Engine — CDM↔COA | ✅ Selesai; ICD↔INA-CBG↔SATUSEHAT belum |
+| 1.8 | Master penjamin & kontrak berperiode | Belum |
+| 1.9 | Kalender periode 4 status | Belum |
+| 1.10 | Klasifikasi revenue/cost center | Belum |
+| 1.11 | Kerangka Posting Engine + outbox | Belum |
+| 1.12 | Gapless number generator | ✅ Selesai (Wave 1-pra) |
+
+### Yang berubah dari rencana semula, dan alasannya
+
+**CDM tidak lagi menggantikan `catalog.tariffs`.** Discovery awal menyimpulkan tarif
+layanan "tidak bitemporal" dan harus di-*merge*. Kesimpulan itu **salah** —
+`catalog.tariffs` sudah punya `valid_from`/`valid_until`, berdimensi penjamin dan
+kelas, diresolusi per tanggal transaksi, dan komponen jasanya dijaga CHECK.
+
+Rencana yang benar: CDM sebagai **katalog penaut** yang memberi kode global dan
+memegang pemetaan ke akun — bagian yang benar-benar belum ada. Koreksi lengkapnya di
+`00-DISCOVERY-REPORT.md` §10, dan `MIGRATION-MAP.md` disesuaikan.
+
+Ini persis alasan Tahap 0 diwajibkan: tanpa discovery, saya akan membangun ulang
+mekanisme temporal yang sudah bekerja.
+
+---
+
+### Rencana semula (dipertahankan sebagai catatan)
 
 ### Yang dibangun
 
@@ -243,16 +280,63 @@ saya karang sekarang akan salah, dan salahnya akan dipakai orang membuat jadwal.
 
 ---
 
-## Yang Saya Rekomendasikan Dikerjakan Lebih Dulu, Terlepas dari Jawaban
+## Wave 1-pra — Tiga Fondasi ✅ SELESAI 2026-09-12
 
-Tiga hal berikut **tidak bergantung pada satu pun pertanyaan terbuka**, dan
-menundanya membuat perbaikannya makin mahal:
+Disetujui pengguna, dikerjakan sambil menunggu jawaban pertanyaan yang memblokir.
+Ketiganya **tidak bergantung pada satu pun pertanyaan terbuka**.
 
-1. **Constraint balance jurnal di basis data** (R2) — sekarang 0 jurnal tidak balance,
-   jadi migrasinya aman. Nanti tidak.
-2. **Tabel idempotency + trait-nya** — dibutuhkan seluruh modul transaksional.
-3. **Gapless number generator** — enam konteks sekarang punya `number_sequences`
-   sendiri; menyatukannya lebih murah sekarang daripada setelah ada 12.
+| # | Yang dibangun | Berkas |
+|---|---|---|
+| 1 | **Constraint balance jurnal di basis data** — constraint trigger DEFERRABLE INITIALLY DEFERRED; menolak jurnal miring DAN jurnal tanpa baris | `2027_03_10_000001_enforce_journal_balance_in_database.php` |
+| 2 | **Idempotency** — tabel `finance.idempotency_records` + `IdempotencyGuard` + perintah pembersihan terjadwal | `2027_03_10_000002_*`, `IdempotencyGuard.php`, `PruneIdempotencyRecords.php` |
+| 3 | **Gapless number generator** — `document_number_series` + `document_numbers` + `GaplessNumberAllocator` | `2027_03_10_000003_*`, `GaplessNumberAllocator.php` |
 
-Bila Anda setuju, saya bisa mengerjakan ketiganya sambil menunggu jawaban atas
-pertanyaan yang memblokir.
+**Uji:** 16 lulus, 36 asersi (`FinancialFoundationTest`).
+
+### Keputusan rancangan yang diambil saat membangunnya
+
+**Constraint trigger, bukan CHECK.** CHECK hanya melihat satu baris; keseimbangan
+jurnal adalah sifat sekumpulan baris, dan di tengah transaksi jurnal yang baru punya
+satu baris memang belum seimbang — itu keadaan yang sah. Maka pemeriksaannya
+ditangguhkan sampai COMMIT.
+
+**Dua trigger, bukan satu.** Trigger pada `journal_lines` menangkap baris yang
+merusak keseimbangan. Trigger pada `journal_entries` menangkap header yang
+disisipkan tanpa baris sama sekali — tanpa itu, jurnal kosong lolos karena tidak ada
+baris yang memicu trigger pertama.
+
+**Dua fungsi PL/pgSQL, bukan satu.** Percobaan pertama memakai satu fungsi yang
+menyebut `NEW.journal_entry_id`, dan itu meledak begitu dipasang pada
+`journal_entries` yang tidak punya kolom itu — PL/pgSQL menolaknya saat jalan,
+bahkan di dalam `COALESCE`. Galatnya menyamar sebagai "constraint bekerja" padahal
+sebabnya sama sekali lain.
+
+**Idempotency memakai SAVEPOINT.** Versi pertama membaca baris yang sudah ada tepat
+setelah INSERT gagal — dan itu meledak bila pemanggilnya berada di dalam transaksi:
+PostgreSQL menolak setiap perintah berikutnya dengan 25P02 "current transaction is
+aborted". Karena **setiap pemakaian sungguhan ada di dalam transaksi**, versi pertama
+akan gagal di hampir seluruh pemakaian nyata dan hanya bekerja pada pemakaian sepele.
+
+**Penomoran membungkus transaksinya sendiri.** Versi pertama menolak pemanggilan
+saat `transactionLevel() === 0` untuk memaksa pemanggil membungkusnya. Maksudnya
+benar, alatnya salah: di bawah `RefreshDatabase` pemeriksaan itu tidak pernah menyala
+sehingga tidak membuktikan apa pun, dan di produksi pemanggil yang lupa menerima
+galat alih-alih nomor.
+
+### Catatan pengujian yang perlu diketahui penerus
+
+Trigger DEFERRED **tidak menembak di bawah `RefreshDatabase`**, karena seluruh uji
+dibungkus satu transaksi yang sengaja tidak pernah di-commit. Uji yang mengandalkannya
+akan lolos tanpa membuktikan apa pun. Pemecahannya `SET CONSTRAINTS ALL IMMEDIATE`
+di dalam transaksi uji — lihat `FinancialFoundationTest::tembakConstraint()`.
+
+### Yang BELUM dikerjakan dari ketiga fondasi ini
+
+- `IdempotencyGuard` **belum dipasang** pada satu pun endpoint. Ia siap dipakai,
+  tetapi pemasangannya menyentuh billing dan kasir — itu pekerjaan Wave 2.
+- `GaplessNumberAllocator` **belum menggantikan** delapan `NumberAllocator` yang ada.
+  Penggantian itu ada di `MIGRATION-MAP.md` dan dikerjakan saat modulnya dipindahkan.
+- Hash chaining audit trail belum dikerjakan.
+
+Dinyatakan terang di sini supaya tidak ada yang mengira Definition of Done butir
+"idempotency terpasang di seluruh endpoint" sudah terpenuhi.

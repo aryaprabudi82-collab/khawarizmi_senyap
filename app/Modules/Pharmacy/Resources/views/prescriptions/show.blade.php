@@ -172,18 +172,26 @@
             @csrf
             <div class="col-12 col-md-4">
               <label class="form-label" for="cari-obat">Obat</label>
-              <input type="text" id="cari-obat" class="form-control" list="daftar-obat"
-                     placeholder="Ketik nama atau kode obat" autocomplete="off">
-              <input type="hidden" name="drug_id" id="drug_id">
+              {{-- Kotak ini IKUT TERKIRIM (name="obat"). Sebelumnya ia cuma
+                   pembantu tampilan dan yang terkirim hanya id tersembunyi,
+                   sehingga isian yang terlihat benar bisa sampai ke server
+                   dalam keadaan kosong. --}}
+              <input type="text" id="cari-obat" name="obat" class="form-control" list="daftar-obat"
+                     value="{{ old('obat') }}" placeholder="Ketik nama atau kode obat"
+                     autocomplete="off" required>
+              <input type="hidden" name="drug_id" id="drug_id" value="{{ old('drug_id') }}">
               <datalist id="daftar-obat"></datalist>
+              <div class="form-hint">Pilih dari daftar yang muncul, atau ketik kode obat.</div>
             </div>
             <div class="col-6 col-md-2">
               <label class="form-label" for="quantity">Jumlah</label>
-              <input type="number" step="0.01" min="0.01" id="quantity" name="quantity" class="form-control" required>
+              <input type="number" step="0.01" min="0.01" id="quantity" name="quantity" class="form-control"
+                     value="{{ old('quantity') }}" required>
             </div>
             <div class="col-6 col-md-4">
               <label class="form-label" for="dosage_instruction">Aturan pakai</label>
               <input type="text" id="dosage_instruction" name="dosage_instruction" class="form-control"
+                     value="{{ old('dosage_instruction') }}"
                      placeholder="mis. 3x1 sesudah makan" required>
             </div>
             <div class="col-12 col-md-2">
@@ -291,13 +299,43 @@
     var peta = {};
     var tunda;
 
+    /*
+     * DUA ATURAN YANG LAHIR DARI SEBUAH CACAT NYATA.
+     *
+     * Versi sebelumnya menyetel ulang id tersembunyi pada SETIAP kejadian
+     * input, termasuk setiap kali hasil pencarian datang. Begitu petugas
+     * memilih obat dari daftar, kotaknya terisi label lengkap; 250 ms
+     * kemudian pencarian berjalan lagi memakai label itu sebagai kata
+     * kunci, tidak menemukan apa pun, lalu MENGHAPUS id yang sudah benar.
+     * Yang terlihat di layar: isian sudah terisi, tapi ditolak "obat wajib
+     * diisi".
+     *
+     * 1. Id hanya dihapus kalau teksnya SUNGGUH BERUBAH dari label yang
+     *    dipilih — bukan setiap kali pencarian kebetulan tidak menemukan.
+     * 2. Hasil pencarian yang kosong TIDAK PERNAH membatalkan pilihan yang
+     *    sudah ada. Pencarian gagal berarti pencariannya gagal, bukan
+     *    berarti pilihan petugas salah.
+     *
+     * Dan sekarang JavaScript ini cuma mempercepat: kalau ia gagal sama
+     * sekali, teks yang diketik tetap terkirim dan server yang menentukan
+     * obatnya. Layar peresepan tidak boleh bergantung pada JavaScript
+     * yang berhasil.
+     */
+    var labelTerpilih = input.value;
+
     input.addEventListener('input', function () {
-      // Pilihan sebelumnya batal begitu teksnya diubah.
-      hidden.value = peta[input.value] || '';
+      if (input.value !== labelTerpilih) {
+        hidden.value = peta[input.value] || '';
+        labelTerpilih = hidden.value ? input.value : '';
+      }
 
       clearTimeout(tunda);
       var q = input.value.trim();
       if (q.length < 2) return;
+
+      // Teks yang sudah menjadi label pilihan tidak dicari ulang: itulah
+      // pencarian yang dulu menghapus pilihannya sendiri.
+      if (hidden.value && input.value === labelTerpilih) return;
 
       tunda = setTimeout(function () {
         fetch('{{ route('resep.cari-obat') }}?q=' + encodeURIComponent(q))
@@ -311,9 +349,13 @@
               opt.value = o.label;
               daftar.appendChild(opt);
             });
-            hidden.value = peta[input.value] || '';
+
+            if (peta[input.value]) {
+              hidden.value = peta[input.value];
+              labelTerpilih = input.value;
+            }
           })
-          .catch(function () { /* pencarian gagal: biarkan petugas mengulang */ });
+          .catch(function () { /* pencarian gagal: teksnya tetap terkirim ke server */ });
       }, 250);
     });
   });

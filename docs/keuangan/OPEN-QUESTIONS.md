@@ -57,24 +57,36 @@ Pilihan 1 akan membuang penjagaan batas yang sudah bekerja dan diuji.
 
 ---
 
-### Q3 — Standar akuntansi mana yang berlaku? **[BLOKIR Wave 4]**
+### Q3 — Standar akuntansi mana yang berlaku? ✅ **TERJAWAB 2026-09-12**
 
-BAGIAN 6 Modul H menyebut *"sesuai STANDAR AKUNTANSI yang dipilih"* dan Modul J
-menyebut *"RBA/RKA sesuai STATUS BADAN HUKUM"*. Keduanya dikosongkan.
+**Jawaban pengguna: RSP UI berstatus PTN-BH (Perguruan Tinggi Negeri Badan Hukum).**
 
-RSP UI adalah rumah sakit perguruan tinggi negeri. Status badan hukumnya menentukan:
+Implikasi yang mengikat seluruh Wave 4 dan 7:
 
-- **BLU/BLUD** → laporan mengikuti PSAP/SAP berbasis akrual + RBA; ada Laporan
-  Realisasi Anggaran dan Laporan Operasional.
-- **Badan hukum pendidikan / unit usaha PTN-BH** → mengikuti **SAK ETAP** atau **PSAK**;
-  laporannya Neraca, Laba Rugi, Arus Kas, Perubahan Ekuitas, CaLK.
-- **Yayasan/nirlaba** → **ISAK 35**, dengan Laporan Penghasilan Komprehensif dan
-  klasifikasi aset neto terikat/tidak terikat.
+- Standar: **SAK umum (PSAK)**, BUKAN SAP/PSAP. RSP UI bukan satker pemerintah
+  maupun BLU, jadi tidak memakai Laporan Realisasi Anggaran berbasis SAP.
+- Laporan pokok: **Laporan Posisi Keuangan** (neraca), **Laporan Aktivitas /
+  Laba Rugi**, **Laporan Arus Kas**, **Laporan Perubahan Ekuitas**, dan **CaLK**.
+- Bagan akun mengikuti struktur PSAK: aset lancar/tidak lancar, liabilitas
+  jangka pendek/panjang, ekuitas.
+- Pemisahan **dana pelayanan / pendidikan / penelitian** dilakukan lewat
+  DIMENSI pada COA (sumber_dana + program), bukan lewat entitas atau bagan
+  akun terpisah. Ini yang membuat satu transaksi bisa dilaporkan per program
+  tanpa menggandakan akun.
+- Anggaran berbentuk **RKA PTN-BH** yang disahkan MWA, bukan RBA BLU.
+- Istilah penyajian tetap **surplus/defisit**, bukan laba/rugi — RSP UI rumah
+  sakit pendidikan, dan menamainya laba mengubah cara orang membaca angkanya.
 
-Ini **menentukan bentuk laporan, bagan akun, dan struktur anggaran** — tidak bisa
-ditebak. Laporan yang salah standar akan ditolak auditor.
+### Q3b — Apakah RSP UI menyusun laporan sendiri lalu dikonsolidasi ke UI? **[BLOKIR Wave 4 — modul konsolidasi]**
 
-**Pertanyaan:** RSP UI berstatus apa, dan laporan keuangannya mengikuti standar mana?
+Sebagai PTN-BH, UI adalah entitas pelaporan. Yang belum jelas: apakah RSP UI
+menyusun laporan keuangan TERSENDIRI yang kemudian dikonsolidasi ke laporan UI,
+atau laporannya langsung menyatu sebagai unit UI.
+
+Ini menentukan apakah modul konsolidasi (BAGIAN 6 Modul H) perlu dibangun, dan
+apakah dibutuhkan akun/eliminasi transaksi antar-unit.
+
+**Tidak memblokir Wave 1.** Baru relevan saat laporan disusun di Wave 4.
 
 ---
 
