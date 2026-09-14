@@ -378,7 +378,24 @@ class OperationalReadinessTest extends TestCase
         $this->penuhiPenghalangKlinis();
 
         /*
-         * SISA PENGHALANGNYA TEPAT SATU, DAN ITU BUKAN DATA.
+         * BAGAN AKUN SENGAJA TIDAK DIBERESKAN, dan itu bukan kelalaian.
+         *
+         * `ChartOfAccountsSeeder` hanya memasang EMPAT akun contoh, dan
+         * ambang FinanceReadiness memang dipasang di atasnya justru untuk
+         * membedakan bagan akun sungguhan dari empat akun contoh itu.
+         * Menyeednya di sini akan membuat uji hijau dengan cara yang
+         * dilarang uji ini sendiri di komentar di bawah: memperbaiki
+         * ujinya dengan merusak yang diukurnya.
+         *
+         * Bagan akun RSP UI harus disusun bagian keuangan — tercatat
+         * sebagai Q4 di docs/keuangan/OPEN-QUESTIONS.md. Sampai itu
+         * dijawab, ia penghalang, dan memang seharusnya: rumah sakit yang
+         * pendapatannya tidak punya tempat jatuh di buku besar belum siap
+         * beroperasi.
+         */
+
+        /*
+         * SISA PENGHALANGNYA TEPAT DUA, DAN KEDUANYA BUKAN DATA.
          *
          * Semula uji ini berakhir dengan assertSuccessful(): seluruh
          * penghalang bisa dibereskan dengan mengisi baris, jadi mengisinya
@@ -397,6 +414,13 @@ class OperationalReadinessTest extends TestCase
          * sebelumnya: setelah seluruh penghalang DATA dibereskan, yang
          * tersisa harus persis penghalang kode itu — membuktikan tidak ada
          * peringatan yang diam-diam naik pangkat jadi penghalang.
+         *
+         * Bagan akun bergabung ke daftar itu pada 2026-09-14, dan
+         * sifatnya sama: bukan sesuatu yang bisa dibereskan fixture,
+         * melainkan keputusan yang menunggu bagian keuangan (Q4).
+         * Daftar ini sengaja DIPATOK, bukan sekadar "ada penghalang":
+         * kalau ia dilonggarkan, peringatan yang naik pangkat jadi
+         * penghalang tidak akan ketahuan siapa pun.
          */
         $penghalang = array_values(array_map(
             fn (array $p) => $p['judul'],
@@ -404,7 +428,7 @@ class OperationalReadinessTest extends TestCase
                 fn (array $p) => $p['status'] === OperationalReadiness::MENGHALANGI)
         ));
 
-        $this->assertSame(['Layar untuk mesin integrasi'], $penghalang);
+        $this->assertSame(['Bagan akun RSP UI', 'Layar untuk mesin integrasi'], $penghalang);
 
         /*
          * Dan peringatan TIDAK menggagalkan. Kalau ia menggagalkan, RSP UI

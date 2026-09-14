@@ -83,6 +83,15 @@ return [
                 'v_disability_type' => 'Ragam disabilitas berikut kategorinya menurut UU 8/2016 — domain M '
                     .'item S. cacat_fisik Khanza hanya punya nama tanpa kategori, dan tanpa kategori '
                     .'laporan ragam disabilitas harus dikelompokkan ulang dari teks bebas tiap kali.',
+                'v_tariff' => 'Tarif layanan klinis berikut dimensi penjamin, kelas rawat, komponen jasa '
+                    .'(share_*), dan masa berlakunya. Dipakai CDM keuangan untuk menaut kode global & '
+                    .'memetakan akun, dan jaspel Wave 6 untuk komponen jasanya. Penyaringan per tanggal '
+                    .'dilakukan PEMANGGIL — view sengaja tidak memutuskan "hari ini", karena begitu ia '
+                    .'memutuskannya, tiap pemanggil yang butuh tanggal lain terpaksa mengakalinya sendiri.',
+                'v_service' => 'Layanan klinis yang bisa ditagihkan. Diterbitkan terpisah dari v_tariff '
+                    .'karena layanan yang BELUM bertarif tetap harus punya kode CDM dan pemetaan akun: '
+                    .'kalau tidak, saat tarifnya diisi nanti tagihan pertamanya langsung gagal dijurnalkan '
+                    .'dan tidak ada yang menyangka penyebabnya.',
             ],
         ],
 
@@ -266,6 +275,17 @@ return [
                     .'golongan, dan industri farmasinya — nama, bukan id, karena grafik yang mengelompokkan '
                     .'menurut drug_category_id menampilkan batang berlabel 3, 7, dan 12 yang tidak bisa '
                     .'dibaca siapa pun. Harga tetap tidak ikut.',
+                'v_drug_price' => 'Harga DASAR obat (sell_price), terpisah dari v_drug_catalog yang sengaja '
+                    .'tidak memuat harga. Pemisahannya konsisten dengan alasan itu, bukan melanggarnya: '
+                    .'v_drug_catalog melayani konsumen yang perlu tahu OBAT APA, dan menaruh harga di sana '
+                    .'membuat setiap layar yang menyebut obat ikut memaparkan harganya. v_drug_price '
+                    .'melayani satu konsumen dengan satu keperluan — CDM keuangan, yang butuh bahan untuk '
+                    .'menghitung harga jual. Perkaliannya TIDAK dilakukan di view: pembulatan uang harus '
+                    .'terjadi di satu tempat (Money), bukan tersebar antara SQL dan PHP dengan aturan beda.',
+                'v_drug_markup' => 'Markup harga obat per penjamin dan (opsional) kelas rawat, berperiode. '
+                    .'room_class NULL berarti berlaku SEMUA kelas; baris berkelas mengalahkan baris umum, '
+                    .'supaya markup ICU yang sengaja ditetapkan berbeda tidak tertimpa baris umum yang '
+                    .'kebetulan dibuat belakangan.',
             ],
         ],
 
@@ -516,7 +536,15 @@ return [
                     .'memperbaiki ejaan sebuah pos biaya bukan mengoreksi baris melainkan membuat baris '
                     .'kedua, dan yang salah eja tinggal ikut tertagih.',
                 'v_room_class_rate' => 'Tarif kamar rata-rata per kelas (kamar nonaktif tidak dihitung). '
-                    .'Dipakai finance untuk perkiraan_biaya_ranap tanpa menyentuh inpatient.rooms langsung.',
+                    .'Dipakai finance untuk perkiraan_biaya_ranap tanpa menyentuh inpatient.rooms langsung. '
+                    .'RATA-RATA, jadi hanya untuk PERKIRAAN — jangan dipakai menagih: dua kamar VIP '
+                    .'bertarif beda akan ditagih di angka tengah yang tidak pernah diputuskan siapa pun. '
+                    .'Untuk menagih, pakai v_room_rate.',
+                'v_room_rate' => 'Tarif akomodasi PER KAMAR — nominal sebenarnya, bukan rata-rata kelas '
+                    .'(v_room_class_rate) dan bukan biaya harian tambahan seperti oksigen/laundry '
+                    .'(v_room_daily_charge). Dipakai CDM keuangan untuk menaut kode global & pemetaan akun. '
+                    .'BELUM BERPERIODE: rooms.daily_rate tidak punya valid_from/valid_until, jadi kenaikan '
+                    .'tarif hari ini ikut mengubah nilai rawat inap bulan lalu — tercatat sebagai Q14.',
                 'v_room_charge' => 'Biaya kamar satu baris per hari menginap (domain I item A). Dipakai billing '
                     .'untuk menagihkan kamar rawat inap — sebelumnya biaya kamar tidak pernah sampai ke tagihan. '
                     .'Hari yang ditagih: tanggal masuk s.d. sehari sebelum pulang (minimal 1 hari), atau s.d. hari '
@@ -591,7 +619,12 @@ return [
                 .'kode_barcode->nomer_kartu tanpa timestamp, jadi itu stok kartu fisik yang didaftarkan admin, '
                 .'bukan pekerjaan petugas gerbang.',
             'domains' => ['H'],
-            'publishes' => [],
+            'publishes' => [
+                'v_rate' => 'Tarif parkir berikut BASIS-nya (jam/harian) dan menit bebas biaya. Dipakai '
+                    .'CDM keuangan untuk menaut kode global & pemetaan akun. Basis wajib ikut dibaca: '
+                    .'nominal tanpa basisnya tidak punya arti, dan menagihnya sebagai tarif tetap berarti '
+                    .'parkir seharian dibayar seharga sejam.',
+            ],
         ],
         'envlab' => [
             'schema' => 'envlab',
@@ -645,7 +678,12 @@ return [
                 .'saldo tanpa buku besar tidak bisa direkonsiliasi, dan begitu satu transaksi gagal di '
                 .'tengah, angkanya melenceng tanpa cara menelusuri sejak kapan maupun karena apa.',
             'domains' => ['S'],
-            'publishes' => [],
+            'publishes' => [
+                'v_product_price' => 'Barang koperasi berikut harga per tingkat harga (umum/pegawai/mitra). '
+                    .'Dipakai CDM keuangan untuk menaut kode global & pemetaan akun. Barang yang BELUM '
+                    .'berharga ikut diterbitkan (LEFT JOIN) — barang tanpa kode CDM baru ketahuan saat '
+                    .'penjualan pertamanya gagal dijurnalkan, dan saat itu sudah terlambat.',
+            ],
         ],
 
         'philanthropy' => [

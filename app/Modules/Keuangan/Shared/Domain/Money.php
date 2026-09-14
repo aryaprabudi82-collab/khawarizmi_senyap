@@ -146,6 +146,69 @@ final class Money
         return new self($this->minor * $pengali, $this->scale);
     }
 
+    /**
+     * Mengalikan dengan sebuah persentase — markup obat, diskon, PPN.
+     *
+     * PERSENNYA STRING, BUKAN FLOAT, dengan alasan yang sama dengan
+     * seluruh kelas ini: `12.5` sebagai float bukan betul-betul 12,5, dan
+     * selisihnya cukup untuk menggeser sen pada nominal besar.
+     *
+     * DIHITUNG PADA SKALA ALOKASI lalu dikembalikan pada skala ALOKASI
+     * juga — pembulatannya DITUNDA, dan itu yang paling menentukan.
+     * Membulatkan tiap baris ke rupiah lebih dulu lalu menjumlahkannya
+     * membuat total resep sepuluh item meleset sampai sepuluh sen dari
+     * hasil hitung ulang mana pun. Pemanggil yang butuh nilai tagihan
+     * memanggil `sebagaiTagihan()` SEKALI, di akhir.
+     *
+     * @param  string  $persen  mis. '12.5' untuk 12,5%; boleh negatif untuk potongan
+     *
+     * @throws InvalidArgumentException bila persennya bukan angka
+     */
+    public function persen(string $persen): self
+    {
+        $persen = trim($persen);
+
+        if (! preg_match('/^-?\d+(\.\d+)?$/', $persen)) {
+            throw new InvalidArgumentException(
+                "Persentase '{$persen}' tidak sah — harus angka desimal, mis. '12.5'."
+            );
+        }
+
+        [$bulat, $pecahan] = array_pad(explode('.', ltrim($persen, '-')), 2, '');
+
+        /*
+         * Persen diubah jadi bilangan bulat berskala supaya perkaliannya
+         * seluruhnya bilangan bulat: 12.5% jadi 125 pada skala 1.
+         */
+        $skalaPersen = strlen($pecahan);
+        $persenMinor = (int) ($bulat.$pecahan);
+
+        if (str_starts_with($persen, '-')) {
+            $persenMinor = -$persenMinor;
+        }
+
+        $dasar = $this->bulatkanKe(self::SKALA_ALOKASI);
+
+        /*
+         * nilai x persen / (100 x 10^skalaPersen). Pembagiannya memakai
+         * pembulatan yang sama dengan bulatkanKe() — round-half-up pada
+         * nilai absolutnya — supaya markup dan potongan diperlakukan
+         * simetris, tidak condong ke salah satu pihak.
+         */
+        $pembilang = $dasar->minor * $persenMinor;
+        $penyebut = 100 * 10 ** $skalaPersen;
+
+        $negatif = $pembilang < 0;
+        $nilai = abs($pembilang);
+        $hasil = intdiv($nilai, $penyebut);
+
+        if (($nilai % $penyebut) * 2 >= $penyebut) {
+            $hasil++;
+        }
+
+        return new self($negatif ? -$hasil : $hasil, self::SKALA_ALOKASI);
+    }
+
     public function negasi(): self
     {
         return new self(-$this->minor, $this->scale);

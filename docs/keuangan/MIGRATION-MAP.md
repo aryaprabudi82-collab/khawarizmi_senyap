@@ -1,9 +1,14 @@
 # Migration Map — Konsolidasi ke Domain `keuangan`
 
 **Tanggal dibuat:** 2026-09-12
-**Status keseluruhan:** RENCANA — **belum ada satu pun pemindahan dieksekusi.**
-Yang sudah terpasang baru tiga fondasi yang tidak menggantikan apa pun
-(lihat bagian *Wave 1-pra* di bawah).
+**Diperbarui:** 2026-09-14 — penautan tarif Wave 1 selesai.
+
+**Status keseluruhan:** **Wave 1 tuntas; Wave 2 dan seterusnya belum dimulai.**
+
+Enam entri Wave 1 berstatus **Ditaut** (jenisnya berubah dari merge/move jadi
+**extend** — alasannya di koreksi 2026-09-14 di bawah), satu **dibatalkan**, dan
+enam sisanya masih **Rencana**. Belum ada satu pun pemindahan modul dieksekusi:
+`Billing\*`, `Finance\*`, dan sisanya masih di tempatnya masing-masing.
 
 Dokumen ini adalah **kontrak wajib** Aturan Konsolidasi (BAGIAN 2). Setiap
 pemindahan dicatat di sini, dan Definition of Done global menuntut seluruh entri
@@ -23,17 +28,88 @@ Kolom **Jenis**:
 | Lokasi Lama | Lokasi Baru | Jenis | Tabel Terdampak | Status | Risiko |
 |---|---|---|---|---|---|
 | `Catalog\*` (tarif layanan) | `keuangan_master` — **ditaut CDM, TIDAK dipindah** | **extend** | `catalog.tariffs`, `catalog.services` | **Ditaut** | RENDAH — jenisnya berubah dari merge setelah koreksi §10 Discovery: tarif layanan SUDAH bitemporal, berdimensi penjamin & kelas, dan diresolusi per tanggal. Menggantinya berarti membuang mekanisme yang sudah bekerja |
-| `pharmacy.drug_markups` | `keuangan/master-data` — CDM (kategori obat) | merge | `pharmacy.drug_markups` | Rencana | SEDANG |
-| `retail.price_tiers`, `retail.product_prices` | `keuangan/master-data` — CDM (kategori retail) | merge | 2 tabel | Rencana | RENDAH — retail belum berisi data |
-| `parking.rates` | `keuangan/master-data` — CDM (kategori parkir) | merge | `parking.rates` | Rencana | RENDAH |
-| `inpatient.rooms.daily_rate` | `keuangan/master-data` — CDM (akomodasi) | move | `inpatient.rooms` | Rencana | SEDANG — dipakai `v_room_charge` |
-| `encounter.corporate_mcu_bookings` (tarif paket) | `keuangan/master-data` — CDM (paket) | move | 1 tabel | Rencana | RENDAH |
+| `pharmacy.drug_markups` | **ditaut CDM lewat `v_drug_price` + `v_drug_markup`, TIDAK dipindah** | **extend** | `pharmacy.drug_markups`, `pharmacy.drugs` | **Ditaut** | RENDAH — jenisnya berubah dari merge: markup berdimensi penjamin & kelas, berperiode, dan aturan resolusinya (`DrugMarkup::berlaku()`) sudah benar. Yang salah bukan tabelnya melainkan tidak ada yang memanggilnya — memindahkannya tidak memperbaiki itu |
+| `retail.price_tiers`, `retail.product_prices` | **ditaut CDM lewat `v_product_price`** | **extend** | 2 tabel | **Ditaut** | RENDAH — retail belum berisi data. Harga koperasi berdimensi TINGKAT HARGA, bukan penjamin; menyeretnya ke CDM berdimensi penjamin akan memaksa tiap penjualan mengarang penjamin |
+| `parking.rates` | **ditaut CDM lewat `v_rate`** | **extend** | `parking.rates` | **Ditaut** | RENDAH — jenisnya berubah dari merge: tarif parkir punya BASIS (jam/harian) dan menit bebas. Memaksakannya ke kolom `amount` tunggal berarti seseorang harus mengingat bahwa untuk parkir angka itu berarti "per jam", dan yang lupa menagih parkir seharian seharga sejam |
+| `inpatient.rooms.daily_rate` | **ditaut CDM lewat `v_room_rate` (kontrak baru)** | **extend** | `inpatient.rooms` | **Ditaut** | RENDAH — jenisnya berubah dari move: `daily_rate` melekat pada kamar, dan kamar dipakai papan tempat tidur, lama rawat, dan pemindahan kamar — semuanya di luar keuangan. **Cacat yang ditemukan saat menaut: belum berperiode → Q14** |
+| ~~`encounter.corporate_mcu_bookings` (tarif paket)~~ | — | **keep** | — | **Dibatalkan 2026-09-14** | Bukan master tarif melainkan tabel PEMESANAN MCU perusahaan (nomor booking, PIC, jumlah karyawan, jadwal); `package_description` teks bebas. Tarif paket MCU belum ada di mana pun — itu pekerjaan tersendiri, bukan penautan. Lihat koreksi di bawah |
 | `finance.chart_of_accounts` | `keuangan/master-data` — COA multi-dimensi | move | 1 tabel | Rencana | SEDANG — perlu tambah dimensi & hierarki |
 | `finance.period_closings` | `keuangan/master-data` — kalender periode | move | 1 tabel | Rencana | RENDAH |
 | `catalog.payers` | `keuangan/master-data` — master penjamin & kontrak | move | 1 tabel | Rencana | SEDANG |
 | `integration.payer_code_mappings` | `keuangan/master-data` — mapping engine | move | 1 tabel | Rencana | SEDANG |
 | `integration.satusehat_code_mappings` | `keuangan/master-data` — mapping engine | move | 1 tabel | Rencana | SEDANG |
 | `organization.units` | — | **keep** | — | Keputusan | Struktur organisasi bukan milik keuangan; keuangan menambah **klasifikasi** revenue/cost center yang merujuk `unit_id` |
+
+---
+
+### Koreksi 2026-09-14 — lima `merge`/`move` berubah jadi `extend`
+
+Penautan tarif dikerjakan, dan mengerjakannya mengubah lima keputusan sekaligus.
+Perubahan sebesar ini tidak boleh lewat tanpa alasan tercatat, jadi ini alasannya.
+
+**Yang saya temukan saat membuka keenam tabelnya:**
+
+| Tabel | Isi | Bentuk |
+|---|---|---|
+| `catalog.tariffs` | 15 baris | bitemporal, berdimensi penjamin & kelas |
+| `inpatient.rooms.daily_rate` | 6 baris | **tidak** berperiode |
+| `pharmacy.drug_markups` | **0 baris** | berperiode, berdimensi penjamin & kelas |
+| `retail.price_tiers` / `product_prices` | **0 baris** | berdimensi tingkat harga |
+| `parking.rates` | **0 baris** | berbasis jam/harian + menit bebas |
+| `encounter.corporate_mcu_bookings` | **0 baris** | bukan master tarif — itu tabel pemesanan |
+
+**Lima dari enam kosong.** Jadi ini bukan migrasi data; ini soal bentuk. Dan
+bentuknya berbeda-beda dengan alasan yang nyata:
+
+- Tarif tindakan berdimensi **penjamin + kelas + tanggal**.
+- Harga obat adalah **harga dasar × markup penjamin**, bukan harga tersimpan.
+- Harga koperasi berdimensi **tingkat harga** (umum/pegawai/mitra), bukan penjamin
+  — penjualan koperasi memang tidak mengenal penjamin.
+- Tarif kamar melekat pada **kamarnya**.
+- Tarif parkir dihitung dari **durasi**, dengan menit bebas.
+
+Menyatukan kelimanya ke satu tabel berarti tabel itu punya belasan kolom yang
+kebanyakan NULL, dan **tiap pembacanya harus tahu kolom mana yang berlaku untuk
+golongan mana** — pengetahuan yang lalu tersebar lagi ke seluruh sistem, persis
+masalah yang hendak diselesaikan CDM.
+
+**Maka yang diseragamkan bukan bentuk tarifnya, melainkan cara menanyakannya:**
+antarmuka `TariffResolver` — satu pertanyaan, satu jawaban `Money`, atau `null`
+bila tidak ada tarif yang berlaku. Kelima sumber tetap menghitung dengan caranya
+masing-masing; `TariffSourceRegistry` hanya tahu siapa yang harus ditanya.
+
+Ini konsisten dengan Aturan Konsolidasi, bukan pengecualian darinya. Aturannya
+melarang **dua sumber kebenaran** dan melarang **menulis ulang yang bisa
+dipindahkan**. Menyalin tarif ke CDM justru akan menciptakan sumber kebenaran
+kedua yang menyimpang diam-diam begitu tarif aslinya diperbarui.
+
+**`encounter.corporate_mcu_bookings` dikeluarkan dari daftar** — ia tabel
+pemesanan MCU perusahaan (nomor booking, PIC, jumlah karyawan, jadwal), bukan
+master tarif. `package_description` adalah teks bebas. Tarif paket MCU belum ada
+di mana pun; itu pekerjaan tersendiri, bukan penautan.
+
+**Yang dihasilkan penautan:**
+
+| Kontrak terbitan baru | Konteks |
+|---|---|
+| `catalog.v_tariff`, `catalog.v_service` | catalog |
+| `pharmacy.v_drug_price`, `pharmacy.v_drug_markup` | pharmacy |
+| `inpatient.v_room_rate` | inpatient |
+| `retail.v_product_price` | retail |
+| `parking.v_rate` | parking |
+
+**Utang teknis yang ikut tercatat, sengaja tidak diperbaiki sekarang:**
+
+| Temuan | Mengapa ditunda |
+|---|---|
+| `Catalog\TariffLookup::resolve(): ?float` — uang sebagai float | Dipakai billing setiap hari; `Billing\*` pindah di Wave 2, perbaikannya di sana |
+| `Retail\ProductService:60` — `round((float) ...)` untuk uang | `Retail\*` pindah ke `inventory-costing` di Wave 5 |
+| `pharmacy.drug_markups` punya model lengkap tapi **tidak dipanggil siapa pun** | Harga obat hari ini `sell_price` polos, jadi seluruh penjamin ditagih sama. Resolver keuangan sudah memakai markup, jadi saat tabelnya diisi harganya langsung benar |
+| `rooms.daily_rate` tidak berperiode | Menyentuh billing → Q14, Wave 2 |
+
+Tidak satu pun menular ke keuangan: seluruh resolver membaca nominal sebagai
+**string** lalu masuk ke `Money`, dan tidak ada kolom uang bertipe float di basis
+data — seluruhnya `numeric`.
 
 ---
 

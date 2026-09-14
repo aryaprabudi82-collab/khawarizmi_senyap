@@ -248,4 +248,75 @@ class MoneyTest extends TestCase
         $this->assertTrue(Money::tagihan('-1')->negatifKah());
         $this->assertSame('100.00', (string) Money::tagihan('-100')->absolut());
     }
+
+    // ------------------------------------------------------------ persentase
+
+    #[Test]
+    public function persentase_dihitung_pada_skala_alokasi(): void
+    {
+        // 10% dari 1.000 = 100, pada skala 4.
+        $this->assertSame('100.0000', (string) Money::tagihan('1000')->persen('10'));
+
+        // Persen desimal.
+        $this->assertSame('125.0000', (string) Money::tagihan('1000')->persen('12.5'));
+
+        // Potongan: persen negatif.
+        $this->assertSame('-125.0000', (string) Money::tagihan('1000')->persen('-12.5'));
+
+        $this->assertSame('0.0000', (string) Money::tagihan('1000')->persen('0'));
+    }
+
+    /**
+     * PEMBULATAN DITUNDA, dan inilah alasannya ada. Markup 25% atas
+     * 1.333,33 menghasilkan 333,3325 — pada skala 4. Membulatkannya ke
+     * rupiah lebih dulu lalu mengalikan 30 membuat total resep meleset
+     * dari hitung ulang mana pun.
+     */
+    #[Test]
+    public function pembulatan_persentase_ditunda_sampai_akhir(): void
+    {
+        $dasar = Money::tagihan('1333.33');
+
+        $satuanTertunda = $dasar->bulatkanKe(Money::SKALA_ALOKASI)->tambah($dasar->persen('25'));
+        $totalTertunda = $satuanTertunda->kali(30)->sebagaiTagihan();
+
+        $satuanDibulatkan = $dasar->tambah($dasar->persen('25')->sebagaiTagihan());
+        $totalDibulatkan = $satuanDibulatkan->kali(30);
+
+        // 1.333,3300 + 333,3325 = 1.666,6625; x30 = 49.999,875 -> 49.999,88.
+        $this->assertSame('49999.88', (string) $totalTertunda);
+
+        // Dibulatkan lebih dulu: 333,3325 -> 333,33; 1.666,66 x 30 = 49.999,80.
+        $this->assertSame('49999.80', (string) $totalDibulatkan);
+
+        $this->assertFalse(
+            $totalTertunda->samaDengan($totalDibulatkan),
+            'Kalau keduanya sama, uji ini tidak membuktikan apa pun — angkanya harus dipilih '
+            .'supaya selisih pembulatannya benar-benar muncul'
+        );
+    }
+
+    /**
+     * Persen sebagai FLOAT tidak diterima — alasannya sama dengan seluruh
+     * kelas ini: 12.5 sebagai float bukan betul-betul 12,5.
+     */
+    #[Test]
+    public function persentase_bukan_angka_ditolak(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('tidak sah');
+
+        Money::tagihan('1000')->persen('dua belas persen');
+    }
+
+    #[Test]
+    public function persentase_membulatkan_simetris_untuk_markup_dan_potongan(): void
+    {
+        // 0,00005 pada skala 4 membulat ke 0,0001 — dan -0,00005 ke -0,0001.
+        $naik = Money::tagihan('1')->persen('0.005');
+        $turun = Money::tagihan('1')->persen('-0.005');
+
+        $this->assertSame((string) $naik->negasi(), (string) $turun,
+            'Markup dan potongan harus dibulatkan simetris, tidak condong ke salah satu pihak');
+    }
 }

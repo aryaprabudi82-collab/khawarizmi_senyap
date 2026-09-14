@@ -154,6 +154,21 @@
               @can('pengajuan_biaya')
                 <a class="dropdown-item" href="{{ route('pengajuan-biaya.index') }}">Pengajuan Biaya</a>
               @endcan
+
+              {{--
+                Master domain keuangan (Modul A). Dipisah divider karena
+                sifatnya berbeda dari layar di atasnya: yang di atas
+                MENCATAT transaksi, yang di sini MENENTUKAN aturan yang
+                dipakai mencatat — kode item, akunnya, kontrak penjamin,
+                dan klasifikasi pusat biaya.
+              --}}
+              @can('pendapatan_per_akun')
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item fw-semibold" href="{{ route('master-keuangan.index') }}">Master Keuangan</a>
+                <a class="dropdown-item" href="{{ route('master-keuangan.item') }}">&nbsp;&nbsp;Charge Master</a>
+                <a class="dropdown-item" href="{{ route('master-keuangan.kontrak') }}">&nbsp;&nbsp;Kontrak Penjamin</a>
+                <a class="dropdown-item" href="{{ route('master-keuangan.pusat-biaya') }}">&nbsp;&nbsp;Pusat Biaya</a>
+              @endcan
             </div>
           </li>
         @endcanany

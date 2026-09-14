@@ -2,6 +2,12 @@
 
 namespace App\Modules\Keuangan\MasterData\Providers;
 
+use App\Modules\Keuangan\MasterData\Application\TariffSourceRegistry;
+use App\Modules\Keuangan\MasterData\Infrastructure\Resolvers\CatalogTariffResolver;
+use App\Modules\Keuangan\MasterData\Infrastructure\Resolvers\InpatientTariffResolver;
+use App\Modules\Keuangan\MasterData\Infrastructure\Resolvers\ParkingTariffResolver;
+use App\Modules\Keuangan\MasterData\Infrastructure\Resolvers\PharmacyTariffResolver;
+use App\Modules\Keuangan\MasterData\Infrastructure\Resolvers\RetailTariffResolver;
 use App\Modules\ModuleServiceProvider;
 
 /**
@@ -22,5 +28,26 @@ class KeuanganMasterDataServiceProvider extends ModuleServiceProvider
     protected function moduleDirectory(): string
     {
         return 'Keuangan/MasterData';
+    }
+
+    /**
+     * Registry tarif dirakit DI SINI, dan itu disengaja.
+     *
+     * Resolver yang didaftarkan sendiri-sendiri lewat auto-discovery
+     * membuat "konteks mana saja yang tarifnya bisa ditanyakan" jadi
+     * pertanyaan yang jawabannya tersebar di lima berkas. Merakitnya di
+     * satu tempat berarti konteks yang resolvernya lupa dipasang terlihat
+     * sebagai baris yang hilang di daftar ini — bukan sebagai galat yang
+     * baru muncul saat ada yang menagih.
+     */
+    protected function registerBindings(): void
+    {
+        $this->app->singleton(TariffSourceRegistry::class, fn () => new TariffSourceRegistry([
+            new CatalogTariffResolver,
+            new PharmacyTariffResolver,
+            new InpatientTariffResolver,
+            new RetailTariffResolver,
+            new ParkingTariffResolver,
+        ]));
     }
 }

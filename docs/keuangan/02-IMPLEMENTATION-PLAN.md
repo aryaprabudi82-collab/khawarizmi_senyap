@@ -42,14 +42,14 @@ saya setelah Q3 dijawab (PTN-BH). Keputusannya tercatat di
 | 1.1 | `Keuangan/Shared` — value object `Money` (KA-1), `KeuanganException` | ✅ Selesai — 19 uji |
 | 1.2 | Constraint balance jurnal di basis data | ✅ Selesai (Wave 1-pra) |
 | 1.3 | `idempotency_records` + `IdempotencyGuard` | ✅ Selesai (Wave 1-pra) |
-| 1.4 | COA multi-dimensi | Belum |
+| 1.4 | COA multi-dimensi | ✅ Selesai — hierarki + klasifikasi PSAK + 6 dimensi di journal_lines |
 | 1.5 | **Charge Description Master** | ✅ Selesai — 16 uji |
 | 1.6 | Versioning tarif | ✅ Sudah ada sebelumnya (koreksi §10 Discovery) |
 | 1.7 | Mapping Engine — CDM↔COA | ✅ Selesai; ICD↔INA-CBG↔SATUSEHAT belum |
-| 1.8 | Master penjamin & kontrak berperiode | Belum |
-| 1.9 | Kalender periode 4 status | Belum |
-| 1.10 | Klasifikasi revenue/cost center | Belum |
-| 1.11 | Kerangka Posting Engine + outbox | Belum |
+| 1.8 | Master penjamin & kontrak berperiode | ✅ Selesai — 16 uji |
+| 1.9 | Kalender periode 4 status | ✅ Selesai — 14 uji |
+| 1.10 | Klasifikasi revenue/cost center | **BELUM** — satu-satunya butir Wave 1 yang tersisa |
+| 1.11 | Kerangka Posting Engine + outbox | ✅ Selesai — 15 uji |
 | 1.12 | Gapless number generator | ✅ Selesai (Wave 1-pra) |
 
 ### Yang berubah dari rencana semula, dan alasannya
@@ -87,14 +87,68 @@ mekanisme temporal yang sudah bekerja.
 | 1.11 | Kerangka Posting Engine + outbox + worker | baru |
 | 1.12 | **Governance**: gapless number generator, hash chaining audit | baru |
 
-### Gate Wave 1
+### Gate Wave 1 — penilaian jujur per 2026-09-14
 
-- [ ] CDM tunggal terbentuk; seluruh tarif lama terbaca lewat CDM
-- [ ] Mapping engine coverage **100%** untuk item aktif — item tanpa mapping akun **tidak bisa diaktifkan**
-- [ ] Jurnal dummy balance; **constraint DB menolak jurnal tidak balance** (dibuktikan uji yang sengaja mencoba menyimpan jurnal miring)
-- [ ] Idempotency terpasang dan terbukti menolak double-submit
-- [ ] `catalog.tariffs` menjadi view; tidak ada dual source of truth
-- [ ] Suite penuh hijau
+| Butir gate | Status | Catatan |
+|---|---|---|
+| CDM tunggal terbentuk | ✅ | `keuangan_master.charge_items` dengan kode item global lintas konteks |
+| Seluruh tarif lama terbaca lewat CDM | ✅ | **Selesai 2026-09-14.** Kelima konteks sumber punya resolver di balik satu antarmuka `TariffResolver`, dirakit `TariffSourceRegistry`. Bentuk tarifnya TIDAK diseragamkan — yang diseragamkan cara menanyakannya. Konteks tanpa resolver **melempar**, tidak mengembalikan null, supaya cacat pemasangan tidak menyamar jadi "tarif belum diisi". 17 uji |
+| Item tanpa mapping akun tidak bisa diaktifkan | ✅ | Ditegakkan CHECK, diuji dengan menulis langsung lewat query builder |
+| Mapping engine coverage 100% untuk item aktif | ✅ | Secara mekanis terjamin: item aktif **mustahil** tanpa akun |
+| Constraint DB menolak jurnal tidak balance | ✅ | Constraint trigger deferred; menolak jurnal miring, jurnal kosong, dan penghapusan baris yang merusak balance |
+| Idempotency terbukti menolak double-submit | ⚠️ **SEBAGIAN** | `IdempotencyGuard` ada dan teruji, tapi **belum dipasang di satu pun endpoint** — itu Wave 2 |
+| `catalog.tariffs` menjadi view | ❌ **TIDAK BERLAKU** | Dibatalkan setelah koreksi §10: tarif layanan sudah bitemporal dan bekerja. Menggantinya melanggar Aturan Konsolidasi |
+| Suite penuh hijau | ✅ | 2.193 → diverifikasi ulang tiap perubahan |
+
+**Kesimpulan gate per 2026-09-14 — LULUS, dengan dua butir yang sengaja ditunda
+dan satu yang menunggu jawaban RSP UI.**
+
+Yang semula tersisa, dan apa yang terjadi padanya:
+
+| Butir | Keadaan |
+|---|---|
+| Penautan tarif lama ke CDM | ✅ **Selesai.** Lima resolver + registry + penaut, 17 uji. Lima entri Migration Map berubah dari merge/move jadi **extend** — alasannya tercatat di MIGRATION-MAP koreksi 2026-09-14 |
+| Klasifikasi revenue/cost center (1.10) | ✅ **Selesai.** Empat jenis, `program-center` dipisah khusus untuk PTN-BH, 13 uji |
+| Pemasangan idempotency di endpoint | ⏸️ **Ditunda ke Wave 2 — keputusan, bukan kelalaian.** Ia menyentuh billing dan kasir; memasangnya sekarang berarti mengubah modul yang akan dipindahkan di Wave 2 juga, yaitu mengerjakan hal yang sama dua kali |
+
+**Yang TIDAK lulus dan tidak bisa saya luluskan sendiri:**
+
+| Butir | Mengapa |
+|---|---|
+| Mapping engine ICD-10 ↔ INA-CBG ↔ SATUSEHAT ↔ LOINC (1.7) | Butuh sumber kode resmi, bukan keputusan arsitektur |
+| Master kelas perawatan & hak kelas | Menunggu **Q6** (selisih kelas BPJS) |
+| Bagan akun RSP UI | Menunggu **Q4**. Tercatat sebagai **penghalang** di `siap:periksa`, dan memang seharusnya: pendapatan tanpa tempat jatuh di buku besar berarti rumah sakit belum siap beroperasi |
+
+**Layar — dikoreksi 2026-09-14.** Wave 1 sempat selesai **tanpa satu pun layar**, dan
+saya mencatatnya sebagai pertanyaan terbuka seolah itu keputusan yang menunggu RSP UI
+(bahkan salah merujuknya sebagai "Q3b", padahal Q3b adalah pertanyaan lain soal
+konsolidasi laporan ke UI). Itu salah tafsir saya: BAGIAN 5 instruksi justru menuntut
+tiap modul punya folder `Http/`, dan tidak pernah ada permintaan "backend saja".
+Akibatnya nyata — tanpa layar, tidak ada yang bisa mengoreksi pekerjaan ini sebelum
+uang mengalir lewatnya.
+
+Empat layar dibangun: `/master-keuangan` (ringkasan + tombol tautkan),
+`/master-keuangan/item` (CDM + pemetaan akun + aktifkan), `/master-keuangan/kontrak`,
+`/master-keuangan/pusat-biaya`. Digerbangi `pendapatan_per_akun`.
+
+Diuji lewat HTTP sebagai pengguna berperan sungguhan — 14 uji, termasuk peran yang
+**tidak** berhak harus ditolak. Gerbang yang hanya diuji dari sisi "boleh masuk" akan
+lolos sempurna meski ia tidak pernah menolak siapa pun.
+
+**Cacat yang ditemukan saat menaut, tidak diperbaiki diam-diam:** tarif kamar belum
+berperiode (**Q14**), `TariffLookup::resolve()` mengembalikan float, dan
+`pharmacy.drug_markups` punya model lengkap yang tidak dipanggil siapa pun sehingga
+seluruh penjamin ditagih harga obat yang sama. Ketiganya tercatat di MIGRATION-MAP
+dengan wave perbaikannya.
+
+### Yang dibangun melampaui rencana semula
+
+| Tambahan | Alasan |
+|---|---|
+| Constraint "satu baris jurnal: debit ATAU kredit" | Baris yang mengisi keduanya masih bisa membuat jurnal balance tapi menghancurkan setiap laporan yang menjumlahkan salah satu kolomnya, tanpa satu pun tanda |
+| Trigger penahan jurnal ke periode tertutup | Jurnal yang menyelinap ke periode tertutup mengubah laporan yang sudah dikirim ke luar, diam-diam |
+| `FinanceReadiness` — 3 butir di `siap:periksa` | Kekurangan yang hanya tercatat di docblock tidak pernah sampai ke orang yang memutuskan tanggal operasional |
+| `PostingOutbox` dengan dead-letter & pembebasan baris tersangkut | Worker yang mati di tengah meninggalkan baris `diproses` selamanya — transaksinya tidak pernah sampai ke buku besar tanpa satu pun galat |
 
 ### Risiko Wave 1
 

@@ -64,7 +64,7 @@ abstract class ModuleServiceProvider extends ServiceProvider
      */
     private function registerReadinessCheck(): void
     {
-        $kelas = 'App\\Modules\\'.$this->moduleName().'\\Services\\'.$this->moduleName().'Readiness';
+        $kelas = $this->moduleNamespace().'\\Services\\'.$this->moduleShortName().'Readiness';
 
         if (! class_exists($kelas) || ! is_a($kelas, ReadinessCheck::class, true)) {
             return;
@@ -131,7 +131,7 @@ abstract class ModuleServiceProvider extends ServiceProvider
         $kelas = [];
 
         foreach (glob($dir.'/*.php') ?: [] as $berkas) {
-            $nama = 'App\\Modules\\'.$this->moduleName().'\\Console\\Commands\\'.basename($berkas, '.php');
+            $nama = $this->moduleNamespace().'\\Console\\Commands\\'.basename($berkas, '.php');
 
             if (class_exists($nama)) {
                 $kelas[] = $nama;
@@ -141,6 +141,29 @@ abstract class ModuleServiceProvider extends ServiceProvider
         if ($kelas !== []) {
             $this->commands($kelas);
         }
+    }
+
+    /**
+     * Namespace modul, mis. `App\Modules\Platform` atau
+     * `App\Modules\Keuangan\MasterData`.
+     *
+     * MODUL BERSARANG IKUT TERLAYANI, dan itu bukan kerapian belaka.
+     * `moduleName()` untuk sub-konteks domain keuangan berisi
+     * "Keuangan/MasterData"; merangkainya mentah-mentah menghasilkan nama
+     * kelas bergaris miring yang mustahil ada — sehingga perintah artisan
+     * dan butir kesiapannya diam-diam TIDAK PERNAH terdaftar, tanpa galat
+     * apa pun. Kegagalan sunyi yang sama pernah terjadi saat
+     * `IntegrationServiceProvider` lupa memanggil `parent::register()`.
+     */
+    private function moduleNamespace(): string
+    {
+        return 'App\\Modules\\'.str_replace('/', '\\', $this->moduleName());
+    }
+
+    /** Segmen terakhir nama modul, mis. "MasterData" dari "Keuangan/MasterData". */
+    private function moduleShortName(): string
+    {
+        return basename(str_replace('\\', '/', $this->moduleName()));
     }
 
     /** Nama folder modul, mis. "Platform". */

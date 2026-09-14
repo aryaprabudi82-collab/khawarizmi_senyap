@@ -186,6 +186,35 @@ Modul E menyebut multi-currency. **Pertanyaan:** apakah RSP UI benar-benar melay
 pasien internasional dengan penagihan mata uang asing, atau seluruh penagihan tetap
 Rupiah? Ini menghindari membangun mekanisme kurs yang tidak akan pernah dipakai.
 
+### Q14 — Tarif kamar belum berperiode
+
+**Ditemukan 2026-09-14 saat menaut tarif ke CDM.**
+
+`inpatient.rooms.daily_rate` adalah satu kolom tanpa `valid_from`/`valid_until`.
+Akibatnya nyata dan sudah berlaku hari ini: **menaikkan tarif kamar mengubah nilai
+rawat inap yang sedang berjalan dan yang sudah lewat**, karena tidak ada cara
+mengetahui tarif yang berlaku bulan lalu. Rawat inap yang masuk sebelum kenaikan
+akan ditagih dengan tarif setelah kenaikan untuk seluruh hari rawatnya — termasuk
+hari-hari sebelum kenaikan itu diputuskan.
+
+Bandingkan dengan `catalog.tariffs` yang sudah bitemporal sejak awal. Pembedaannya
+tidak disengaja; tarif kamar hanya kebetulan dibangun lebih sederhana.
+
+**Pertanyaan:** apakah RSP UI menaikkan tarif kamar dengan tanggal berlaku tertentu
+(dan rawat inap berjalan tetap memakai tarif saat masuk), atau kenaikan berlaku
+serta-merta untuk seluruh hari rawat yang sedang berjalan?
+
+- Kalau **berperiode** — perlu tabel `room_rates` berperiode, dan `v_room_charge`
+  yang dipakai billing harus ikut menyaring per tanggal. Pekerjaan menyentuh
+  billing, jadi **Wave 2**, bukan sekarang.
+- Kalau **serta-merta** — keadaan sekarang sudah benar, dan yang perlu ditambahkan
+  hanya catatan agar tidak ada yang memperbaikinya belakangan tanpa tahu ini
+  keputusan.
+
+**Sementara menunggu jawaban:** `InpatientTariffResolver` sudah menerima parameter
+`$tanggal` dan sengaja belum memakainya, supaya kontraknya tidak perlu berubah saat
+jawabannya datang.
+
 ---
 
 ## D. Catatan Risiko yang Perlu Keputusan (bukan pertanyaan bisnis)
