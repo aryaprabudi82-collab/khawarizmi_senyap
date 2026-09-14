@@ -89,7 +89,25 @@
               <td class="text-center queue-number">{{ $baris->queue_number }}</td>
               <td><span class="text-muted font-monospace small">{{ $baris->registration_number }}</span></td>
               <td>
-                <div class="fw-semibold">{{ $baris->patient_name }}</div>
+                {{--
+                  Nama pasien menautkan ke layar pemeriksaan — itu yang
+                  pertama dicoba orang saat melihat daftar antrean, dan
+                  sebelumnya ia teks mati sehingga satu-satunya jalan ke RME
+                  adalah menghafal alamatnya atau memutar lewat menu lain.
+
+                  DIGERBANGI HAKNYA, dan itu bukan kerapian. Petugas
+                  pendaftaran TIDAK punya `penilaian_awal_medis_ralan`;
+                  tautan tanpa gerbang akan membawanya ke 403 sesudah
+                  diklik — persis keluhan "kata sandi benar lalu Forbidden"
+                  yang dulu sudah diperbaiki di tempat lain. Bagi yang tidak
+                  berhak, namanya tetap tampil sebagai teks biasa.
+                --}}
+                @can('penilaian_awal_medis_ralan')
+                  <a href="{{ route('rme.edit', $baris->id) }}" class="fw-semibold text-decoration-none"
+                     title="Buka pemeriksaan / SOAP">{{ $baris->patient_name }}</a>
+                @else
+                  <div class="fw-semibold">{{ $baris->patient_name }}</div>
+                @endcan
                 <div class="text-secondary small font-monospace">{{ $baris->patient_mrn }}</div>
               </td>
               <td>{{ $baris->unit_name }}</td>
@@ -114,6 +132,21 @@
                 <span class="badge bg-{{ $rona }}-lt">{{ str_replace('-', ' ', $baris->status) }}</span>
               </td>
               <td>
+                {{--
+                  Tombol Periksa, sejajar dengan "Mulai Periksa / Buka" di
+                  layar rekam medis. Ada dua jalan ke layar yang sama dan itu
+                  disengaja: petugas menemukan pasien lewat daftar antrean
+                  hari ini, dokter lewat daftar pasien menunggu pemeriksaan.
+
+                  Kunjungan yang sudah dibatalkan tidak ikut — memeriksa
+                  pasien yang pendaftarannya dibatalkan menghasilkan catatan
+                  medis yang menggantung tanpa kunjungan yang sah.
+                --}}
+                @can('penilaian_awal_medis_ralan')
+                  @unless ($baris->isCancelled())
+                    <a href="{{ route('rme.edit', $baris->id) }}" class="btn btn-sm btn-primary">Periksa</a>
+                  @endunless
+                @endcan
                 @can($baris->care_type === 'ranap' ? 'barcoderanap' : 'barcoderalan')
                   <a href="{{ route('registrasi.barcode', $baris->id) }}" class="btn btn-sm btn-outline-secondary" target="_blank">Barcode</a>
                 @endcan

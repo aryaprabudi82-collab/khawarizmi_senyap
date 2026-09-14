@@ -131,6 +131,43 @@ class RegistrationScreenTest extends TestCase
             ->assertSee('Poliklinik Umum');
     }
 
+    /**
+     * Nama pasien di papan antrean menautkan ke layar pemeriksaan.
+     *
+     * Sebelumnya ia teks mati, sehingga satu-satunya jalan ke rekam medis
+     * adalah menghafal alamatnya — dan itulah yang dikeluhkan pengguna.
+     */
+    #[Test]
+    public function nama_pasien_menautkan_ke_layar_pemeriksaan_bagi_yang_berhak(): void
+    {
+        $registrasi = $this->daftarkan('Ani Lestari');
+
+        $this->actingAs($this->buatPengguna('dokter'))
+            ->get(route('registrasi.index'))
+            ->assertOk()
+            ->assertSee(route('rme.edit', $registrasi->id), false);
+    }
+
+    /**
+     * PETUGAS PENDAFTARAN TIDAK DIBERI TAUTANNYA, dan itu bukan kelalaian.
+     *
+     * Peran `petugas-daftar` tidak memegang `penilaian_awal_medis_ralan`.
+     * Tautan tanpa gerbang akan membawanya ke 403 sesudah diklik — keluhan
+     * "sudah benar tapi malah Forbidden" yang sudah pernah terjadi di tempat
+     * lain. Namanya tetap tampil, hanya tidak bisa diklik.
+     */
+    #[Test]
+    public function petugas_pendaftaran_melihat_nama_pasien_tanpa_tautan_pemeriksaan(): void
+    {
+        $registrasi = $this->daftarkan('Ani Lestari');
+
+        $this->actingAs($this->petugas)
+            ->get(route('registrasi.index'))
+            ->assertOk()
+            ->assertSee('Ani Lestari')
+            ->assertDontSee(route('rme.edit', $registrasi->id), false);
+    }
+
     #[Test]
     public function papan_antrean_dapat_disaring_per_unit(): void
     {
