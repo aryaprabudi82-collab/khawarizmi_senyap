@@ -6,6 +6,14 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>@yield('title', 'Beranda') &middot; SIMRS RSP UI</title>
 
+  {{--
+    PNG, bukan .ico. Berkas .ico bawaan Laravel di public/ berukuran 0 byte
+    sehingga browser tidak menampilkan apa pun darinya, dan seluruh browser
+    yang dipakai di RS UI sudah lama mendukung favicon PNG.
+  --}}
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,6 +23,29 @@
     :root { --tblr-font-sans-serif: "Plus Jakarta Sans", -apple-system, system-ui, sans-serif; }
     body { font-family: var(--tblr-font-sans-serif); }
     .navbar-brand-simrs { color:#fff; font-weight:700; letter-spacing:.3px; text-decoration:none; }
+
+    /*
+      TEKS MENU PUTIH PENUH.
+
+      Tabler beta20 menyetel --tblr-navbar-color: rgba(255,255,255,.7) pada
+      .navbar-dark, jadi teks menu sebenarnya SUDAH putih — hanya 70% tembus
+      pandang, dan di atas gradient biru ia terbaca kelabu. Brand (aturan di
+      atas) dan menu profil (kelas text-white) sudah dipaksa putih penuh,
+      sehingga enam menu utama tampak redup sendirian.
+
+      Disetel lewat CSS, bukan dengan menempelkan text-white ke tiap <a>:
+      aturan ini ikut berlaku untuk menu yang ditambahkan nanti, sementara
+      kelas per-elemen pasti terlupa pada penambahan berikutnya.
+
+      Menyasar .nav-link saja, bukan --tblr-navbar-color, supaya navbar-text
+      dan tombol toggler tidak ikut berubah tanpa diminta.
+    */
+    .navbar-dark .navbar-nav .nav-link,
+    .navbar-dark .navbar-nav .nav-link:hover,
+    .navbar-dark .navbar-nav .nav-link:focus { color:#fff; opacity:1; }
+
+    .navbar-logo-rsui { height:32px; width:auto; display:block; }
+
     .queue-number { font-variant-numeric: tabular-nums; font-weight:700; font-size:1.15rem; }
     .table td, .table th { vertical-align: middle; }
   </style>
@@ -26,7 +57,15 @@
         style="background: linear-gradient(135deg,#1d4ed8,#0e5aa7); box-shadow:0 4px 25px rgba(29,78,216,.18);">
   <div class="container-xl">
     <a href="{{ route('beranda') }}" class="navbar-brand navbar-brand-simrs d-flex align-items-center gap-2">
-      <span class="avatar avatar-sm bg-white text-primary fw-bold">RS</span>
+      {{--
+        Logo dipakai dalam warna aslinya, di atas alas putih membulat.
+        Navbar bergradient biru gelap, dan logo berwarna tanpa alas akan
+        menempel ke latarnya sampai bentuknya tidak terbaca.
+      --}}
+      <span class="bg-white rounded d-inline-flex align-items-center justify-content-center"
+            style="padding:3px 6px;">
+        <img src="{{ asset('img/logo-rsui.png') }}" alt="Logo RS UI" class="navbar-logo-rsui">
+      </span>
       <span class="d-none d-md-inline">SIMRS RSP UI</span>
     </a>
 

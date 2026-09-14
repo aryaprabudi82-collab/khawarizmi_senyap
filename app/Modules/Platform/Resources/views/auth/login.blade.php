@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Masuk &middot; SIMRS RSP UI</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,6 +20,11 @@
   <div class="container-tight py-4" style="max-width: 26rem;">
 
     <div class="text-center mb-4 text-white">
+      {{-- Alas putih: logo berwarna di atas gradient biru tidak terbaca bentuknya. --}}
+      <div class="d-inline-flex align-items-center justify-content-center bg-white rounded-3 mb-3"
+           style="padding:10px 16px;">
+        <img src="{{ asset('img/logo-rsui.png') }}" alt="Logo RS UI" style="height:56px; width:auto; display:block;">
+      </div>
       <div class="h1 mb-1">SIMRS RSP UI</div>
       <div class="text-white-50">Sistem Informasi Manajemen Rumah Sakit</div>
     </div>

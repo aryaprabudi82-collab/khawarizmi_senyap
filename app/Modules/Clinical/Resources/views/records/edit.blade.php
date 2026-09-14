@@ -4,368 +4,191 @@
 @section('breadcrumb', 'Konteks clinical · ' . $assessment->registration_number)
 @section('heading', $assessment->patient_name)
 
-@section('actions')
-  <a href="{{ route('rme.index') }}" class="btn btn-link">Kembali ke daftar</a>
-@endsection
+@push('styles')
+<style>
+  /*
+    Banner identitas pasien. Gradient BERBEDA dari navbar dengan sengaja:
+    navbar adalah kerangka aplikasi, banner ini adalah konteks pasien yang
+    sedang dibuka. Warna yang sama persis membuat keduanya membaur, dan
+    pemeriksa kehilangan penanda "saya sedang di rekam medis siapa".
+  */
+  .rme-banner { background: linear-gradient(135deg,#1a5ba8,#2d7dd2); color:#fff; border-radius:.5rem; }
+  .rme-banner .datagrid-title { color: rgba(255,255,255,.72); }
+  .rme-banner a, .rme-banner .btn-ghost-light { color:#fff; }
+
+  /* Panel kanan: garis tepi berwarna membedakan jenis data sekali lihat. */
+  .rme-panel-lab   { border:1px solid #fca5a5; }
+  .rme-panel-rad   { border:1px solid #86efac; }
+  .rme-panel-resep { border:1px solid #a7f3d0; }
+  .rme-panel-lab   .card-header { background:#fef2f2; color:#dc2626; }
+  .rme-panel-rad   .card-header { background:#f0fdf4; color:#15803d; }
+  .rme-panel-resep .card-header { background:#ecfdf5; color:#047857; }
+  .rme-panel-pa    { border:1px solid #c7d2fe; }
+  .rme-panel-pa    .card-header { background:#eef2ff; color:#4338ca; }
+
+  .rme-invoice { background:#1e293b; color:#fff; }
+  .rme-scroll  { max-height: 420px; overflow-y: auto; }
+</style>
+@endpush
 
 @section('content')
 
-{{-- Penanda yang harus terlihat sebelum apa pun dicatat --}}
-@if ($alergi->isNotEmpty())
-  <div class="alert alert-danger d-flex align-items-start">
-    <div>
-      <h4 class="alert-title mb-1">Pasien memiliki alergi</h4>
+@php
+  use App\Modules\Clinical\Models\Assessment;
+
+  $rp = fn ($n) => $n === null ? null : 'Rp ' . number_format((float) $n, 0, ',', '.');
+
+  /*
+    Tiga sub-tab, dan pemetaannya ke `kind` yang SUDAH ada di CHECK
+    constraint basis data. Tidak ada kind baru yang dikarang di sini:
+    menambah nilai berarti migrasi pada tabel rekam medis, dan itu
+    keputusan RSP UI (tercatat sebagai Q15).
+  */
+  $subTab = [
+    Assessment::KIND_SOAP => ['label' => 'DPJP', 'hak' => 'penilaian_awal_medis_ralan'],
+    Assessment::KIND_KEPERAWATAN => ['label' => 'PPA', 'hak' => 'soap_perawatan'],
+    Assessment::KIND_LANJUTAN => ['label' => 'Student', 'hak' => 'penilaian_awal_medis_ralan'],
+  ];
+@endphp
+
+{{-- ============================ BANNER PASIEN ============================ --}}
+<div class="card rme-banner mb-3">
+  <div class="card-body py-3">
+    <div class="d-flex flex-wrap align-items-center gap-3">
+
+      <span class="avatar avatar-md bg-white text-primary fw-bold">
+        {{ mb_strtoupper(mb_substr($assessment->patient_name, 0, 1)) }}
+      </span>
+
       <div>
-        @foreach ($alergi as $a)
-          <span class="badge bg-red me-1 mb-1">
-            {{ $a->substance }} ({{ $a->severity }})@if ($a->reaction) · {{ $a->reaction }} @endif
-          </span>
-        @endforeach
+        <div class="h3 mb-0 text-white">{{ $assessment->patient_name }}</div>
+        <div class="small" style="color:rgba(255,255,255,.8)">
+          <span class="font-monospace">{{ $assessment->patient_mrn }}</span>
+          @if ($pasien)
+            &middot; {{ $pasien->sex === 'L' ? 'L' : 'P' }}
+            &middot; {{ $umurPasien }}
+          @endif
+        </div>
+      </div>
+
+      <div class="vr d-none d-lg-block" style="opacity:.35"></div>
+
+      <div class="small" style="color:rgba(255,255,255,.88)">
+        <div>
+          🗓 {{ \Carbon\Carbon::parse($kunjungan->service_date ?? now())->format('Y-m-d') }}
+          &nbsp; 📍 {{ $assessment->unit_name ?? '—' }}
+        </div>
+        <div>
+          🩺 {{ $assessment->practitioner_name ?? 'DPJP belum ditetapkan' }}
+          @if ($pasien?->phone) &nbsp; 📞 {{ $pasien->phone }} @endif
+        </div>
+        <div>🏠 {{ $alamatPasien }}</div>
+      </div>
+
+      <div class="ms-auto d-flex flex-wrap align-items-center gap-2">
+
+        {{--
+          ALERGI DITARUH PALING KIRI dari kelompok tombol, dan warnanya
+          merah saat ada isinya. Ia harus terbaca SEBELUM pemeriksa
+          menuliskan resep — bukan ditemukan setelahnya.
+        --}}
+        <button class="btn btn-sm {{ $alergi->isNotEmpty() ? 'btn-danger' : 'btn-outline-light' }}"
+                data-bs-toggle="modal" data-bs-target="#modal-alergi">
+          ⚠ Alergi ({{ $alergi->count() }})
+        </button>
+
+        @if ($pasien?->special_precautions)
+          <span class="badge bg-yellow text-dark">{{ $pasien->special_precautions }}</span>
+        @endif
+
+        <span class="badge bg-white text-primary">{{ $kunjungan->payer_name ?? 'Umum' }}</span>
+
+        <a href="{{ route('rme.index') }}" class="btn btn-sm btn-outline-light">← Kembali</a>
       </div>
     </div>
   </div>
-@endif
+</div>
 
 <div class="row g-3">
 
-  {{-- Kolom kiri: identitas, tanda vital, riwayat --}}
-  <div class="col-12 col-lg-4">
+  {{-- ======================== KOLOM KIRI — PENCATATAN ======================== --}}
+  <div class="col-12 col-xl-5">
 
     <div class="card mb-3">
-      <div class="card-body">
-        <div class="datagrid">
-          <div class="datagrid-item">
-            <div class="datagrid-title">No. Rekam Medis</div>
-            <div class="datagrid-content font-monospace">{{ $assessment->patient_mrn }}</div>
-          </div>
-          <div class="datagrid-item">
-            <div class="datagrid-title">No. Registrasi</div>
-            <div class="datagrid-content font-monospace">{{ $assessment->registration_number }}</div>
-          </div>
-          <div class="datagrid-item">
-            <div class="datagrid-title">Unit</div>
-            <div class="datagrid-content">{{ $assessment->unit_name ?? '—' }}</div>
-          </div>
-          <div class="datagrid-item">
-            <div class="datagrid-title">Dokter</div>
-            <div class="datagrid-content">{{ $assessment->practitioner_name ?? '—' }}</div>
-          </div>
-          <div class="datagrid-item">
-            <div class="datagrid-title">Status catatan</div>
-            <div class="datagrid-content">
-              @if ($assessment->status === 'draft')
-                <span class="badge bg-yellow-lt">Draf · masih bisa disunting</span>
-              @elseif ($assessment->status === 'amended')
-                <span class="badge bg-orange-lt">Diralat · versi {{ $assessment->version }}</span>
-              @else
-                <span class="badge bg-green-lt">Final · terkunci</span>
-              @endif
-            </div>
-          </div>
-        </div>
+      <div class="card-header p-0">
+        <ul class="nav nav-pills p-2 gap-1">
+          @foreach ($subTab as $kind => $tab)
+            @can($tab['hak'])
+              @php $terisi = $ringkasanJenis[$kind] ?? null; @endphp
+              <li class="nav-item">
+                <a class="nav-link py-1 px-3 {{ $jenisAktif === $kind ? 'active' : '' }}"
+                   href="{{ route('rme.edit', ['registrasi' => $kunjungan->id, 'jenis' => $kind]) }}">
+                  {{ $tab['label'] }}
+                  @if ($terisi && $terisi->status !== 'draft')
+                    <span class="badge bg-green ms-1">✓</span>
+                  @endif
+                </a>
+              </li>
+            @endcan
+          @endforeach
+        </ul>
       </div>
-    </div>
 
-    {{-- Alergi --}}
-    <div class="card mb-3">
-      <div class="card-header"><h3 class="card-title">Alergi</h3></div>
-      <div class="card-body">
-        <form method="POST" action="{{ route('rme.alergi.simpan', $assessment) }}" class="row g-2">
-          @csrf
-          <div class="col-12">
-            <input type="text" name="substance" class="form-control form-control-sm"
-                   placeholder="Zat penyebab, mis. Amoksisilin" required>
-          </div>
-          <div class="col-6">
-            <select name="category" class="form-select form-select-sm">
-              <option value="obat">Obat</option>
-              <option value="makanan">Makanan</option>
-              <option value="lingkungan">Lingkungan</option>
-              <option value="lainnya">Lainnya</option>
-            </select>
-          </div>
-          <div class="col-6">
-            <select name="severity" class="form-select form-select-sm">
-              <option value="ringan">Ringan</option>
-              <option value="sedang" selected>Sedang</option>
-              <option value="berat">Berat</option>
-            </select>
-          </div>
-          <div class="col-12">
-            <input type="text" name="reaction" class="form-control form-control-sm" placeholder="Reaksi, mis. ruam">
-          </div>
-          <div class="col-12">
-            <button class="btn btn-sm btn-outline-danger w-100">Catat Alergi</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    {{-- Riwayat kunjungan --}}
-    <div class="card">
-      <div class="card-header"><h3 class="card-title">Riwayat kunjungan</h3></div>
-      <div class="list-group list-group-flush">
-        @forelse ($riwayat as $r)
-          <div class="list-group-item py-2">
-            <div class="d-flex justify-content-between">
-              <span>{{ \Carbon\Carbon::parse($r->service_date)->format('d-m-Y') }}</span>
-              <span class="text-secondary small">{{ $r->unit_name }}</span>
-            </div>
-          </div>
-        @empty
-          <div class="list-group-item text-secondary small">Belum ada riwayat kunjungan lain.</div>
-        @endforelse
-      </div>
-    </div>
-  </div>
-
-  {{-- Kolom kanan: tanda vital + SOAP + diagnosis --}}
-  <div class="col-12 col-lg-8">
-
-    {{-- Skrining awal — dicatat sekali per kunjungan, sebelum asesmen penuh --}}
-    <div class="card mb-3">
-      <div class="card-header"><h3 class="card-title">Skrining Awal</h3></div>
-      @if ($skrining)
+      <form method="POST" action="{{ route('rme.update', $assessment) }}">
+        @csrf
         <div class="card-body">
-          <div class="row g-3">
-            <div class="col-6 col-md-3">
-              <div class="text-secondary small">Risiko Jatuh</div>
-              @php $warnaJatuh = ['rendah' => 'green', 'sedang' => 'yellow', 'tinggi' => 'red'][$skrining->fall_risk_level]; @endphp
-              <span class="badge bg-{{ $warnaJatuh }}-lt text-uppercase">{{ $skrining->fall_risk_level }}</span>
-            </div>
-            <div class="col-6 col-md-3">
-              <div class="text-secondary small">Skala Nyeri</div>
-              <span class="badge {{ $skrining->pain_score >= 4 ? 'bg-red-lt' : 'bg-secondary-lt' }}">{{ $skrining->pain_score }}/10</span>
-            </div>
-            <div class="col-6 col-md-3">
-              <div class="text-secondary small">Risiko Gizi</div>
-              <span class="badge {{ $skrining->nutrition_at_risk ? 'bg-red-lt' : 'bg-green-lt' }}">{{ $skrining->nutrition_at_risk ? 'Berisiko' : 'Tidak berisiko' }}</span>
-            </div>
-            <div class="col-6 col-md-3">
-              <div class="text-secondary small">Gejala Menular</div>
-              <span class="badge {{ $skrining->infectious_symptom ? 'bg-red-lt' : 'bg-green-lt' }}">{{ $skrining->infectious_symptom ? 'Ada' : 'Tidak ada' }}</span>
-            </div>
-            @if ($skrining->special_needs)
-              <div class="col-12">
-                <div class="text-secondary small">Kebutuhan Khusus</div>
-                <div>{{ $skrining->special_needs }}</div>
-              </div>
-            @endif
+
+          <div class="mb-3">
+            <label class="form-label text-uppercase small text-secondary" for="chief_complaint">
+              Subjective (Keluhan)
+            </label>
+            <input type="text" id="chief_complaint" name="chief_complaint" class="form-control mb-2"
+                   placeholder="Keluhan utama..." value="{{ old('chief_complaint', $assessment->chief_complaint) }}">
+            <textarea name="subjective" class="form-control" rows="2"
+                      placeholder="Riwayat penyakit, riwayat pengobatan">{{ old('subjective', $assessment->subjective) }}</textarea>
           </div>
-          <div class="form-hint mt-2">Dicatat {{ $skrining->screened_by_name ?? 'petugas' }}, {{ $skrining->screened_at->format('d-m-Y H:i') }}.</div>
-        </div>
-      @else
-        <div class="card-body">
-          <form method="POST" action="{{ route('rme.skrining.simpan', $kunjungan->id) }}" class="row g-2">
-            @csrf
-            <div class="col-6 col-md-3">
-              <label class="form-label">Risiko Jatuh</label>
-              <select name="fall_risk_level" class="form-select form-select-sm" required>
-                <option value="rendah">Rendah</option>
-                <option value="sedang">Sedang</option>
-                <option value="tinggi">Tinggi</option>
-              </select>
-            </div>
-            <div class="col-6 col-md-3">
-              <label class="form-label">Skala Nyeri (0-10)</label>
-              <input type="number" name="pain_score" class="form-control form-control-sm" min="0" max="10" value="0" required>
-            </div>
-            <div class="col-6 col-md-3 d-flex align-items-end">
-              <label class="form-check">
-                <input type="checkbox" name="nutrition_at_risk" value="1" class="form-check-input">
-                <span class="form-check-label">Risiko gizi</span>
-              </label>
-            </div>
-            <div class="col-6 col-md-3 d-flex align-items-end">
-              <label class="form-check">
-                <input type="checkbox" name="infectious_symptom" value="1" class="form-check-input">
-                <span class="form-check-label">Gejala menular</span>
-              </label>
-            </div>
-            <div class="col-12">
-              <input type="text" name="special_needs" class="form-control form-control-sm" placeholder="Kebutuhan khusus (opsional): penerjemah, disabilitas, dsb.">
-            </div>
-            <div class="col-12">
-              <button class="btn btn-sm btn-outline-primary w-100">Catat Skrining</button>
-            </div>
-          </form>
-        </div>
-      @endif
-    </div>
 
-    {{-- Tindakan rawat jalan — setiap baris otomatis tertagih lewat sinkronisasi billing --}}
-    <div class="card mb-3">
-      <div class="card-header"><h3 class="card-title">Tindakan</h3></div>
-      @if ($tindakan->isNotEmpty())
-        <div class="table-responsive">
-          <table class="table table-sm table-vcenter mb-0">
-            <thead><tr><th>Tindakan</th><th class="text-end">Jml</th><th class="text-end">Tarif</th><th class="text-end">Total</th><th>Waktu</th></tr></thead>
-            <tbody>
-              @foreach ($tindakan as $t)
-                <tr>
-                  <td>{{ $t->service_name }}@if ($t->note)<div class="text-secondary small">{{ $t->note }}</div>@endif</td>
-                  <td class="text-end">{{ rtrim(rtrim($t->quantity, '0'), '.') }}</td>
-                  <td class="text-end">{{ number_format($t->unit_price, 0, ',', '.') }}</td>
-                  <td class="text-end">{{ number_format($t->amount, 0, ',', '.') }}</td>
-                  <td class="text-secondary small">{{ $t->performed_at->format('d-m H:i') }}</td>
-                </tr>
-              @endforeach
-            </tbody>
-          </table>
-        </div>
-      @endif
-      <div class="card-body {{ $tindakan->isNotEmpty() ? 'border-top' : '' }}">
-        <form method="POST" action="{{ route('rme.tindakan.simpan', $kunjungan->id) }}" class="row g-2">
-          @csrf
-          <div class="col-6">
-            <select name="service_code" class="form-select form-select-sm" required>
-              <option value="">— pilih tindakan —</option>
-              @foreach ($katalogTindakan as $layanan)
-                <option value="{{ $layanan->code }}">{{ $layanan->name }}</option>
-              @endforeach
-            </select>
-            @if ($katalogTindakan->isEmpty())
-              <div class="form-hint text-danger">Belum ada layanan berkategori tindakan di Data Master.</div>
-            @endif
-          </div>
-          <div class="col-3"><input type="number" name="quantity" class="form-control form-control-sm" value="1" min="0.01" step="0.01" required></div>
-          <div class="col-3"><button class="btn btn-sm btn-outline-primary w-100">Catat</button></div>
-          <div class="col-12"><input type="text" name="note" class="form-control form-control-sm" placeholder="Catatan (opsional)"></div>
-        </form>
-      </div>
-    </div>
-
-    {{-- Operasi — gerbang sendiri (operasi), bukan umbrella, lihat catatan rute --}}
-    @can('operasi')
-      <div class="card mb-3">
-        <div class="card-header"><h3 class="card-title">Operasi</h3></div>
-        @if ($operasi->isNotEmpty())
-          <div class="table-responsive">
-            <table class="table table-sm table-vcenter mb-0">
-              <thead><tr><th>Tindakan</th><th>Operator</th><th>Anestesi</th><th class="text-end">Tarif</th><th>Waktu</th></tr></thead>
-              <tbody>
-                @foreach ($operasi as $o)
-                  <tr>
-                    <td>{{ $o->service_name }}@if ($o->note)<div class="text-secondary small">{{ $o->note }}</div>@endif</td>
-                    <td>{{ $o->surgeon_name }} {{ $o->operating_room ? '· ' . $o->operating_room : '' }}</td>
-                    <td>{{ $o->anesthesia_type ?? '—' }}</td>
-                    <td class="text-end">{{ number_format($o->amount, 0, ',', '.') }}</td>
-                    <td class="text-secondary small">{{ $o->performed_at->format('d-m H:i') }}</td>
-                  </tr>
-                @endforeach
-              </tbody>
-            </table>
-          </div>
-        @endif
-        <div class="card-body {{ $operasi->isNotEmpty() ? 'border-top' : '' }}">
-          <form method="POST" action="{{ route('rme.operasi.simpan', $kunjungan->id) }}" class="row g-2">
-            @csrf
-            <div class="col-6">
-              <select name="service_code" class="form-select form-select-sm" required>
-                <option value="">— pilih tindakan operasi —</option>
-                @foreach ($katalogOperasi as $layanan)
-                  <option value="{{ $layanan->code }}">{{ $layanan->name }}</option>
-                @endforeach
-              </select>
-              @if ($katalogOperasi->isEmpty())
-                <div class="form-hint text-danger">Belum ada layanan berkategori operasi di Data Master.</div>
-              @endif
-            </div>
-            <div class="col-6"><input type="text" name="surgeon_name" class="form-control form-control-sm" placeholder="Nama operator" required></div>
-            <div class="col-4">
-              <select name="anesthesia_type" class="form-select form-select-sm">
-                <option value="">— Anestesi —</option>
-                <option value="umum">Umum</option>
-                <option value="lokal">Lokal</option>
-                <option value="regional">Regional</option>
-                <option value="tanpa">Tanpa</option>
-              </select>
-            </div>
-            {{-- Dipilih dari master, tidak diketik: laporan RL mengelompokkan
-                 utilisasi kamar operasi berdasarkan nilai ini, jadi dua ejaan
-                 memecah satu ruang jadi dua baris pada laporan wajib. --}}
-            <div class="col-4">
-              <select name="operating_room" class="form-select form-select-sm">
-                <option value="">— Ruang Operasi —</option>
-                @foreach ($ruangOperasi as $r)
-                  <option value="{{ $r->code }}">{{ $r->code }} · {{ $r->name }}</option>
-                @endforeach
-              </select>
-            </div>
-            <div class="col-4"><button class="btn btn-sm btn-outline-primary w-100">Catat</button></div>
-            <div class="col-12"><input type="text" name="note" class="form-control form-control-sm" placeholder="Catatan (opsional)"></div>
-          </form>
-        </div>
-      </div>
-    @endcan
-
-    <form method="POST" action="{{ route('rme.update', $assessment) }}">
-      @csrf
-
-      <div class="card mb-3">
-        <div class="card-header"><h3 class="card-title">Tanda vital</h3></div>
-        <div class="card-body">
-          <div class="row g-3">
+          {{-- Tanda vital dijadikan satu baris seperti acuan: tensi, nadi, suhu --}}
+          <div class="row g-2 mb-3">
             @foreach ($katalogObservasi as $kode => $ukuran)
               <div class="col-6 col-md-4">
-                <label class="form-label" for="vital-{{ $kode }}">{{ $ukuran->display }}</label>
-                <div class="input-group input-group-flat">
+                <label class="form-label small text-uppercase text-secondary" for="vital-{{ $kode }}">
+                  {{ $ukuran->display }}
+                </label>
+                <div class="input-group input-group-flat input-group-sm">
                   <input type="number" step="0.01" id="vital-{{ $kode }}" name="vital[{{ $kode }}]"
-                         class="form-control" placeholder="—">
+                         class="form-control" placeholder="{{ $ukuran->unit }}">
                   <span class="input-group-text">{{ $ukuran->unit }}</span>
                 </div>
                 @if (isset($observasi[$kode]))
                   <div class="form-hint {{ $observasi[$kode]->is_abnormal ? 'text-danger' : '' }}">
-                    Terakhir: {{ rtrim(rtrim($observasi[$kode]->value_numeric, '0'), '.') }} {{ $ukuran->unit }}
+                    Terakhir {{ rtrim(rtrim($observasi[$kode]->value_numeric, '0'), '.') }}
                     @if ($observasi[$kode]->is_abnormal) · di luar rentang @endif
-                  </div>
-                @elseif ($ukuran->reference_low !== null)
-                  <div class="form-hint">
-                    Rujukan {{ rtrim(rtrim($ukuran->reference_low, '0'), '.') }}&ndash;{{ rtrim(rtrim($ukuran->reference_high, '0'), '.') }}
                   </div>
                 @endif
               </div>
             @endforeach
           </div>
-          <div class="form-hint mt-3">
-            Pengukuran bersifat menambah, bukan menimpa. Nilai sebelumnya tetap tersimpan sebagai riwayat tren.
-          </div>
-        </div>
-      </div>
 
-      <div class="card mb-3">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h3 class="card-title">{{ \App\Modules\Clinical\Models\Assessment::kindLabel($assessment->kind) }}</h3>
-          @if ($assessment->isLocked())
-            <span class="text-secondary small">Terkunci · perubahan tercatat sebagai ralat</span>
-          @endif
-        </div>
-        <div class="card-body">
           <div class="mb-3">
-            <label class="form-label" for="chief_complaint">Keluhan utama</label>
-            <input type="text" id="chief_complaint" name="chief_complaint" class="form-control"
-                   value="{{ old('chief_complaint', $assessment->chief_complaint) }}">
+            <label class="form-label text-uppercase small text-secondary" for="objective">Objective</label>
+            <textarea id="objective" name="objective" class="form-control" rows="2"
+                      placeholder="Pemeriksaan fisik...">{{ old('objective', $assessment->objective) }}</textarea>
           </div>
 
-          @php
-            $bagian = [
-              'subjective' => ['S — Subjektif', 'Keluhan, riwayat penyakit, riwayat pengobatan'],
-              'objective'  => ['O — Objektif', 'Hasil pemeriksaan fisik dan penunjang'],
-              'assessment' => ['A — Asesmen', 'Penilaian dan pertimbangan klinis'],
-              'plan'       => ['P — Rencana', 'Tata laksana, edukasi, rencana tindak lanjut'],
-            ];
-          @endphp
-
-          @foreach ($bagian as $nama => [$label, $petunjuk])
-            <div class="mb-3">
-              <label class="form-label" for="{{ $nama }}">{{ $label }}</label>
-              <textarea id="{{ $nama }}" name="{{ $nama }}" class="form-control" rows="3"
-                        placeholder="{{ $petunjuk }}">{{ old($nama, $assessment->$nama) }}</textarea>
+          <div class="row g-2 mb-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label text-uppercase small text-secondary" for="assessment">Assessment</label>
+              <textarea id="assessment" name="assessment" class="form-control" rows="3">{{ old('assessment', $assessment->assessment) }}</textarea>
             </div>
-          @endforeach
+            <div class="col-12 col-md-6">
+              <label class="form-label text-uppercase small text-secondary" for="plan">Plan / RTL</label>
+              <textarea id="plan" name="plan" class="form-control" rows="3">{{ old('plan', $assessment->plan) }}</textarea>
+            </div>
+          </div>
 
           @if ($assessment->isLocked())
-            <div class="mb-0">
+            <div class="mb-3">
               <label class="form-label required" for="alasan_ralat">Alasan ralat</label>
               <input type="text" id="alasan_ralat" name="alasan_ralat" class="form-control"
                      placeholder="Wajib diisi untuk mengubah catatan yang sudah difinalkan">
@@ -375,194 +198,449 @@
             </div>
           @endif
         </div>
-        <div class="card-footer d-flex justify-content-end gap-2">
-          <button type="submit" class="btn btn-primary">Simpan Catatan</button>
+
+        <div class="card-footer d-flex justify-content-end">
+          <button type="submit" class="btn btn-primary">
+            💾 Simpan SOAP {{ $subTab[$jenisAktif]['label'] ?? '' }}
+          </button>
         </div>
-      </div>
-    </form>
+      </form>
 
-    {{-- Diagnosis --}}
-    <div class="card mb-3">
-      <div class="card-header"><h3 class="card-title">Diagnosis</h3></div>
-
-      <div class="table-responsive">
-        <table class="table table-vcenter card-table">
-          <thead>
-            <tr><th>Kode</th><th>Diagnosis</th><th>Peringkat</th><th>Kepastian</th><th class="w-1"></th></tr>
-          </thead>
-          <tbody>
-            @forelse ($diagnosis as $d)
-              <tr>
-                <td class="font-monospace">{{ $d->code }}</td>
-                <td>{{ $d->display }}</td>
-                <td>
-                  <span class="badge bg-{{ $d->rank === 'utama' ? 'blue' : 'secondary' }}-lt">{{ $d->rank }}</span>
-                </td>
-                <td class="text-secondary">{{ $d->certainty }}</td>
-                <td>
-                  <form method="POST" action="{{ route('rme.diagnosis.hapus', $d) }}">
-                    @csrf @method('DELETE')
-                    <button class="btn btn-sm btn-ghost-danger">Hapus</button>
-                  </form>
-                </td>
-              </tr>
-            @empty
-              <tr><td colspan="5" class="text-secondary text-center py-3">Belum ada diagnosis dicatat.</td></tr>
-            @endforelse
-          </tbody>
-        </table>
-      </div>
-
+      {{-- ICD-10 + Order penunjang: form TERPISAH dari SOAP di atas, karena
+           form bersarang tidak sah di HTML dan tombolnya akan diam saja. --}}
       <div class="card-body border-top">
-        <form method="POST" action="{{ route('rme.diagnosis.simpan', $assessment) }}" class="row g-2 align-items-end">
+        <form method="POST" action="{{ route('rme.diagnosis.simpan', $assessment) }}" class="row g-2 align-items-end mb-2">
           @csrf
-          <div class="col-12 col-md-5">
-            <label class="form-label" for="kode-diagnosis">Kode ICD-10</label>
-            <input type="text" id="kode-diagnosis" name="code" class="form-control" list="daftar-icd"
-                   placeholder="Ketik kode atau nama diagnosis" autocomplete="off" required>
+          <div class="col-12 col-md-6">
+            <label class="form-label small text-uppercase text-secondary" for="kode-diagnosis">ICD-10</label>
+            <input type="text" id="kode-diagnosis" name="code" class="form-control form-control-sm" list="daftar-icd"
+                   placeholder="Cari kode diagnosa..." autocomplete="off" required>
             <datalist id="daftar-icd"></datalist>
           </div>
           <div class="col-6 col-md-3">
-            <label class="form-label" for="rank">Peringkat</label>
-            <select id="rank" name="rank" class="form-select">
+            <select name="rank" class="form-select form-select-sm" aria-label="Peringkat diagnosis">
               <option value="utama">Utama</option>
               <option value="sekunder" selected>Sekunder</option>
               <option value="komplikasi">Komplikasi</option>
             </select>
           </div>
-          <div class="col-6 col-md-2">
-            <label class="form-label" for="certainty">Kepastian</label>
-            <select id="certainty" name="certainty" class="form-select">
-              <option value="suspek">Suspek</option>
-              <option value="kerja" selected>Kerja</option>
-              <option value="definitif">Definitif</option>
-            </select>
-          </div>
-          <div class="col-12 col-md-2">
-            <button class="btn btn-outline-primary w-100">Tambah</button>
+          <div class="col-6 col-md-3">
+            <button class="btn btn-sm btn-outline-primary w-100">+ Diagnosa</button>
           </div>
         </form>
+
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <span class="small text-uppercase text-secondary">Order penunjang:</span>
+
+          @include('clinical::records._tombol-order', [
+            'hak' => 'resep_obat',
+            'label' => '💊 Resep',
+            'warna' => 'danger',
+            'aksi' => route('resep.buat', $assessment->registration_id),
+            'alasanTidakBisa' => null,
+          ])
+
+          @include('clinical::records._tombol-order', [
+            'hak' => 'periksa_lab',
+            'label' => '🔬 Lab',
+            'warna' => 'primary',
+            'aksi' => route('order.buat', ['lab', $assessment->registration_id]),
+            'alasanTidakBisa' => null,
+          ])
+
+          @include('clinical::records._tombol-order', [
+            'hak' => 'periksa_radiologi',
+            'label' => '📡 Radiologi',
+            'warna' => 'warning',
+            'aksi' => route('order.buat', ['radiologi', $assessment->registration_id]),
+            'alasanTidakBisa' => null,
+          ])
+
+          @include('clinical::records._tombol-order', [
+            'hak' => 'pemeriksaan_lab_pa',
+            'label' => '🧫 PA',
+            'warna' => 'indigo',
+            'aksi' => route('order.buat', ['pa', $assessment->registration_id]),
+            'alasanTidakBisa' => null,
+          ])
+        </div>
+        <div class="form-hint mt-2">
+          Membuka order kosong untuk kunjungan ini lalu membawa Anda ke layar order,
+          tempat pemeriksaan dipilih. Order yang sudah terbuka akan dilanjutkan, bukan digandakan.
+        </div>
       </div>
     </div>
 
-    {{-- Riwayat ralat --}}
-    @if ($revisi->isNotEmpty())
-      <div class="card">
-        <div class="card-header"><h3 class="card-title">Riwayat ralat catatan</h3></div>
-        <div class="list-group list-group-flush">
-          @foreach ($revisi as $r)
-            <div class="list-group-item">
-              <div class="d-flex justify-content-between">
-                <strong>Versi {{ $r->version }}</strong>
-                <span class="text-secondary small">
-                  {{ $r->revised_at->format('d-m-Y H:i') }} · {{ $r->revised_by_name ?? 'sistem' }}
-                </span>
+    {{-- ===================== TAB RIWAYAT ===================== --}}
+    <div class="card">
+      <div class="card-header p-0">
+        <ul class="nav nav-tabs" data-bs-toggle="tabs">
+          <li class="nav-item"><a href="#tab-soap" class="nav-link active" data-bs-toggle="tab">📋 Riwayat SOAP</a></li>
+          <li class="nav-item"><a href="#tab-lab" class="nav-link" data-bs-toggle="tab">🔬 Laboratorium</a></li>
+          <li class="nav-item"><a href="#tab-rad" class="nav-link" data-bs-toggle="tab">📡 Radiologi</a></li>
+          <li class="nav-item"><a href="#tab-resep" class="nav-link" data-bs-toggle="tab">💊 History Resep</a></li>
+          <li class="nav-item"><a href="#tab-tindakan" class="nav-link" data-bs-toggle="tab">🩹 Tindakan</a></li>
+        </ul>
+      </div>
+
+      <div class="card-body rme-scroll">
+        <div class="tab-content">
+
+          {{-- Riwayat SOAP --}}
+          <div class="tab-pane active show" id="tab-soap">
+            @forelse ($ringkasanJenis as $kind => $r)
+              <div class="border-bottom pb-2 mb-2">
+                <div class="d-flex justify-content-between">
+                  <strong class="text-primary">{{ Assessment::kindLabel($kind) }}</strong>
+                  <span class="badge bg-{{ $r->status === 'draft' ? 'yellow' : 'green' }}-lt">{{ $r->status }}</span>
+                </div>
+                <div class="text-secondary small">
+                  {{ $r->practitioner_name ?? '—' }} ·
+                  {{ $r->recorded_at ? \Carbon\Carbon::parse($r->recorded_at)->format('d-m-Y H:i') : '—' }}
+                </div>
               </div>
-              <div class="text-secondary small mt-1">Alasan: {{ $r->reason }}</div>
+            @empty
+              <div class="text-secondary small">Belum ada catatan pada kunjungan ini.</div>
+            @endforelse
+
+            @if ($revisi->isNotEmpty())
+              <div class="mt-3">
+                <div class="small text-uppercase text-secondary mb-1">Riwayat ralat</div>
+                @foreach ($revisi as $r)
+                  <div class="small border-start border-2 ps-2 mb-1">
+                    Versi {{ $r->version }} · {{ $r->revised_at->format('d-m-Y H:i') }} ·
+                    {{ $r->revised_by_name ?? 'sistem' }}
+                    <div class="text-secondary">Alasan: {{ $r->reason }}</div>
+                  </div>
+                @endforeach
+              </div>
+            @endif
+
+            <div class="mt-3">
+              <div class="small text-uppercase text-secondary mb-1">Kunjungan sebelumnya</div>
+              @forelse ($riwayat as $r)
+                <div class="d-flex justify-content-between small border-bottom py-1">
+                  <a href="{{ route('rme.edit', $r->id) }}">{{ \Carbon\Carbon::parse($r->service_date)->format('d-m-Y') }}</a>
+                  <span class="text-secondary">{{ $r->unit_name }}</span>
+                </div>
+              @empty
+                <div class="text-secondary small">Belum ada riwayat kunjungan lain.</div>
+              @endforelse
             </div>
-          @endforeach
+          </div>
+
+          {{-- Laboratorium --}}
+          <div class="tab-pane" id="tab-lab">
+            @include('clinical::records._daftar-hasil', ['pesanan' => $pesananLab, 'hasil' => $hasilLab, 'kosong' => 'Belum ada permintaan atau hasil lab.'])
+          </div>
+
+          {{-- Radiologi --}}
+          <div class="tab-pane" id="tab-rad">
+            @include('clinical::records._daftar-hasil', ['pesanan' => $pesananRadiologi, 'hasil' => $hasilRadiologi, 'kosong' => 'Belum ada data radiologi.'])
+          </div>
+
+          {{-- History Resep --}}
+          <div class="tab-pane" id="tab-resep">
+            @forelse ($resepBaris as $b)
+              <div class="border-bottom py-2">
+                <div class="d-flex justify-content-between">
+                  <strong>{{ $b->drug_name }}</strong>
+                  <span class="text-secondary small">{{ $b->prescribed_quantity }} {{ $b->drug_unit }}</span>
+                </div>
+                <div class="small text-secondary">
+                  {{ $b->dosage_instruction ?? '—' }} ·
+                  <a href="{{ route('resep.show', $b->prescription_id) }}">{{ $b->prescription_number }}</a>
+                  · {{ $b->status }}
+                </div>
+                @if ($b->is_narcotic || $b->is_psychotropic || $b->is_high_alert)
+                  <div class="mt-1">
+                    @if ($b->is_narcotic)<span class="badge bg-red-lt">Narkotika</span>@endif
+                    @if ($b->is_psychotropic)<span class="badge bg-orange-lt">Psikotropika</span>@endif
+                    @if ($b->is_high_alert)<span class="badge bg-yellow-lt">High alert</span>@endif
+                  </div>
+                @endif
+              </div>
+            @empty
+              <div class="text-secondary small">Belum ada resep obat.</div>
+            @endforelse
+          </div>
+
+          {{-- Tindakan & operasi --}}
+          <div class="tab-pane" id="tab-tindakan">
+            @include('clinical::records._tindakan')
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- ======================== KOLOM KANAN — PANEL BACA ======================== --}}
+  <div class="col-12 col-xl-7">
+
+    {{-- Skrining awal: ditaruh paling atas kolom kanan karena ia PRASYARAT
+         pemeriksaan, bukan hasilnya. --}}
+    <div class="card mb-3">
+      <div class="card-header"><h3 class="card-title">Skrining Awal</h3></div>
+      @if ($skrining)
+        <div class="card-body py-2">
+          <div class="row g-2">
+            @php $warnaJatuh = ['rendah' => 'green', 'sedang' => 'yellow', 'tinggi' => 'red'][$skrining->fall_risk_level]; @endphp
+            <div class="col-6 col-md-3">
+              <div class="text-secondary small">Risiko Jatuh</div>
+              <span class="badge bg-{{ $warnaJatuh }}-lt text-uppercase">{{ $skrining->fall_risk_level }}</span>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-secondary small">Skala Nyeri</div>
+              <span class="badge {{ $skrining->pain_score >= 4 ? 'bg-red-lt' : 'bg-secondary-lt' }}">{{ $skrining->pain_score }}/10</span>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-secondary small">Risiko Gizi</div>
+              <span class="badge {{ $skrining->nutrition_at_risk ? 'bg-red-lt' : 'bg-green-lt' }}">{{ $skrining->nutrition_at_risk ? 'Berisiko' : 'Tidak' }}</span>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-secondary small">Gejala Menular</div>
+              <span class="badge {{ $skrining->infectious_symptom ? 'bg-red-lt' : 'bg-green-lt' }}">{{ $skrining->infectious_symptom ? 'Ada' : 'Tidak' }}</span>
+            </div>
+
+            {{--
+              KEBUTUHAN KHUSUS HARUS IKUT TERBACA, bukan hanya keempat
+              skor di atas. "Membutuhkan penerjemah bahasa isyarat" atau
+              "pendamping disabilitas" menentukan cara pemeriksaan
+              dijalankan — dan skrining yang mencatatnya lalu tidak
+              menampilkannya sama saja dengan tidak mencatatnya.
+            --}}
+            @if ($skrining->special_needs)
+              <div class="col-12">
+                <div class="text-secondary small">Kebutuhan Khusus</div>
+                <div class="fw-semibold">{{ $skrining->special_needs }}</div>
+              </div>
+            @endif
+          </div>
+          <div class="form-hint mt-2">
+            Dicatat {{ $skrining->screened_by_name ?? 'petugas' }}, {{ $skrining->screened_at->format('d-m-Y H:i') }}.
+          </div>
+        </div>
+      @else
+        <div class="card-body py-2">
+          <form method="POST" action="{{ route('rme.skrining.simpan', $kunjungan->id) }}" class="row g-2">
+            @csrf
+            <div class="col-6 col-md-3">
+              <label class="form-label small">Risiko Jatuh</label>
+              <select name="fall_risk_level" class="form-select form-select-sm" required>
+                <option value="rendah">Rendah</option>
+                <option value="sedang">Sedang</option>
+                <option value="tinggi">Tinggi</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small">Nyeri (0-10)</label>
+              <input type="number" name="pain_score" class="form-control form-control-sm" min="0" max="10" value="0" required>
+            </div>
+            <div class="col-6 col-md-3 d-flex align-items-end">
+              <label class="form-check">
+                <input type="checkbox" name="nutrition_at_risk" value="1" class="form-check-input">
+                <span class="form-check-label small">Risiko gizi</span>
+              </label>
+            </div>
+            <div class="col-6 col-md-3 d-flex align-items-end">
+              <label class="form-check">
+                <input type="checkbox" name="infectious_symptom" value="1" class="form-check-input">
+                <span class="form-check-label small">Gejala menular</span>
+              </label>
+            </div>
+            <div class="col-12">
+              <input type="text" name="special_needs" class="form-control form-control-sm"
+                     placeholder="Kebutuhan khusus (opsional): penerjemah, disabilitas, dsb.">
+            </div>
+            <div class="col-12">
+              <button class="btn btn-sm btn-outline-primary w-100">Catat Skrining</button>
+            </div>
+          </form>
+        </div>
+      @endif
+    </div>
+
+    {{-- TOTAL INVOICE --}}
+    <div class="card rme-invoice mb-3">
+      <div class="card-body py-3">
+        <div class="small text-uppercase" style="color:rgba(255,255,255,.6)">Total Invoice</div>
+        @if ($totalTagihan === null)
+          <div class="h2 mb-0">Belum ada tagihan</div>
+          <div class="small" style="color:rgba(255,255,255,.6)">
+            Belum ada satu pun biaya tercatat pada kunjungan ini — berbeda dari Rp 0,
+            yang berarti pelayanannya memang gratis.
+          </div>
+        @else
+          <div class="h1 mb-0 text-warning">{{ $rp($totalTagihan) }}</div>
+          <div class="small" style="color:rgba(255,255,255,.6)">
+            {{ $rincianTagihan->count() }} baris biaya · tersinkron dari tindakan, obat, dan penunjang
+          </div>
+        @endif
+      </div>
+    </div>
+
+    {{-- LABORATORY --}}
+    <div class="card rme-panel-lab mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">🔬 LABORATORY</h3>
+        <span class="badge bg-secondary">{{ $jumlahPesanan['lab'] }}</span>
+      </div>
+      <div class="card-body">
+        @include('clinical::records._daftar-hasil', ['pesanan' => $pesananLab, 'hasil' => $hasilLab, 'kosong' => 'Belum ada permintaan atau hasil lab.'])
+      </div>
+    </div>
+
+    {{-- RADIOLOGY --}}
+    <div class="card rme-panel-rad mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">📡 RADIOLOGY</h3>
+        <span class="badge bg-secondary">{{ $jumlahPesanan['radiologi'] }}</span>
+      </div>
+      <div class="card-body">
+        @include('clinical::records._daftar-hasil', ['pesanan' => $pesananRadiologi, 'hasil' => $hasilRadiologi, 'kosong' => 'Belum ada data radiologi.'])
+      </div>
+    </div>
+
+    {{-- PATOLOGI ANATOMI --}}
+    @if ($jumlahPesanan['pa'] > 0)
+      <div class="card rme-panel-pa mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h3 class="card-title mb-0">🧫 PATOLOGI ANATOMI</h3>
+          <span class="badge bg-secondary">{{ $jumlahPesanan['pa'] }}</span>
+        </div>
+        <div class="card-body">
+          @include('clinical::records._daftar-hasil', ['pesanan' => $pesananPa, 'hasil' => $hasilPa, 'kosong' => 'Belum ada data PA.'])
         </div>
       </div>
     @endif
+
+    {{-- PRESCRIPTION --}}
+    <div class="card rme-panel-resep mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">💊 PRESCRIPTION (E-RESEP)</h3>
+        <span class="badge bg-secondary">{{ $resepBaris->count() }}</span>
+      </div>
+      <div class="card-body">
+        @forelse ($resepBaris as $b)
+          <div class="d-flex justify-content-between border-bottom py-2">
+            <div>
+              <strong>{{ $b->drug_name }}</strong>
+              <div class="text-secondary small">{{ $b->dosage_instruction ?? '—' }}</div>
+            </div>
+            <div class="text-end">
+              <div>{{ rtrim(rtrim((string) $b->prescribed_quantity, '0'), '.') }} {{ $b->drug_unit }}</div>
+              <a class="small" href="{{ route('resep.show', $b->prescription_id) }}">{{ $b->prescription_number }}</a>
+            </div>
+          </div>
+        @empty
+          <div class="text-secondary text-center py-3"><em>Belum ada resep obat.</em></div>
+        @endforelse
+      </div>
+    </div>
+
+    {{-- DIAGNOSIS --}}
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">Diagnosis</h3>
+        <span class="badge bg-secondary">{{ $diagnosis->count() }}</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-vcenter card-table mb-0">
+          <thead><tr><th>Kode</th><th>Diagnosis</th><th>Peringkat</th><th class="w-1"></th></tr></thead>
+          <tbody>
+            @forelse ($diagnosis as $d)
+              <tr>
+                <td class="font-monospace">{{ $d->code }}</td>
+                <td>{{ $d->display }}</td>
+                <td><span class="badge bg-{{ $d->rank === 'utama' ? 'blue' : 'secondary' }}-lt">{{ $d->rank }}</span></td>
+                <td>
+                  <form method="POST" action="{{ route('rme.diagnosis.hapus', $d) }}">
+                    @csrf @method('DELETE')
+                    <button class="btn btn-sm btn-ghost-danger">×</button>
+                  </form>
+                </td>
+              </tr>
+            @empty
+              <tr><td colspan="4" class="text-secondary text-center py-3">Belum ada diagnosis dicatat.</td></tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {{-- FINALKAN --}}
+    @unless ($assessment->isLocked())
+      <form method="POST" action="{{ route('rme.finalkan', $assessment) }}">
+        @csrf
+        <div class="card">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <strong>Finalkan asesmen</strong>
+              <div class="text-secondary small">
+                Setelah difinalkan, catatan terkunci. Perubahan berikutnya wajib menyertakan
+                alasan dan tersimpan sebagai versi baru.
+              </div>
+            </div>
+            <button class="btn btn-success">Finalkan</button>
+          </div>
+        </div>
+      </form>
+    @endunless
   </div>
 </div>
 
-{{-- Resep --}}
-@can('resep_obat')
-  <div class="card mt-3">
-    <div class="card-body d-flex justify-content-between align-items-center">
-      <div>
-        <strong>Resep obat</strong>
-        <div class="text-secondary small">
-          Membuka resep untuk kunjungan ini, atau melanjutkan resep yang sudah ditulis. Resep pulang
-          (resep_pulang) terpisah dari resep rawat jalan — dipakai menjelang pasien pulang, mis. dari ranap.
-        </div>
+{{-- ============================== MODAL ALERGI ============================== --}}
+<div class="modal fade" id="modal-alergi" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Alergi pasien</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="d-flex gap-2">
-        <form method="POST" action="{{ route('resep.buat', $assessment->registration_id) }}">
+      <div class="modal-body">
+        @forelse ($alergi as $a)
+          <div class="border-bottom py-2">
+            <span class="badge bg-red">{{ $a->substance }}</span>
+            <span class="text-secondary small">
+              {{ $a->severity }}@if ($a->reaction) · {{ $a->reaction }}@endif
+            </span>
+          </div>
+        @empty
+          <div class="text-secondary">Belum ada alergi tercatat untuk pasien ini.</div>
+        @endforelse
+
+        <form method="POST" action="{{ route('rme.alergi.simpan', $assessment) }}" class="row g-2 mt-3">
           @csrf
-          <button class="btn btn-outline-primary">Tulis Resep</button>
-        </form>
-        <form method="POST" action="{{ route('resep.buat', $assessment->registration_id) }}">
-          @csrf
-          <input type="hidden" name="kind" value="pulang">
-          <button class="btn btn-outline-secondary">Resep Pulang</button>
+          <div class="col-12">
+            <input type="text" name="substance" class="form-control form-control-sm"
+                   placeholder="Zat penyebab, mis. Amoksisilin" required>
+          </div>
+          <div class="col-6">
+            <select name="category" class="form-select form-select-sm" aria-label="Kategori alergi">
+              <option value="obat">Obat</option>
+              <option value="makanan">Makanan</option>
+              <option value="lingkungan">Lingkungan</option>
+              <option value="lainnya">Lainnya</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <select name="severity" class="form-select form-select-sm" aria-label="Derajat alergi">
+              <option value="ringan">Ringan</option>
+              <option value="sedang" selected>Sedang</option>
+              <option value="berat">Berat</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <input type="text" name="reaction" class="form-control form-control-sm" placeholder="Reaksi, mis. ruam">
+          </div>
+          <div class="col-12">
+            <button class="btn btn-sm btn-danger w-100">Catat Alergi</button>
+          </div>
         </form>
       </div>
     </div>
   </div>
-@endcan
-
-{{-- Order penunjang --}}
-<div class="row g-3 mt-0">
-  @can('periksa_lab')
-    <div class="col-12 col-md-4">
-      <div class="card h-100">
-        <div class="card-body d-flex justify-content-between align-items-center">
-          <div>
-            <strong>Laboratorium</strong>
-            <div class="text-secondary small">Buka atau lanjutkan order lab kunjungan ini.</div>
-          </div>
-          <form method="POST" action="{{ route('order.buat', ['lab', $assessment->registration_id]) }}">
-            @csrf
-            <button class="btn btn-outline-primary btn-sm">Order Lab</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  @endcan
-  @can('periksa_radiologi')
-    <div class="col-12 col-md-4">
-      <div class="card h-100">
-        <div class="card-body d-flex justify-content-between align-items-center">
-          <div>
-            <strong>Radiologi</strong>
-            <div class="text-secondary small">Buka atau lanjutkan order radiologi kunjungan ini.</div>
-          </div>
-          <form method="POST" action="{{ route('order.buat', ['radiologi', $assessment->registration_id]) }}">
-            @csrf
-            <button class="btn btn-outline-primary btn-sm">Order Radiologi</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  @endcan
-  @can('pemeriksaan_lab_pa')
-    <div class="col-12 col-md-4">
-      <div class="card h-100">
-        <div class="card-body d-flex justify-content-between align-items-center">
-          <div>
-            <strong>Patologi Anatomi</strong>
-            <div class="text-secondary small">Buka atau lanjutkan order PA kunjungan ini.</div>
-          </div>
-          <form method="POST" action="{{ route('order.buat', ['pa', $assessment->registration_id]) }}">
-            @csrf
-            <button class="btn btn-outline-primary btn-sm">Order PA</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  @endcan
 </div>
-
-{{-- Finalkan --}}
-@unless ($assessment->isLocked())
-  <form method="POST" action="{{ route('rme.finalkan', $assessment) }}" class="mt-3">
-    @csrf
-    <div class="card">
-      <div class="card-body d-flex justify-content-between align-items-center">
-        <div>
-          <strong>Finalkan asesmen</strong>
-          <div class="text-secondary small">
-            Setelah difinalkan, catatan terkunci. Perubahan berikutnya wajib menyertakan alasan
-            dan tersimpan sebagai versi baru.
-          </div>
-        </div>
-        <button class="btn btn-success">Finalkan</button>
-      </div>
-    </div>
-  </form>
-@endunless
 
 @push('scripts')
 <script>

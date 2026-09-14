@@ -9,6 +9,8 @@
     .kop { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
     .kop h1 { font-size: 14pt; margin: 0; }
     .kop p { margin: 2px 0; font-size: 10pt; }
+    /* Logo kop: dicetak hitam-putih pun tetap terbaca karena ukurannya cukup. */
+    .kop img { height: 52px; width: auto; margin-bottom: 6px; }
     h2.judul { text-align: center; text-decoration: underline; font-size: 13pt; margin: 20px 0; }
     table.data { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
     table.data td { padding: 4px 8px; vertical-align: top; }
@@ -24,7 +26,13 @@
 <body>
   <div class="no-print"><button onclick="window.print()">Cetak</button></div>
 
+  {{--
+    Logo pada kop surat. Dokumen yang keluar dari rumah sakit — surat
+    keterangan, resep, PO — dibaca pihak luar, dan kop tanpa logo membuat
+    keasliannya sulit dipastikan penerima.
+  --}}
   <div class="kop">
+    <img src="{{ asset('img/logo-rsui.png') }}" alt="Logo RS UI">
     <h1>RSP UI</h1>
     <p>Rumah Sakit Pendidikan Universitas Indonesia</p>
   </div>

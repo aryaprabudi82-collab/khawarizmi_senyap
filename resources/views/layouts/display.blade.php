@@ -13,6 +13,8 @@
 
   <title>@yield('title', 'Antrean') &middot; SIMRS RSP UI</title>
 
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
+
   <style>
     :root { color-scheme: light; }
     * { box-sizing: border-box; }

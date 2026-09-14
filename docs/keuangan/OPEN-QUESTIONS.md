@@ -215,6 +215,45 @@ serta-merta untuk seluruh hari rawat yang sedang berjalan?
 `$tanggal` dan sengaja belum memakainya, supaya kontraknya tidak perlu berubah saat
 jawabannya datang.
 
+### Q15 — Catatan mahasiswa belum punya tempatnya sendiri
+
+**Ditemukan 2026-09-14 saat membangun sub-tab DPJP/PPA/Student di layar RME.**
+
+Layar pemeriksaan kini punya tiga sub-tab seperti yang diminta. Dua di antaranya
+berpadanan wajar dengan `kind` yang sudah ada di `clinical.assessments`:
+
+| Sub-tab | `kind` | Padanannya |
+|---|---|---|
+| DPJP | `soap-dokter` | tepat |
+| PPA | `asesmen-awal-keperawatan` | tepat — perawat, gizi, fisioterapi |
+| **Student** | `asesmen-lanjutan` | **tidak tepat** |
+
+`clinical.assessments` dibatasi CHECK ke tiga nilai itu saja, dan tidak satu pun
+berarti "catatan mahasiswa". Memakai `asesmen-lanjutan` berarti **catatan mahasiswa
+dan asesmen lanjutan dokter tersimpan di baris yang sama** — dan itu keliru secara
+rekam medis: catatan mahasiswa wajib dapat dibedakan dari catatan DPJP, dan pada
+umumnya wajib diverifikasi DPJP sebelum dianggap sah.
+
+Akibat bila dibiarkan: pada penelusuran audit, tidak ada cara membedakan mana yang
+ditulis mahasiswa dan mana yang ditulis dokter penanggung jawab, kecuali menebak
+dari `practitioner_name`.
+
+**Pertanyaan:** apakah RSP UI memerlukan jenis catatan tersendiri untuk mahasiswa?
+Bila ya:
+
+- perlu nilai `kind` baru (mis. `catatan-mahasiswa`) — ini **migrasi yang mengubah
+  CHECK pada tabel rekam medis**, jadi menunggu keputusan Anda, bukan saya;
+- perlu diputuskan apakah catatan mahasiswa **wajib diverifikasi DPJP** sebelum
+  masuk rekam medis resmi, dan siapa yang boleh memverifikasi;
+- perlu hak akses tersendiri (sekarang sub-tab Student memakai
+  `penilaian_awal_medis_ralan`, yaitu hak yang sama dengan DPJP — artinya
+  **siapa pun yang bisa menulis sebagai DPJP juga bisa menulis sebagai Student**,
+  dan sebaliknya).
+
+**Sementara menunggu jawaban:** sub-tab Student tetap dibangun agar tata letaknya
+sesuai permintaan, tetapi keterbatasan di atas tidak disembunyikan — dicatat di sini
+dan di komentar `records/edit.blade.php`.
+
 ---
 
 ## D. Catatan Risiko yang Perlu Keputusan (bukan pertanyaan bisnis)

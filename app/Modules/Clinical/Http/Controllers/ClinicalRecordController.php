@@ -8,7 +8,11 @@ use App\Modules\Clinical\Models\Diagnosis;
 use App\Modules\Clinical\Models\DiagnosisCode;
 use App\Modules\Clinical\Services\ClinicalException;
 use App\Modules\Clinical\Services\ClinicalRecordService;
+use App\Modules\Clinical\Services\EncounterChargeContext;
+use App\Modules\Clinical\Services\EncounterPrescriptionContext;
+use App\Modules\Clinical\Services\EncounterResultContext;
 use App\Modules\Clinical\Services\ObservationCatalogContext;
+use App\Modules\Clinical\Services\PatientIdentityContext;
 use App\Modules\Clinical\Services\RegistrationContext;
 use App\Modules\Organization\Services\OrganizationDirectory;
 use Carbon\CarbonImmutable;
@@ -24,6 +28,10 @@ class ClinicalRecordController
         private readonly OrganizationDirectory $organization,
         private readonly TariffLookup $tariffs,
         private readonly ObservationCatalogContext $observationCatalog,
+        private readonly EncounterResultContext $hasilPenunjang,
+        private readonly EncounterPrescriptionContext $resepKunjungan,
+        private readonly EncounterChargeContext $biayaKunjungan,
+        private readonly PatientIdentityContext $identitasPasien,
     ) {}
 
     /** Daftar pasien yang menunggu diperiksa. */
@@ -65,9 +73,46 @@ class ClinicalRecordController
             return redirect()->route('rme.index')->with('galat', $e->getMessage());
         }
 
+        $kunjungan = $this->registrations->find($registrasi);
+        $pasien = $this->identitasPasien->find($assessment->patient_id);
+
+        /*
+         * SUB-TAB DPJP / PPA / STUDENT.
+         *
+         * Ketiganya asesmen dengan `kind` berbeda pada kunjungan yang sama,
+         * dipilih lewat ?jenis= yang memang sudah didukung. Yang dikirim ke
+         * view adalah RINGKASAN tiap jenis — apakah sudah ada isinya dan
+         * siapa pencatatnya — supaya pemeriksa bisa melihat sekilas bahwa
+         * perawat sudah mengisi bagiannya, tanpa harus membuka tabnya.
+         */
+        $ringkasanJenis = Assessment::query()
+            ->where('registration_id', $registrasi)
+            ->get(['kind', 'status', 'practitioner_name', 'recorded_at'])
+            ->keyBy('kind');
+
         return view('clinical::records.edit', [
             'assessment' => $assessment,
-            'kunjungan' => $this->registrations->find($registrasi),
+            'kunjungan' => $kunjungan,
+            'pasien' => $pasien,
+            'jenisAktif' => $kind,
+            'ringkasanJenis' => $ringkasanJenis,
+            'umurPasien' => $this->identitasPasien->umur($pasien->birth_date ?? null),
+            'alamatPasien' => $this->identitasPasien->alamatRingkas($pasien),
+
+            // Panel kanan — data yang sebelumnya TIDAK BISA dilihat sama
+            // sekali dari layar ini, sehingga dokter harus berpindah layar
+            // untuk membaca hasil pemeriksaan yang ia minta sendiri.
+            'pesananLab' => $this->hasilPenunjang->pesanan($registrasi, EncounterResultContext::KATEGORI_LAB),
+            'hasilLab' => $this->hasilPenunjang->hasil($registrasi, EncounterResultContext::KATEGORI_LAB),
+            'pesananRadiologi' => $this->hasilPenunjang->pesanan($registrasi, EncounterResultContext::KATEGORI_RADIOLOGI),
+            'hasilRadiologi' => $this->hasilPenunjang->hasil($registrasi, EncounterResultContext::KATEGORI_RADIOLOGI),
+            'pesananPa' => $this->hasilPenunjang->pesanan($registrasi, EncounterResultContext::KATEGORI_PA),
+            'hasilPa' => $this->hasilPenunjang->hasil($registrasi, EncounterResultContext::KATEGORI_PA),
+            'jumlahPesanan' => $this->hasilPenunjang->jumlahPesanan($registrasi),
+            'resepBaris' => $this->resepKunjungan->baris($registrasi),
+            'totalTagihan' => $this->biayaKunjungan->total($registrasi),
+            'rincianTagihan' => $this->biayaKunjungan->rincian($registrasi),
+
             'observasi' => $this->records->latestObservations($registrasi),
             // Layar pemeriksaan rawat jalan cuma mengukur tanda vital dan
             // antropometri — setelan ventilator di sini bukan cuma
