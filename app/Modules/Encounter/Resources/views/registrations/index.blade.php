@@ -2,7 +2,9 @@
 
 @section('title', 'Pendaftaran Rawat Jalan')
 @section('breadcrumb', 'Modul A · Registrasi dan Pelayanan')
-@section('heading', 'Papan Antrean ' . $tanggal->translatedFormat('l, d F Y'))
+@section('heading', $dari->equalTo($sampai)
+    ? 'Papan Antrean ' . $dari->translatedFormat('l, d F Y')
+    : 'Papan Antrean ' . $dari->translatedFormat('d F Y') . ' s.d. ' . $sampai->translatedFormat('d F Y'))
 
 @section('actions')
   @can('registrasi')
@@ -38,12 +40,17 @@
   <div class="card">
     <div class="card-body border-bottom py-3">
       <form method="GET" class="row g-2 align-items-end">
-        <div class="col-12 col-md-3">
-          <label class="form-label" for="tanggal">Tanggal pelayanan</label>
-          <input type="date" id="tanggal" name="tanggal" class="form-control"
-                 value="{{ $tanggal->toDateString() }}">
+        <div class="col-6 col-md-2">
+          <label class="form-label" for="dari">Tanggal pelayanan</label>
+          <input type="date" id="dari" name="dari" class="form-control"
+                 value="{{ $dari->toDateString() }}">
         </div>
-        <div class="col-12 col-md-4">
+        <div class="col-6 col-md-2">
+          <label class="form-label" for="sampai">s.d.</label>
+          <input type="date" id="sampai" name="sampai" class="form-control"
+                 value="{{ $sampai->toDateString() }}">
+        </div>
+        <div class="col-12 col-md-3">
           <label class="form-label" for="unit_id">Unit layanan</label>
           <select id="unit_id" name="unit_id" class="form-select">
             <option value="">Semua unit</option>
@@ -71,6 +78,15 @@
       <table class="table table-vcenter card-table">
         <thead>
           <tr>
+            {{--
+              Kolom tanggal muncul HANYA saat rentangnya lebih dari sehari.
+              Pada tampilan harian ia mengulang judul halaman di tiap baris
+              tanpa menambah apa pun; pada rentang, tanpa ia tidak ada cara
+              membedakan antrean nomor 1 tanggal 11 dari nomor 1 tanggal 14.
+            --}}
+            @unless ($dari->equalTo($sampai))
+              <th style="width:110px">Tanggal</th>
+            @endunless
             <th style="width:70px" class="text-center">Antrean</th>
             <th>No. Registrasi</th>
             <th>Pasien</th>
@@ -86,6 +102,11 @@
         <tbody>
           @forelse ($antrean as $baris)
             <tr class="{{ $baris->status === 'batal' ? 'opacity-50' : '' }}">
+              @unless ($dari->equalTo($sampai))
+                <td class="text-secondary small">
+                  {{ \Carbon\Carbon::parse($baris->service_date)->translatedFormat('d M Y') }}
+                </td>
+              @endunless
               <td class="text-center queue-number">{{ $baris->queue_number }}</td>
               <td><span class="text-muted font-monospace small">{{ $baris->registration_number }}</span></td>
               <td>
@@ -166,8 +187,12 @@
             </tr>
           @empty
             <tr>
-              <td colspan="10" class="text-center text-secondary py-4">
-                Belum ada pendaftaran pada tanggal ini.
+              {{-- Ikut kolom Tanggal yang muncul-hilang, supaya baris kosong
+                   tidak melenceng dari lebar tabelnya. --}}
+              <td colspan="{{ $dari->equalTo($sampai) ? 10 : 11 }}" class="text-center text-secondary py-4">
+                {{ $dari->equalTo($sampai)
+                    ? 'Belum ada pendaftaran pada tanggal ini.'
+                    : 'Belum ada pendaftaran pada rentang tanggal ini.' }}
               </td>
             </tr>
           @endforelse

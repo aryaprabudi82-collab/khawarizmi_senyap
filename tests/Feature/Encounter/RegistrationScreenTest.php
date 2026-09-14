@@ -132,6 +132,86 @@ class RegistrationScreenTest extends TestCase
     }
 
     /**
+     * Rentang tanggal: pendaftaran di luar rentang tidak ikut tampil.
+     *
+     * Dikunci dari DUA sisi — yang di dalam rentang muncul, yang di luar
+     * tidak. Saringan yang hanya diuji dari sisi "muncul" akan lolos
+     * sempurna meski ia tidak pernah menyaring apa pun.
+     */
+    #[Test]
+    public function papan_antrean_menyaring_menurut_rentang_tanggal(): void
+    {
+        $this->daftarkan('Pasien Hari Ini');
+
+        $kemarin = $this->daftarkan('Pasien Kemarin');
+        $kemarin->forceFill(['service_date' => now()->subDay()->toDateString()])->save();
+
+        $lama = $this->daftarkan('Pasien Pekan Lalu');
+        $lama->forceFill(['service_date' => now()->subDays(7)->toDateString()])->save();
+
+        $this->actingAs($this->petugas)
+            ->get(route('registrasi.index', [
+                'dari' => now()->subDay()->toDateString(),
+                'sampai' => now()->toDateString(),
+            ]))
+            ->assertOk()
+            ->assertSee('Pasien Hari Ini')
+            ->assertSee('Pasien Kemarin')
+            ->assertDontSee('Pasien Pekan Lalu');
+    }
+
+    /**
+     * Tanpa parameter, papan tetap menampilkan HARI INI saja.
+     *
+     * Petugas loket membuka layar ini puluhan kali sehari. Bawaan yang
+     * lebih lebar akan menyodorkan kunjungan kemarin setiap kali — mengubah
+     * kebiasaan yang tidak diminta siapa pun untuk diubah.
+     */
+    #[Test]
+    public function tanpa_parameter_papan_antrean_tetap_menampilkan_hari_ini_saja(): void
+    {
+        $this->daftarkan('Pasien Hari Ini');
+
+        $kemarin = $this->daftarkan('Pasien Kemarin');
+        $kemarin->forceFill(['service_date' => now()->subDay()->toDateString()])->save();
+
+        $this->actingAs($this->petugas)
+            ->get(route('registrasi.index'))
+            ->assertOk()
+            ->assertSee('Pasien Hari Ini')
+            ->assertDontSee('Pasien Kemarin');
+    }
+
+    /** Rentang terbalik dibetulkan, bukan ditolak — maksudnya sudah jelas. */
+    #[Test]
+    public function rentang_tanggal_terbalik_dibetulkan(): void
+    {
+        $kemarin = $this->daftarkan('Pasien Kemarin');
+        $kemarin->forceFill(['service_date' => now()->subDay()->toDateString()])->save();
+
+        $this->actingAs($this->petugas)
+            ->get(route('registrasi.index', [
+                'dari' => now()->toDateString(),
+                'sampai' => now()->subDay()->toDateString(),
+            ]))
+            ->assertOk()
+            ->assertSee('Pasien Kemarin');
+    }
+
+    /** Parameter `tanggal` yang lama tetap dikenali supaya tautan lama tidak mati. */
+    #[Test]
+    public function parameter_tanggal_lama_tetap_bekerja(): void
+    {
+        $kemarin = $this->daftarkan('Pasien Kemarin');
+        $kemarin->forceFill(['service_date' => now()->subDay()->toDateString()])->save();
+
+        $this->actingAs($this->petugas)
+            ->get(route('registrasi.index', ['tanggal' => now()->subDay()->toDateString()]))
+            ->assertOk()
+            ->assertSee('Pasien Kemarin');
+    }
+
+    /**
      * Nama pasien di papan antrean menautkan ke layar pemeriksaan.
      *
      * Sebelumnya ia teks mati, sehingga satu-satunya jalan ke rekam medis

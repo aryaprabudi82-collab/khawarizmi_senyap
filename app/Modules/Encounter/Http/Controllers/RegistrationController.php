@@ -31,20 +31,53 @@ class RegistrationController
      */
     public function index(Request $request): View
     {
-        $tanggal = CarbonImmutable::parse($request->query('tanggal', now()->toDateString()))->startOfDay();
+        /*
+         * RENTANG TANGGAL, dengan bawaan HARI INI DI KEDUA UJUNGNYA.
+         *
+         * Papan antrean dibuka petugas loket puluhan kali sehari untuk
+         * melihat antrean hari ini. Membuat bawaannya rentang yang lebih
+         * lebar akan menyodorkan daftar panjang berisi kunjungan kemarin
+         * setiap kali layar dibuka — memperbaiki satu keperluan sambil
+         * merusak keperluan yang jauh lebih sering.
+         *
+         * `tanggal` tetap dikenali sebagai parameter tunggal supaya tautan
+         * lama tidak mati: layar pendaftaran baru, barcode, dan tautan yang
+         * mungkin sudah disimpan orang semuanya memakainya.
+         */
+        $bawaan = $request->query('tanggal', now()->toDateString());
+
+        $dari = CarbonImmutable::parse($request->query('dari', $bawaan))->startOfDay();
+        $sampai = CarbonImmutable::parse($request->query('sampai', $bawaan))->startOfDay();
+
+        // Rentang terbalik dibetulkan diam-diam, bukan ditolak. Yang salah
+        // isi cuma urutannya, dan pesan galat untuk hal yang maksudnya sudah
+        // jelas hanya menghalangi pekerjaan.
+        if ($sampai->lessThan($dari)) {
+            [$dari, $sampai] = [$sampai, $dari];
+        }
+
         $unitId = $request->integer('unit_id') ?: null;
 
+        $dalamRentang = fn ($q) => $q->whereBetween('service_date', [
+            $dari->toDateString(),
+            $sampai->toDateString(),
+        ]);
+
         $antrean = Registration::query()
-            ->whereDate('service_date', $tanggal->toDateString())
+            ->tap($dalamRentang)
             ->when($unitId, fn ($q) => $q->where('unit_id', $unitId))
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
+            // Tanggal ikut jadi kunci urut sejak rentang bisa lebih dari
+            // sehari: tanpa itu, antrean nomor 1 dari tiga hari berbeda
+            // berderet bersebelahan dan papan jadi tidak bisa dibaca.
+            ->orderBy('service_date')
             ->orderBy('unit_name')
             ->orderBy('queue_number')
             ->paginate(50)
             ->withQueryString();
 
         $ringkasan = Registration::query()
-            ->whereDate('service_date', $tanggal->toDateString())
+            ->tap($dalamRentang)
             ->selectRaw('status, count(*) as jumlah')
             ->groupBy('status')
             ->pluck('jumlah', 'status');
@@ -52,7 +85,11 @@ class RegistrationController
         return view('encounter::registrations.index', [
             'antrean' => $antrean,
             'ringkasan' => $ringkasan,
-            'tanggal' => $tanggal,
+            'dari' => $dari,
+            'sampai' => $sampai,
+            // Dipakai tautan "Pendaftaran Baru" dan tombol barcode, yang
+            // bekerja pada SATU tanggal — ujung awal rentang yang dipakai.
+            'tanggal' => $dari,
             'unitId' => $unitId,
             'units' => $this->organization->activeUnits(),
         ]);
