@@ -39,6 +39,14 @@
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
+        <!--
+        | LDAP dimatikan saat pengujian, dan itu disengaja. Uji yang menghubungi
+        | Active Directory sungguhan akan gagal setiap kali server itu dipelihara
+        | atau jaringan RS terputus — kegagalan yang tidak ada hubungannya dengan
+        | kode yang diubah, dan yang paling cepat mengajari orang mengabaikan
+        | suite merah. Jalur LDAP diuji lewat pemalsuan LdapAuthenticator.
+        -->
+        <env name="LDAP_ENABLED" value="false"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>

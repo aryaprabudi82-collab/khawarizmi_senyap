@@ -93,9 +93,19 @@ class RegistrationScreenTest extends TestCase
             'password' => 'password',
         ]);
 
+        /*
+         * 'login_lokal', bukan 'login'.
+         *
+         * Sejak Active Directory dipasang, jalur masuk dibedakan di jejak
+         * audit: 'login_ldap' untuk yang lewat direktori, 'login_lokal' untuk
+         * yang memakai kata sandi di basis data ini. Pembedaan itu bukan
+         * kerapian — tanpanya tidak ada cara mengetahui akun mana yang masih
+         * memakai kata sandi lokal yang seharusnya sudah pensiun, dan
+         * pertanyaan itu justru yang ditanyakan saat audit keamanan.
+         */
         $this->assertDatabaseHas('platform.audit_logs', [
             'user_id' => $this->petugas->id,
-            'action' => 'login',
+            'action' => 'login_lokal',
         ]);
 
         $this->post(route('keluar'));
