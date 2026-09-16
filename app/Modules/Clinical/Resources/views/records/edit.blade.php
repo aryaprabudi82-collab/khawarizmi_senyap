@@ -65,7 +65,10 @@
         <div class="small" style="color:rgba(255,255,255,.8)">
           <span class="font-monospace">{{ $assessment->patient_mrn }}</span>
           @if ($pasien)
-            &middot; {{ $pasien->sex === 'L' ? 'L' : 'P' }}
+            {{-- Tiga keadaan: L, P, dan BELUM DIKETAHUI. Menampilkan "P" untuk
+                 pasien yang jenis kelaminnya kosong (data warisan HSN) membuat
+                 pemeriksa membaca fakta klinis yang tidak pernah tercatat. --}}
+            &middot; {{ $pasien->sex ?? '—' }}
             &middot; {{ $umurPasien }}
           @endif
         </div>

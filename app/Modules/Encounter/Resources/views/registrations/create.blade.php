@@ -55,7 +55,7 @@
                   <div class="fw-semibold">{{ $kandidat->name }}</div>
                   <div class="small">
                     <span class="font-monospace">{{ $kandidat->medical_record_number }}</span>
-                    · {{ $kandidat->sex === 'L' ? 'Laki-laki' : 'Perempuan' }}
+                    · {{ match ($kandidat->sex) { 'L' => 'Laki-laki', 'P' => 'Perempuan', default => 'Jenis kelamin belum diketahui' } }}
                     @if ($kandidat->birth_date)
                       · {{ $kandidat->birth_date->format('d-m-Y') }}
                     @endif
@@ -101,7 +101,7 @@
               </div>
             </div>
             <div class="col-md-5 text-md-end text-secondary">
-              {{ $pasien->sex === 'L' ? 'Laki-laki' : 'Perempuan' }}
+              {{ match ($pasien->sex) { 'L' => 'Laki-laki', 'P' => 'Perempuan', default => 'Jenis kelamin belum diketahui' } }}
               @if ($pasien->birth_date)
                 <br>{{ $pasien->birth_date->format('d-m-Y') }}
                 ({{ $pasien->ageOn($tanggal)['years'] }} tahun)

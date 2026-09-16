@@ -1,6 +1,16 @@
 *.log
 .DS_Store
 .env
+
+# Ekspor data pasien dari sistem lama — 14 GB CSV berisi PHI NYATA: nama
+# pasien, tanggal lahir, alamat, dan catatan anamnesis klinis sungguhan.
+#
+# TIDAK BOLEH masuk git. Sekali ter-commit, data pasien ada di riwayat
+# repositori selamanya dan ikut tersalin ke setiap klon — termasuk ke laptop
+# siapa pun yang pernah menariknya. Menghapusnya belakangan menuntut menulis
+# ulang seluruh riwayat, dan salinan yang sudah terlanjur tersebar tetap ada.
+/database/HSN
+
 .env.backup
 .env.production
 .phpactor.json

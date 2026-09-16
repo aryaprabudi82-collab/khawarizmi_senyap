@@ -28,7 +28,23 @@ class PatientMapper
             ])),
             'active' => true,
             'name' => [['use' => 'official', 'text' => $patient->name]],
-            'gender' => $patient->sex === 'L' ? 'male' : 'female',
+            /*
+             * TIGA NILAI, BUKAN DUA.
+             *
+             * Sebelumnya `$patient->sex === 'L' ? 'male' : 'female'` — dan sejak
+             * jenis kelamin boleh NULL (data warisan HSN), ungkapan itu mengirim
+             * 110.740 pasien ke SATUSEHAT sebagai PEREMPUAN. Bukan karena ada
+             * yang memutuskan begitu, melainkan karena `else` menampung apa saja
+             * yang bukan 'L'.
+             *
+             * FHIR R4 memang menyediakan 'unknown' untuk keadaan ini, dan itulah
+             * yang jujur: kami tidak tahu, bukan kami menebak perempuan.
+             */
+            'gender' => match ($patient->sex) {
+                'L' => 'male',
+                'P' => 'female',
+                default => 'unknown',
+            },
             'birthDate' => $patient->birth_date,
         ];
 
