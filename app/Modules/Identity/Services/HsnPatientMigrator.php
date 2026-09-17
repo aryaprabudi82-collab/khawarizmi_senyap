@@ -43,6 +43,17 @@ class HsnPatientMigrator
      */
     private const SUFIKS_BUKAN_GENDER = ['AN', 'BY'];
 
+    /**
+     * Karakter escape CSV.
+     *
+     * DIBERIKAN EKSPLISIT sebagai string kosong. PHP 8.4 mendeprekasi
+     * bawaannya ("\\"), tapi bukan peringatan itu yang penting: dengan escape
+     * "\\", sebuah nilai yang berakhir backslash menelan pemisah berikutnya
+     * dan seluruh kolom sesudahnya bergeser satu — nama pasien berakhir di
+     * kolom tanggal tanpa satu pun galat muncul.
+     */
+    private const ESCAPE = '';
+
     public function __construct(private readonly string $berkasAntrian) {}
 
     /**
@@ -61,7 +72,7 @@ class HsnPatientMigrator
     public function pasienUnik(?int $batasBaris = null): Generator
     {
         $berkas = $this->buka();
-        $header = fgetcsv($berkas);
+        $header = fgetcsv($berkas, 0, ',', '"', self::ESCAPE);
 
         if ($header === false) {
             throw new RuntimeException("Berkas kosong: {$this->berkasAntrian}");
@@ -85,7 +96,7 @@ class HsnPatientMigrator
         $pasien = [];
         $dibaca = 0;
 
-        while (($baris = fgetcsv($berkas)) !== false) {
+        while (($baris = fgetcsv($berkas, 0, ',', '"', self::ESCAPE)) !== false) {
             /*
              * Batas diterapkan di sini — pada PEMBACAAN, bukan pada hasil.
              * Membatasi di pemanggil tidak menolong: seluruh berkas sudah
@@ -222,12 +233,12 @@ class HsnPatientMigrator
     public function mrnTertinggi(): int
     {
         $berkas = $this->buka();
-        $header = fgetcsv($berkas);
+        $header = fgetcsv($berkas, 0, ',', '"', self::ESCAPE);
         $iRm = $this->kolom($header, 'RekamMedik');
 
         $maks = 0;
 
-        while (($baris = fgetcsv($berkas)) !== false) {
+        while (($baris = fgetcsv($berkas, 0, ',', '"', self::ESCAPE)) !== false) {
             $rm = trim($baris[$iRm] ?? '');
 
             if ($rm !== '' && ctype_digit($rm)) {
