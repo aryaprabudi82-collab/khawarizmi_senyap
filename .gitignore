@@ -11,6 +11,13 @@
 # ulang seluruh riwayat, dan salinan yang sudah terlanjur tersebar tetap ada.
 /database/HSN
 
+# Ekspor data kepegawaian RSUI — nama, NIP, jabatan, unit kerja, dan
+# demografi pegawai yang sungguhan. Alasannya sama dengan /database/HSN
+# di atas: sekali ter-commit, data pribadi pegawai ada di riwayat
+# repositori selamanya dan ikut tersalin ke setiap klon.
+/database/data sdm.xlsx
+/database/*.xlsx
+
 .env.backup
 .env.production
 .phpactor.json

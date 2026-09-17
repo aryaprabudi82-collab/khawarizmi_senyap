@@ -213,12 +213,13 @@
         @endcanany
 
         @canany(['tarif_ralan', 'pasien', 'ruang_ok', 'setup_pjlab'])
-          <li class="nav-item dropdown {{ request()->routeIs(['master.*', 'pasien.*']) ? 'active' : '' }}">
+          <li class="nav-item dropdown {{ request()->routeIs(['master.*', 'pasien.*', 'pegawai.*']) ? 'active' : '' }}">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Data Master</a>
             <div class="dropdown-menu">
               @can('tarif_ralan')
                 <a class="dropdown-item" href="{{ route('master.index') }}">Layanan &amp; Tarif</a>
                 <a class="dropdown-item" href="{{ route('master.organisasi') }}">Unit &amp; Praktisi</a>
+                <a class="dropdown-item" href="{{ route('pegawai.index') }}">Data Pegawai</a>
               @endcan
               @can('ruang_ok')
                 <a class="dropdown-item" href="{{ route('master.ruang-operasi') }}">Ruang Operasi</a>

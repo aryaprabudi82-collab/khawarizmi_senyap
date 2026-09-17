@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Organization\Http\Controllers\MasterDataController;
+use App\Modules\Organization\Http\Controllers\StaffDirectoryController;
 use Illuminate\Support\Facades\Route;
 
 // Satu gerbang dengan konteks catalog (tarif_ralan) - lihat catatan di
@@ -42,4 +43,29 @@ Route::middleware(['web', 'auth', 'can:ruang_ok'])->prefix('master')->name('mast
     Route::get('/ruang-operasi', [MasterDataController::class, 'operatingRooms'])->name('ruang-operasi');
     Route::post('/ruang-operasi', [MasterDataController::class, 'storeOperatingRoom'])->name('ruang-operasi.simpan');
     Route::post('/ruang-operasi/{ruang}', [MasterDataController::class, 'updateOperatingRoom'])->name('ruang-operasi.perbarui');
+});
+
+/*
+ * Daftar pegawai & tenaga kesehatan (layar baca).
+ *
+ * TERPISAH DARI master.organisasi yang mengelola unit, praktisi, dan jadwal
+ * sekaligus. Layar ini menjawab satu pertanyaan yang jauh lebih sering
+ * ditanyakan — "siapa saja yang bekerja di sini, di unit mana, sebagai apa" —
+ * dan menjawabnya atas 1.524 baris, yang menuntut pencarian serta paginasi
+ * alih-alih satu tabel panjang.
+ *
+ * Gerbangnya `tarif_ralan`, sama dengan master organisasi — daftar ketenagaan
+ * adalah data master, dan yang mengelolanya admin data master.
+ *
+ * BUKAN `dokter` meski kode Khanza itu terdengar paling cocok: permission
+ * tersebut ada di katalog tapi tidak diberikan ke satu peran pun, sehingga
+ * layarnya tidak akan bisa dibuka siapa pun. Gerbang yang benar adalah yang
+ * sungguh dimiliki seseorang, bukan yang paling tepat namanya.
+ *
+ * BUKAN PULA `pegawai_user`: itu menaungi kepegawaian dan penggajian yang
+ * memuat data jauh lebih sensitif daripada daftar nama dan unit kerja.
+ */
+Route::middleware(['web', 'auth', 'can:tarif_ralan'])->group(function () {
+    Route::get('/pegawai', [StaffDirectoryController::class, 'index'])->name('pegawai.index');
+    Route::post('/pegawai/{pegawai}', [StaffDirectoryController::class, 'update'])->name('pegawai.perbarui');
 });
