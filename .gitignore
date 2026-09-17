@@ -18,6 +18,13 @@
 /database/data sdm.xlsx
 /database/*.xlsx
 
+# Hasil ekspor data untuk dipindahkan ke server lain. Isinya persis sama
+# sensitifnya dengan dua baris di atas: nama, NIK, tanggal lahir, alamat,
+# dan telepon ratusan ribu pasien, dalam bentuk INSERT yang siap dijalankan.
+/ekspor-migrasi
+/scripts/ekspor-migrasi
+*.dump
+
 .env.backup
 .env.production
 .phpactor.json
